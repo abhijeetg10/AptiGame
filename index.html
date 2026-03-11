@@ -607,10 +607,19 @@
 
                 querySnapshot.forEach((doc) => {
                     const docData = doc.data();
+                    
+                    // Handle old string formats ("16 / 18") or new numeric formats
+                    let displayScore = "0";
+                    if (typeof docData.score === "number") {
+                        displayScore = `${docData.score} / ${docData.totalLevels || 18}`;
+                    } else if (typeof docData.score === "string") {
+                        displayScore = docData.score;
+                    }
+
                     data.push({
                         rank: rankCounter++, 
                         name: docData.name || "Unknown",
-                        score: docData.score || "0",
+                        score: displayScore,
                     });
                 });
 

@@ -497,7 +497,8 @@ async function endModule(customTitle) {
             // Push Score to "grid" Collection
             const scoreData = {
                 name: playerName,
-                score: `${correctAnswers} / ${LEVELS_PER_MODULE}`,
+                score: correctAnswers, // Changed to Number for Firestore Sorting
+                totalLevels: LEVELS_PER_MODULE,
                 timestamp: new Date()
             };
 
