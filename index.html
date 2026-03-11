@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AptiGame - Gaming Aptitude Practice</title>
+    <meta name="description" content="Practice gamified aptitude tests for top tech companies like Capgemini and Cognizant. Boost your logic, speed, and spatial skills.">
+    <meta name="keywords" content="aptitude test, gamified aptitude, Capgemini, Cognizant, practice, logic puzzles, job preparation, hiring assessments , atlas copco , gamified apti practice">
+    <meta name="author" content="Abhijeet Ravindra Gaikwad">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="AptiGame - Gaming Aptitude Practice">
+    <meta property="og:description" content="Master the interactive logic challenges used by top MNCs and play your way to an offer letter.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://abhijeetg10.github.io/portfolio/">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon"></div>
+                <span>AptiGame</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#" class="active">Home</a></li>
+                <li><a href="#challenges">Challenges</a></li>
+                <li><a href="#companies">Companies</a></li>
+                <li><a href="#faq">FAQ</a></li>
+            </ul>
+            <a href="#" class="btn btn-primary" id="nav-login-btn">LOG IN</a>
+            <div id="nav-user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                <!-- Fallback Initial Avatar -->
+                <div id="nav-user-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem;"></div>
+                <span id="nav-user-name" style="font-weight: 600; font-size: 0.95rem;"></span>
+                <button id="nav-logout-btn" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.85rem; margin-left: 0.5rem; text-decoration: underline;">Logout</button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Load Auth System -->
+    <script type="module" src="auth.js"></script>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content">
+            <span class="badge">AptiGame Prep</span>
+            <h1>Clear Your<br><span class="highlight">Aptitude Tests</span></h1>
+            <p>Master the interactive logic challenges used by top MNCs. Stop reading boring prep books and start
+                playing your way to an offer letter.</p>
+
+            <div class="stats">
+                <div class="avatars">
+                    <div class="avatar" style="background-color: #E2E8F0;"></div>
+                    <div class="avatar" style="background-color: #CBD5E1;"></div>
+                    <div class="avatar" style="background-color: #94A3B8;"></div>
+                </div>
+                <p>Join over <strong>10k+</strong> students</p>
+            </div>
+        </div>
+
+        <div class="hero-visuals">
+            <!-- Placeholders for the circular images shown in the reference -->
+            <div class="circle circle-1" aria-label="Student preparing for aptitude test"
+                style="background-image: url('hero_student_1_1773160823080.png'); background-size: cover; background-position: center;">
+            </div>
+            <div class="circle circle-2" aria-label="Student succeeding in logic puzzles"
+                style="background-image: url('hero_student_2_1773160921455.png'); background-size: cover; background-position: center;">
+            </div>
+            <div class="circle circle-3" aria-label="Student practicing gamified assessments"
+                style="background-image: url('hero_student_3_1773160944783.png'); background-size: cover; background-position: center;">
+            </div>
+            <div class="circle circle-4" aria-label="Portrait of Abhijeet Gaikwad"
+                style="background-image: url('Abhi.jpg'); background-size: cover; background-position: center;">
+            </div>
+        </div>
+    </header>
+
+    <!-- Why Choose Game-Based Prep Section -->
+    <section class="benefits">
+        <div class="benefits-header">
+            <h2>Ditch the Textbooks. Play Your Way to an Offer Letter.</h2>
+            <p>Traditional mock tests are boring and passive. AptiGame transforms intense aptitude screening into
+                addictive logic puzzles that train your brain to think faster under real test conditions.</p>
+        </div>
+        <div class="benefits-grid">
+            <div class="benefit-card">
+                <div class="benefit-icon">⚡</div>
+                <h3>Beat the Clock, Beat the Pressure</h3>
+                <p>Our timed modules simulate the high-stress environment of real company assessments, teaching you to
+                    stay calm and execute under pressure.</p>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon">🧠</div>
+                <h3>Sharpen Split-Second Decisions</h3>
+                <p>Train your brain to recognize patterns and make rapid, accurate deductive choices without
+                    second-guessing yourself.</p>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon">🎮</div>
+                <h3>Learn Without the Burnout</h3>
+                <p>Stay motivated for hours. Replace the fatigue of endless multiple-choice questions with the dopamine
+                    hit of leveling up and clearing modules.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Challenges Section -->
+    <section id="challenges" class="challenges">
+        <h2>Choose Your Challenge</h2>
+        <div class="cards-grid">
+            <!-- Card 1: Motion Challenge -->
+            <div class="card">
+                <a href="motion.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
+                    <div class="card-img"
+                        style="background-image: url('motion challenge.png'); background-size: cover; background-position: center;">
+                        <span class="card-badge new">New</span>
+                    </div>
+                    <div class="card-content">
+                        <h3>Motion Challenge</h3>
+                        <p>Slide hurdles to clear a path and drag the ball into the hole. Watch out for sticky locked
+                            traps!</p>
+                        <div class="card-meta">
+                            <span class="difficulty easy">Medium</span>
+                            <span class="time">6 mins</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Card 2: Sudoku -->
+            <div class="card">
+                <a href="sudoku.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
+                    <div class="card-img"
+                        style="background-image: url('sudoku.png'); background-size: cover; background-position: center;">
+                        <span class="card-badge hot">Hot</span>
+                    </div>
+                    <div class="card-content">
+                        <h3>Sudoku</h3>
+                        <p>Complete the Picture aptitude challenge scaling from 3x3 to 8x8 grids. Find the missing shape
+                            based on strict Sudoku logic without solving the whole board.</p>
+                        <div class="card-meta">
+                            <span class="difficulty hard">Hard</span>
+                            <span class="time">6 mins</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Card 3: Inductive Challenge -->
+            <a href="inductive.html" class="game-link" style="text-decoration: none; color: inherit; display: block;">
+                <div class="card">
+                    <div class="card-img"
+                        style="background-image: url('inductive challenge.png'); background-size: cover; background-position: center;">
+                    </div>
+                    <div class="card-content">
+                        <h3>Inductive Challenge</h3>
+                        <p>Identify the hidden rules and patterns in a sequence of shapes and predict the next logical
+                            step.
+                        </p>
+                        <div class="card-meta">
+                            <span class="difficulty medium">Medium</span>
+                            <span class="time">6 mins</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card 4: Grid Challenge -->
+            <a href="grid.html" class="game-link" style="text-decoration: none; color: inherit; display: block;">
+                <div class="card">
+                    <div class="card-img"
+                        style="background-image: url('grid challenge.png'); background-size: cover; background-position: center;">
+                    </div>
+                    <div class="card-content">
+                        <h3>Grid Challenge</h3>
+                        <p>Memorize the location of dots on a grid and reproduce them accurately after a distraction
+                            task.
+                        </p>
+                        <div class="card-meta">
+                            <span class="difficulty hard">Hard</span>
+                            <span class="time">6 mins</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card 5: Switch Challenge -->
+            <div class="card">
+                <div class="card-img"
+                    style="background-image: url('swith challenge.png'); background-size: cover; background-position: center;">
+                    <span class="card-badge coming-soon">Coming Soon</span>
+                </div>
+                <div class="card-content">
+                    <h3>Switch Challenge</h3>
+                    <p>Follow complex instructions to map inputs to outputs through a series of logical operators.</p>
+                    <div class="card-meta">
+                        <span class="difficulty hard">Hard</span>
+                        <span class="time">12 mins</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 6: Tab Based DI -->
+            <div class="card">
+                <div class="card-img"
+                    style="background-color: #3b82f6; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-chart-pie" style="font-size: 3rem; color: rgba(255,255,255,0.8);"></i>
+                    <span class="card-badge coming-soon">Coming Soon</span>
+                </div>
+                <div class="card-content">
+                    <h3>Tab Based DI</h3>
+                    <p>Analyze multi-tabbed data tables and charts to solve complex quantitative aptitude problems.</p>
+                    <div class="card-meta">
+                        <span class="difficulty hard">Hard</span>
+                        <span class="time">15 mins</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 7: Tab Based RC -->
+            <div class="card">
+                <div class="card-img"
+                    style="background-color: #8b5cf6; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-book-reader" style="font-size: 3rem; color: rgba(255,255,255,0.8);"></i>
+                    <span class="card-badge coming-soon">Coming Soon</span>
+                </div>
+                <div class="card-content">
+                    <h3>Tab Based RC</h3>
+                    <p>Navigate through multiple document tabs to synthesize information and answer reading
+                        comprehension questions.</p>
+                    <div class="card-meta">
+                        <span class="difficulty medium">Medium</span>
+                        <span class="time">10 mins</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Leaderboard Section -->
+    <section id="leaderboard" class="leaderboard">
+        <div class="leaderboard-header">
+            <h2>Hall of Fame</h2>
+            <p>See who's dominating the aptitude challenges. Are you ready to climb the ranks?</p>
+        </div>
+        
+        <div class="leaderboard-container">
+            <!-- Tabs -->
+            <div class="leaderboard-tabs">
+                <button class="tab-btn active" data-board="all">Overall</button>
+                <button class="tab-btn" data-board="motion">Motion</button>
+                <button class="tab-btn" data-board="sudoku">Sudoku</button>
+                <button class="tab-btn" data-board="inductive">Inductive</button>
+                <button class="tab-btn" data-board="grid">Grid</button>
+            </div>
+            
+            <!-- Hall of Fame Content -->
+            <div class="hall-of-fame-content">
+                <!-- Top 3 Podium -->
+                <div class="podium-container" id="podium-container">
+                    <!-- Populated by JS -->
+                </div>
+                
+                <!-- Rank 4+ List -->
+                <div class="leaderboard-list" id="leaderboard-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works">
+        <h2>How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-icon">🎯</div>
+                <h4>Choose a Game</h4>
+                <p>Select from our library of company-specific aptitude games.</p>
+            </div>
+            <div class="step">
+                <div class="step-icon">🧠</div>
+                <h4>Practice & Learn</h4>
+                <p>Play the games to improve your logic, speed, and spatial skills.</p>
+            </div>
+            <div class="step">
+                <div class="step-icon">📈</div>
+                <h4>Track Progress</h4>
+                <p>Monitor your scores and see how you rank against others.</p>
+            </div>
+            <div class="step">
+                <div class="step-icon">💼</div>
+                <h4>Get Hired</h4>
+                <p>Ace the real assessments and land your dream job.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials">
+        <h2>From Practice to Placement</h2>
+        <p class="testimonials-subtitle">Hear from students who crushed their aptitude rounds.</p>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="quote-icon">"</div>
+                <p class="quote-text">I was struggling to find practice platforms for the new interactive assessment
+                    formats. AptiGame's Inductive and Motion challenges gave me exactly the kind of gamified practice I
+                    needed to feel comfortable and fast during the real thing.</p>
+                <div class="author-info">
+                    <strong>Priya S.</strong>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="quote-icon">"</div>
+                <p class="quote-text">Traditional prep books just weren't cutting it for the modern test structures.
+                    Pushing through the 'Challenging' modules on AptiGame actually made learning fun. It built my speed
+                    and accuracy way better than any standard mock test ever did.</p>
+                <div class="author-info">
+                    <strong>Rahul M.</strong>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="quote-icon">"</div>
+                <p class="quote-text">The spatial reasoning games are excellent. The visual puzzles on AptiGame are
+                    incredible practice for anyone preparing to face gamified aptitude rounds. It gave me the exact
+                    mental warmup I needed before my actual assessment day.</p>
+                <div class="author-info">
+                    <strong>Anjali K.</strong>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq">
+        <h2>Frequently Asked Questions</h2>
+        <p class="faq-subtitle">Everything you need to know about the platform and the practice games.<br><br>
+            <strong>Note:</strong> These challenges are purely for practice. They are not the exact questions asked in assessments by companies like Capgemini, Cognizant, or Atlas Copco.
+        </p>
+
+        <div class="faq-list">
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h4>Are these the exact games asked in the interviews?</h4>
+                    <span class="toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>No, these are strictly for practice. We do not provide the exact questions asked in real assessments (such as Capgemini, Cognizant, or Atlas Copco). Our games simply simulate the test formats to give you the best practice experience.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h4>Is it free to use?</h4>
+                    <span class="toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>Yes! All of our simulated challenges and games are completely free to use. Just click on a challenge and start practicing.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h4>Can I practice on my mobile phone?</h4>
+                    <span class="toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>Absolutely. Our platform is fully responsive and optimized for mobile devices, allowing you to practice anytime, anywhere on your smartphone or tablet.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Feedback Section -->
+    <section id="feedback" class="feedback">
+        <h2>We Value Your Feedback</h2>
+        <p class="feedback-subtitle">Help us improve AptiGame by sharing your thoughts or reporting issues.</p>
+        
+        <div class="feedback-container">
+            <form class="feedback-form" action="#" method="POST" onsubmit="event.preventDefault(); alert('Thank you for your feedback!'); this.reset();">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="john@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="type">Feedback Type</label>
+                    <select id="type" name="type" required>
+                        <option value="" disabled selected>Select an option</option>
+                        <option value="suggestion">Suggestion</option>
+                        <option value="bug">Bug Report</option>
+                        <option value="question">Question</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" rows="5" placeholder="Tell us what you think..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary submit-btn">Submit Feedback</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="abhi-footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <h3>Abhijeet Ravindra Gaikwad</h3>
+                <p>Full-Stack Developer. <br>Building the future, one line of code at a time.</p>
+                <div class="social-links">
+                    <a href="https://linkedin.com/in/argaikwad24" target="_blank" title="LinkedIn"><i
+                            class="fab fa-linkedin-in"></i></a>
+                    <a href="https://github.com/abhijeetg10" target="_blank" title="GitHub"><i
+                            class="fab fa-github"></i></a>
+                    <a href="https://abhijeetg10.github.io/portfolio/" target="_blank" title="Portfolio"><i
+                            class="fas fa-globe"></i></a>
+                    <a href="mailto:argaikwad24@gmail.com" title="Email"><i class="fas fa-envelope"></i></a>
+                </div>
+            </div>
+            <div class="footer-contact">
+                <h4 style="color:white; margin-bottom: 20px;">Contact Info</h4>
+                <div class="contact-item"><i class="fas fa-map-marker-alt" style="width: 20px; text-align: center;"></i>
+                    Murum, Dharashiv – 413605</div>
+                <div class="contact-item"><i class="fas fa-phone-alt" style="width: 20px; text-align: center;"></i> +91
+                    7745877951</div>
+                <div class="contact-item"><i class="fas fa-envelope" style="width: 20px; text-align: center;"></i>
+                    argaikwad24@gmail.com</div>
+            </div>
+        </div>
+        <hr style="border-color: rgba(255,255,255,0.1); margin-bottom: 20px;">
+        <p style="text-align: center; font-size: 0.85rem; opacity: 0.5; color: #a0a0a0;">&copy; 2026 Abhijeet Ravindra Gaikwad.
+            All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        // Simple script for FAQ accordion
+        const faqItems = document.querySelectorAll('.faq-item');
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            question.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+
+                // Close all
+                faqItems.forEach(faq => {
+                    faq.classList.remove('active');
+                    if (faq.querySelector('.faq-answer')) {
+                        faq.querySelector('.faq-answer').style.maxHeight = null;
+                        faq.querySelector('.toggle').textContent = '+';
+                    }
+                });
+
+                // Open clicked if it wasn't active
+                if (!isActive && item.querySelector('.faq-answer')) {
+                    item.classList.add('active');
+                    const answer = item.querySelector('.faq-answer');
+                    answer.style.maxHeight = answer.scrollHeight + "px";
+                    item.querySelector('.toggle').textContent = '-';
+                }
+            });
+        });
+
+        // --- Hall of Fame Rendering Logic ---
+        const podiumContainer = document.getElementById('podium-container');
+        const listContainer = document.getElementById('leaderboard-list');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+
+        /**
+         * Renders the Hall of Fame UI.
+         * @param {string} category - The active category (all, motion, etc.)
+         * @param {Array} data - Array of user objects {rank, name, score, avatarUrl (optional)}
+         */
+        window.renderLeaderboard = function(category, data = []) {
+            if (!podiumContainer || !listContainer) return;
+            
+            // Clear current containers
+            podiumContainer.innerHTML = '';
+            listContainer.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                listContainer.innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-muted);">Fetching rankings...</p>';
+                return;
+            }
+
+            // 1. Render Podium (Top 3)
+            const top3 = data.slice(0, 3);
+            
+            // Reorder for visualization: 2nd, 1st, 3rd
+            const podiumOrder = [];
+            if (top3[1]) podiumOrder.push(top3[1]); // 2nd Place (Left)
+            if (top3[0]) podiumOrder.push(top3[0]); // 1st Place (Center)
+            if (top3[2]) podiumOrder.push(top3[2]); // 3rd Place (Right)
+
+            podiumOrder.forEach(entry => {
+                const initial = entry.name.charAt(0).toUpperCase();
+                const slot = document.createElement('div');
+                slot.className = `podium-slot rank-${entry.rank}`;
+                slot.innerHTML = `
+                    <div class="podium-rank-badge">${entry.rank}</div>
+                    <div class="podium-avatar">${initial}</div>
+                    <div class="podium-name">${entry.name}</div>
+                    <div class="podium-score">${entry.score}</div>
+                `;
+                podiumContainer.appendChild(slot);
+            });
+
+            // 2. Render List (Ranks 4 to 10)
+            const listData = data.slice(3, 10);
+            
+            listData.forEach(entry => {
+                const initial = entry.name.charAt(0).toUpperCase();
+                const row = document.createElement('div');
+                row.className = 'list-row';
+                row.innerHTML = `
+                    <div class="list-rank">${entry.rank}</div>
+                    <div class="list-avatar">${initial}</div>
+                    <div class="list-info">
+                        <div class="list-name">${entry.name}</div>
+                        <div class="list-score">${entry.score}</div>
+                    </div>
+                `;
+                listContainer.appendChild(row);
+            });
+
+            // 3. Render Current User Pinned Row (if outside top 10)
+            const currentUserName = window.activeUserName || null;
+            const userEntry = currentUserName ? data.find(entry => entry.name === currentUserName) : null;
+            
+            if (userEntry && userEntry.rank > 10) {
+                const initial = userEntry.name.charAt(0).toUpperCase();
+                const row = document.createElement('div');
+                row.className = 'list-row current-user-row';
+                row.innerHTML = `
+                    <div class="list-rank">${userEntry.rank}</div>
+                    <div class="list-avatar">${initial}</div>
+                    <div class="list-info">
+                        <div class="list-name">${userEntry.name} (You)</div>
+                        <div class="list-score">${userEntry.score}</div>
+                    </div>
+                `;
+                listContainer.appendChild(row);
+            }
+        }
+
+        // Example trigger (To be replaced by Firebase listener)
+        // window.onload = () => { fetchFromFirebase('all').then(data => renderLeaderboard('all', data)); }
+
+        // Tab click events (To be replaced to trigger Firebase fetches)
+        if(podiumContainer) {
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const category = btn.getAttribute('data-board');
+                    
+                    listContainer.innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-muted);">Loading...</p>';
+                    podiumContainer.innerHTML = '';
+                    
+                    if (window.fetchFromFirebase) {
+                        window.fetchFromFirebase(category).then(data => window.renderLeaderboard(category, data));
+                    } else {
+                        window.renderLeaderboard(category, []); 
+                    }
+                });
+            });
+            
+            // Note: The initial render is now handled in the Firebase script block below.
+        }
+    </script>
+
+    <!-- Firebase SDK & Logic (Add this to connect to your database) -->
+    <script type="module">
+        import { collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+        import { db } from "./firebase-config.js";
+        import { getCurrentUser } from "./auth.js";
+
+        // Create a global helper for the renderer to check the active user name
+        window.activeUserName = null;
+        import { auth } from "./firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+        onAuthStateChanged(auth, (user) => {
+            window.activeUserName = user && user.displayName ? user.displayName : null;
+            // Optionally, we could re-render the active tab here so their pinned row appears instantly upon login
+        });
+
+        // 4. Create the Fetch Function
+        window.fetchFromFirebase = async function(category) {
+            try {
+                const q = query(
+                    collection(db, "leaderboards", category, "scores"), 
+                    orderBy("score", "desc"), 
+                    limit(15) 
+                );
+                
+                const querySnapshot = await getDocs(q);
+                const data = [];
+                let rankCounter = 1;
+
+                querySnapshot.forEach((doc) => {
+                    const docData = doc.data();
+                    data.push({
+                        rank: rankCounter++, 
+                        name: docData.name || "Unknown",
+                        score: docData.score || "0",
+                    });
+                });
+
+                return data;
+
+            } catch (error) {
+                console.error("Error fetching leaderboard data: ", error);
+                return [];
+            }
+        };
+        
+        // 5. Trigger Initial Data Load
+        window.fetchFromFirebase('all').then(data => {
+            if(window.renderLeaderboard) {
+                window.renderLeaderboard('all', data);
+            }
+        });
+    </script>
+</body>
+
+</html>

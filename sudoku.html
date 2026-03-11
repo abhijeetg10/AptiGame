@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AptiGame - Sudoku Challenge</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="game-body">
+
+    <!-- Navbar -->
+    <nav class="navbar" style="position: relative;">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon"></div>
+                <span>AptiGame</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active">Home</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Game Header (Hidden initially) -->
+    <header class="game-header hidden" id="game-header">
+        <a href="#" class="back-link" id="back-to-modules-btn">&larr; Back to Modules</a>
+
+        <div class="game-stats-bar">
+            <div class="stat-box">
+                <span class="stat-label">Module</span>
+                <span class="stat-value" id="module-display">1 / 5</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Level</span>
+                <span class="stat-value" id="level-display">1 / 18</span>
+            </div>
+            <div class="stat-box timer-box">
+                <span class="stat-label">Time Remaining</span>
+                <span class="stat-value timer" id="timer-display">06:00</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Module Selection Screen -->
+    <div id="module-selection" class="module-selection">
+        <div class="module-container">
+            <h2>Select a Module</h2>
+            <p>Each module contains 18 scaling levels of deductive Sudoku logic.</p>
+            <div class="module-grid">
+                <div class="card module-card" data-module="1" style="cursor: pointer; text-align: left;">
+                    <div class="card-img"
+                        style="height: 140px; background: linear-gradient(135deg, #3b82f6, #60a5fa); display: flex; align-items: center; justify-content: center;">
+                        <span style="font-size: 4rem; font-weight: 800; color: white; opacity: 0.9;">1</span>
+                    </div>
+                    <div class="card-content">
+                        <h3>Module 1</h3>
+                        <p>Start your journey</p>
+                    </div>
+                </div>
+                <div class="card module-card" data-module="2" style="cursor: pointer; text-align: left;">
+                    <div class="card-img"
+                        style="height: 140px; background: linear-gradient(135deg, #10b981, #34d399); display: flex; align-items: center; justify-content: center;">
+                        <span style="font-size: 4rem; font-weight: 800; color: white; opacity: 0.9;">2</span>
+                    </div>
+                    <div class="card-content">
+                        <h3>Module 2</h3>
+                        <p>Intermediate logic</p>
+                    </div>
+                </div>
+                <div class="card module-card" data-module="3" style="cursor: pointer; text-align: left;">
+                    <div class="card-img"
+                        style="height: 140px; background: linear-gradient(135deg, #f59e0b, #fbbf24); display: flex; align-items: center; justify-content: center;">
+                        <span style="font-size: 4rem; font-weight: 800; color: white; opacity: 0.9;">3</span>
+                    </div>
+                    <div class="card-content">
+                        <h3>Module 3</h3>
+                        <p>Advanced deductions</p>
+                    </div>
+                </div>
+                <div class="card module-card" data-module="4" style="cursor: pointer; text-align: left;">
+                    <div class="card-img"
+                        style="height: 140px; background: linear-gradient(135deg, #8b5cf6, #a78bfa); display: flex; align-items: center; justify-content: center;">
+                        <span style="font-size: 4rem; font-weight: 800; color: white; opacity: 0.9;">4</span>
+                    </div>
+                    <div class="card-content">
+                        <h3>Module 4</h3>
+                        <p>Expert spatial patterns</p>
+                    </div>
+                </div>
+                <div class="card module-card" data-module="5" style="cursor: pointer; text-align: left;">
+                    <div class="card-img"
+                        style="height: 140px; background: linear-gradient(135deg, #ef4444, #f87171); display: flex; align-items: center; justify-content: center;">
+                        <span style="font-size: 4rem; font-weight: 800; color: white; opacity: 0.9;">5</span>
+                    </div>
+                    <div class="card-content">
+                        <h3>Module 5</h3>
+                        <p>The Ultimate Challenge</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game Area (Hidden initially) -->
+    <main class="game-container hidden" id="game-container">
+        <div class="game-instructions">
+            <h2>Complete the Picture</h2>
+            <p>Identify the missing shape in the grid. Remember, no shape repeat in any row or column.</p>
+        </div>
+
+        <!-- The dynamic grid -->
+        <div id="sudoku-grid" class="sudoku-grid">
+            <!-- Driven by JS -->
+        </div>
+
+        <!-- Options Container -->
+        <div class="options-container" id="options-container">
+            <!-- Driven by JS -->
+        </div>
+    </main>
+
+    <!-- Results Modal -->
+    <div id="results-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 id="modal-title">Module Complete</h2>
+            <div class="score-display">
+                <div class="score-circle">
+                    <span id="score-text">0 / 18</span>
+                </div>
+            </div>
+            <div class="score-stats">
+                <p>Correct: <span id="correct-count" class="text-success">0</span></p>
+                <p>Wrong: <span id="wrong-count" class="text-error">0</span></p>
+            </div>
+
+            <button id="next-module-btn" class="btn btn-primary btn-large">Start Next Module</button>
+            <a href="index.html" class="btn btn-outline" style="margin-top: 1rem; display: block;">Return Home</a>
+        </div>
+    </div>
+
+    <script src="sudoku.js"></script>
+</body>
+
+</html>
