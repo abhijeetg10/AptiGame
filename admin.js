@@ -5,6 +5,7 @@ import { db, auth } from "./firebase-config.js";
 // --- SECURITY PROTOCOL ---
 // Replace this exactly with the user's provided email.
 const ADMIN_EMAIL = "argaikwad24@gmail.com"; 
+let allUsersData = []; // Store fetched users for CSV export
 
 const elOverlay = document.getElementById("auth-overlay");
 const elDashboard = document.getElementById("admin-dashboard");
@@ -88,6 +89,7 @@ async function fetchOverviewAndUsers() {
         
         const tbody = document.getElementById("table-body-users");
         tbody.innerHTML = "";
+        allUsersData = []; // Reset stored users data
         
         let userCount = 0;
         let activityHTML = "";
@@ -101,6 +103,14 @@ async function fetchOverviewAndUsers() {
             if(data.lastLogin && data.lastLogin.toDate) {
                 lastLoginStr = data.lastLogin.toDate().toLocaleString();
             }
+
+            // Save to global array for CSV export
+            allUsersData.push({
+                name: data.name || "Unknown",
+                email: data.email || "No Email",
+                lastLogin: lastLoginStr,
+                id: doc.id
+            });
 
             // Build Table Row
             const tr = document.createElement("tr");
@@ -246,3 +256,33 @@ async function fetchFeedback() {
         document.getElementById("table-body-feedback").innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Requires Firebase Index. Check console.</td></tr>`;
     }
 }
+
+// --- CSV EXPORT LOGIC ---
+document.getElementById("download-users-csv").addEventListener("click", () => {
+    if (allUsersData.length === 0) {
+        alert("No users data available to download.");
+        return;
+    }
+
+    let csvContent = "Name,Email,Last Login,User ID\n";
+    allUsersData.forEach(user => {
+        // Escape quotes and commas inside text
+        const safeName = `"${user.name.replace(/"/g, '""')}"`;
+        const safeEmail = `"${user.email.replace(/"/g, '""')}"`;
+        const safeLogin = `"${user.lastLogin.replace(/"/g, '""')}"`;
+        const safeId = `"${user.id.replace(/"/g, '""')}"`;
+
+        csvContent += `${safeName},${safeEmail},${safeLogin},${safeId}\n`;
+    });
+
+    // Create a Blob and trigger download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "aptigame_users_export.csv");
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});

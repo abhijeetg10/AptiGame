@@ -55,9 +55,10 @@ body.admin-body {
 
 .sidebar-brand {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.25rem;
-    font-weight: bold;
+    font-size: 1.5rem;
+    font-weight: 800;
     color: var(--text);
+    text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -126,11 +127,12 @@ body.admin-body {
     align-items: center;
     padding: 2rem 3rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    background-color: rgba(15, 23, 42, 0.8);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8));
     backdrop-filter: blur(10px);
     position: sticky;
     top: 0;
     z-index: 10;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
 }
 
 .admin-header h1 {
@@ -161,13 +163,21 @@ body.admin-body {
 }
 
 .stat-card {
-    background-color: var(--surface);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 16px;
     padding: 1.5rem;
     display: flex;
     align-items: center;
     gap: 1.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2), 0 0 15px rgba(99, 102, 241, 0.4);
+    border-color: var(--primary);
 }
 
 .stat-icon {
@@ -192,6 +202,10 @@ body.admin-body {
 .data-table-card {
     padding: 0;
     overflow: hidden;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .table-header {

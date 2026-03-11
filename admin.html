@@ -92,11 +92,16 @@
                 <!-- PANEL: USERS -->
                 <section id="panel-users" class="admin-panel hidden">
                     <div class="card data-table-card">
-                        <div class="table-header">
+                        <div class="table-header" style="justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
                             <h2>Registered Users</h2>
-                            <div class="table-search">
-                                <i class="fas fa-search"></i>
-                                <input type="text" id="search-users" placeholder="Search by name or email...">
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <button id="download-users-csv" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                    <i class="fas fa-download"></i> Download CSV
+                                </button>
+                                <div class="table-search">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="search-users" placeholder="Search by name or email...">
+                                </div>
                             </div>
                         </div>
                         <div class="table-container">
