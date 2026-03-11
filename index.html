@@ -406,7 +406,7 @@
                     <label for="message">Message</label>
                     <textarea id="message" name="message" rows="5" placeholder="Tell us what you think..." required></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary submit-btn">Submit Feedback</button>
+                <button type="button" id="feedback-submit-btn" class="btn btn-primary submit-btn">Submit Feedback</button>
             </form>
         </div>
     </section>
@@ -643,23 +643,34 @@
             }
         });
 
-        // 6. Handle Feedback Form Submission
+        // 6. Handle Feedback Form Submission via Button Click
+        const feedbackBtn = document.getElementById("feedback-submit-btn");
         const feedbackForm = document.getElementById("feedback-form");
-        if (feedbackForm) {
-            feedbackForm.addEventListener("submit", async (e) => {
-                e.preventDefault();
+        
+        if (feedbackBtn && feedbackForm) {
+            feedbackBtn.addEventListener("click", async () => {
                 
-                const submitBtn = feedbackForm.querySelector("button[type='submit']");
-                const originalText = submitBtn.innerText;
-                submitBtn.innerText = "Sending...";
-                submitBtn.disabled = true;
+                // Manual validation
+                const nameNode = document.getElementById("name");
+                const emailNode = document.getElementById("email");
+                const typeNode = document.getElementById("type");
+                const msgNode = document.getElementById("message");
+                
+                if (!nameNode.value || !emailNode.value || !typeNode.value || !msgNode.value) {
+                    alert("Please fill out all fields before submitting.");
+                    return;
+                }
+
+                const originalText = feedbackBtn.innerText;
+                feedbackBtn.innerText = "Sending...";
+                feedbackBtn.disabled = true;
 
                 try {
                     const feedbackData = {
-                        name: document.getElementById("name").value,
-                        email: document.getElementById("email").value,
-                        type: document.getElementById("type").value,
-                        message: document.getElementById("message").value,
+                        name: nameNode.value,
+                        email: emailNode.value,
+                        type: typeNode.value,
+                        message: msgNode.value,
                         timestamp: new Date()
                     };
 
@@ -669,10 +680,10 @@
                     feedbackForm.reset();
                 } catch (error) {
                     console.error("Error submitting feedback: ", error);
-                    alert("Sorry, there was an issue submitting your feedback. Please try again later.");
+                    alert("Sorry, there was an issue submitting your feedback.");
                 } finally {
-                    submitBtn.innerText = originalText;
-                    submitBtn.disabled = false;
+                    feedbackBtn.innerText = originalText;
+                    feedbackBtn.disabled = false;
                 }
             });
         }
