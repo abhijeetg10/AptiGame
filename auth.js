@@ -44,7 +44,7 @@ export const loginWithGoogle = async () => {
         const user = result.user;
         
         // Log to Google Sheet
-        if (GOOGLE_SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbx9ZicbMGUyZstVQuzOb-bW6qLRMkaGWyJlb2hMgD8GYbftelV1O2qaLO1UR89ZqQKLUQ/exec") {
+        if (GOOGLE_SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbzqS_oeY7hZKy_4gDOHKgTaA4DgwG28FN6NTp2nWj9ejI2jgdAFOmxA2MkSLyJMRY6Ybw/exec") {
             try {
                 // We use no-cors because Google Scripts block preflight cors requests from browsers
                 await fetch(GOOGLE_SCRIPT_URL, {
