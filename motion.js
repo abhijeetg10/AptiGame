@@ -27,6 +27,7 @@ let currentMoves = 0;
 let timeRemaining = INITIAL_TIME;
 let timerInterval;
 let isTransitioning = false;
+let moduleScores = [];
 
 let gridWidth = 6;
 let gridHeight = 6;
@@ -87,6 +88,7 @@ function startModule(modNum) {
     currentLevel = 1;
     correctAnswers = 0;
     wrongAnswers = 0;
+    moduleScores = [];
     timeRemaining = INITIAL_TIME;
 
     elModuleSelection.classList.add("hidden");
@@ -496,6 +498,10 @@ async function endModule(customTitle, isSkip = false) {
         elShowAnswerBtn.classList.add("hidden");
     }
 
+    if (!isSkip) {
+        moduleScores.push(correctAnswers);
+    }
+
     if (isSkip) {
         elNextBtn.innerText = "Next Level";
         elNextBtn.onclick = () => {
@@ -512,10 +518,12 @@ async function endModule(customTitle, isSkip = false) {
             const activeUser = getCurrentUser();
             const playerName = activeUser && activeUser.displayName ? activeUser.displayName : "Guest Player";
 
+            const averageScore = moduleScores.length > 0 ? Math.round(moduleScores.reduce((a, b) => a + b, 0) / moduleScores.length) : correctAnswers;
+
             const scoreData = {
                 name: playerName,
-                score: correctAnswers, // Stored as Number for sorting
-                totalLevels: LEVELS_PER_MODULE * TOTAL_MODULES,
+                score: averageScore, // Stored as Number for sorting
+                totalLevels: LEVELS_PER_MODULE,
                 timestamp: new Date()
             };
 

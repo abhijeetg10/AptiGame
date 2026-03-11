@@ -23,6 +23,7 @@ let correctAnswers = 0;
 let wrongAnswers = 0;
 let timeRemaining = INITIAL_TIME;
 let timerInterval;
+let moduleScores = [];
 
 let gridDimensions = 3; // Starts at 3x3
 let targetAnswer = "";
@@ -73,6 +74,7 @@ function startModule(modNum) {
     currentLevel = 1;
     correctAnswers = 0;
     wrongAnswers = 0;
+    moduleScores = [];
     timeRemaining = INITIAL_TIME;
 
     // UI swap
@@ -462,6 +464,8 @@ async function endModule(customTitle) {
     elCorrectCount.innerText = correctAnswers;
     elWrongCount.innerText = wrongAnswers;
 
+    moduleScores.push(correctAnswers);
+
     const isGameOver = currentModule >= TOTAL_MODULES || customTitle === "Time's Up!";
 
     if (isGameOver) {
@@ -472,10 +476,12 @@ async function endModule(customTitle) {
             const activeUser = getCurrentUser();
             const playerName = activeUser && activeUser.displayName ? activeUser.displayName : "Guest Player";
 
+            const averageScore = Math.round(moduleScores.reduce((a, b) => a + b, 0) / moduleScores.length);
+
             const scoreData = {
                 name: playerName,
-                score: correctAnswers, // Stored as Number for sorting
-                totalLevels: LEVELS_PER_MODULE * TOTAL_MODULES,
+                score: averageScore, // Stored as Number for sorting
+                totalLevels: LEVELS_PER_MODULE,
                 timestamp: new Date()
             };
 

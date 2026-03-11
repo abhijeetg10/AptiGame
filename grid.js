@@ -23,6 +23,7 @@ let correctAnswers = 0;
 let wrongAnswers = 0;
 let timeRemaining = INITIAL_TIME;
 let timerInterval;
+let moduleScores = [];
 
 // Memory Engine State
 let numDots = 12; // Static number of dots on screen
@@ -87,6 +88,7 @@ function startModule(modNum) {
     currentLevel = 1;
     correctAnswers = 0;
     wrongAnswers = 0;
+    moduleScores = [];
     timeRemaining = INITIAL_TIME;
 
     elModuleSelection.classList.add("hidden");
@@ -485,6 +487,8 @@ async function endModule(customTitle) {
     elCorrectCount.innerText = correctAnswers;
     elWrongCount.innerText = wrongAnswers;
 
+    moduleScores.push(correctAnswers);
+
     const isGameOver = currentModule >= TOTAL_MODULES || customTitle === "Time's Up!";
 
     if (isGameOver) {
@@ -496,11 +500,14 @@ async function endModule(customTitle) {
             const activeUser = getCurrentUser();
             const playerName = activeUser && activeUser.displayName ? activeUser.displayName : "Guest Player";
 
+            // Calculate Average Score across requested modules
+            const averageScore = Math.round(moduleScores.reduce((a, b) => a + b, 0) / moduleScores.length);
+
             // Push Score to "grid" Collection
             const scoreData = {
                 name: playerName,
-                score: correctAnswers, // Changed to Number for Firestore Sorting
-                totalLevels: LEVELS_PER_MODULE * TOTAL_MODULES, // Fixed total levels calculation
+                score: averageScore, // Now stores the averaged module score
+                totalLevels: LEVELS_PER_MODULE, // Reset to per-module base logic
                 timestamp: new Date()
             };
 
