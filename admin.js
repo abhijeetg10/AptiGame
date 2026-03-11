@@ -6,6 +6,8 @@ import { db, auth } from "./firebase-config.js";
 // Replace this exactly with the user's provided email.
 const ADMIN_EMAIL = "argaikwad24@gmail.com"; 
 let allUsersData = []; // Store fetched users for CSV export
+let allLeaderboardData = [];
+let allFeedbackData = [];
 
 const elOverlay = document.getElementById("auth-overlay");
 const elDashboard = document.getElementById("admin-dashboard");
@@ -165,6 +167,7 @@ async function fetchLeaderboardData(gameId) {
         const snapshot = await getDocs(q);
         
         tbody.innerHTML = "";
+        allLeaderboardData = [];
         let rank = 1;
         
         snapshot.forEach(doc => {
@@ -192,12 +195,22 @@ async function fetchLeaderboardData(gameId) {
 
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td><span style="background:var(--pluto-border); padding:0.25rem 0.75rem; border-radius:12px; font-weight:bold; color:var(--pluto-text);">#${rank++}</span></td>
+                <td><span style="background:var(--pluto-border); padding:0.25rem 0.75rem; border-radius:12px; font-weight:bold; color:var(--pluto-text);">#${rank}</span></td>
                 <td><strong>${data.name || "Unknown"}</strong></td>
                 <td style="color:var(--pluto-blue); font-weight:bold;">${displayScore}</td>
                 <td style="color:var(--pluto-text-muted);">${dateStr}</td>
             `;
             tbody.appendChild(tr);
+
+            allLeaderboardData.push({
+                rank: rank,
+                name: data.name || "Unknown",
+                score: displayScore,
+                date: dateStr,
+                game: gameId
+            });
+
+            rank++;
         });
 
         if (rank === 1) {
@@ -218,6 +231,7 @@ async function fetchFeedback() {
         
         const tbody = document.getElementById("table-body-feedback");
         tbody.innerHTML = "";
+        allFeedbackData = [];
         
         let count = 0;
 
@@ -249,6 +263,14 @@ async function fetchFeedback() {
                 <td style="max-width: 300px;">${data.message || "(No message provided)"}</td>
             `;
             tbody.appendChild(tr);
+
+            allFeedbackData.push({
+                date: dateStr,
+                sender: data.name || "Anonymous",
+                email: data.email || "No email",
+                category: data.type || "other",
+                message: data.message || ""
+            });
         });
 
         if (count === 0) {
@@ -288,6 +310,62 @@ document.getElementById("download-users-csv").addEventListener("click", () => {
     const link = document.createElement("a");
     link.setAttribute("href", url);
     link.setAttribute("download", "aptigame_users_export.csv");
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+
+document.getElementById("download-leaderboard-csv").addEventListener("click", () => {
+    if (allLeaderboardData.length === 0) {
+        alert("No leaderboard data available to download.");
+        return;
+    }
+
+    let csvContent = "Rank,Game,Name,Score,Date\n";
+    allLeaderboardData.forEach(entry => {
+        const safeName = `"${entry.name.replace(/"/g, '""')}"`;
+        const safeGame = `"${entry.game.replace(/"/g, '""')}"`;
+        const safeScore = `"${entry.score.replace(/"/g, '""')}"`;
+        const safeDate = `"${entry.date.replace(/"/g, '""')}"`;
+
+        csvContent += `${entry.rank},${safeGame},${safeName},${safeScore},${safeDate}\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    const gameType = allLeaderboardData[0] ? allLeaderboardData[0].game : "mixed";
+    link.setAttribute("download", `aptigame_leaderboard_${gameType}.csv`);
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+
+document.getElementById("download-feedback-csv").addEventListener("click", () => {
+    if (allFeedbackData.length === 0) {
+        alert("No feedback data available to download.");
+        return;
+    }
+
+    let csvContent = "Date,Sender,Email,Category,Message\n";
+    allFeedbackData.forEach(entry => {
+        const safeDate = `"${entry.date.replace(/"/g, '""')}"`;
+        const safeSender = `"${entry.sender.replace(/"/g, '""')}"`;
+        const safeEmail = `"${entry.email.replace(/"/g, '""')}"`;
+        const safeCategory = `"${entry.category.replace(/"/g, '""')}"`;
+        const safeMessage = `"${entry.message.replace(/"/g, '""')}"`;
+
+        csvContent += `${safeDate},${safeSender},${safeEmail},${safeCategory},${safeMessage}\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "aptigame_feedback_export.csv");
     link.style.display = "none";
     document.body.appendChild(link);
     link.click();

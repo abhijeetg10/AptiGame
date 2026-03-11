@@ -124,13 +124,16 @@
 
                 <!-- PANEL: LEADERBOARDS -->
                 <section id="panel-leaderboards" class="admin-panel">
-                    <div class="leaderboard-controls">
+                    <div class="leaderboard-controls" style="display: flex; justify-content: space-between; align-items: center;">
                         <select id="leaderboard-filter" class="admin-select">
                             <option value="grid">Grid Challenge</option>
                             <option value="sudoku">Sudoku Pattern</option>
                             <option value="inductive">Inductive Logic</option>
                             <option value="motion">Motion Logic</option>
                         </select>
+                        <button id="download-leaderboard-csv" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                            <i class="fas fa-download"></i> Download CSV
+                        </button>
                     </div>
                     <div class="card data-table-card">
                         <div class="table-container">
@@ -154,6 +157,12 @@
                 <!-- PANEL: FEEDBACK -->
                 <section id="panel-feedback" class="admin-panel">
                     <div class="card data-table-card">
+                        <div class="table-header" style="justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 1.5rem 2rem 0 2rem; display: flex;">
+                            <h2 style="margin: 0;">User Feedback</h2>
+                            <button id="download-feedback-csv" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                <i class="fas fa-download"></i> Download CSV
+                            </button>
+                        </div>
                         <div class="table-container">
                             <table class="admin-table">
                                 <thead>
