@@ -541,11 +541,14 @@
                 const initial = userEntry.name.charAt(0).toUpperCase();
                 const row = document.createElement('div');
                 row.className = 'list-row current-user-row';
+                row.style.borderTop = "2px solid rgba(99, 102, 241, 0.5)";
+                row.style.marginTop = "1rem";
+                row.style.paddingTop = "1rem";
                 row.innerHTML = `
                     <div class="list-rank">${userEntry.rank}</div>
                     <div class="list-avatar">${initial}</div>
                     <div class="list-info">
-                        <div class="list-name">${userEntry.name} (You)</div>
+                        <div class="list-name" style="color:var(--primary);">${userEntry.name} (You)</div>
                         <div class="list-score">${userEntry.score}</div>
                     </div>
                 `;

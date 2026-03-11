@@ -117,24 +117,24 @@ async function fetchOverviewAndUsers() {
             tr.innerHTML = `
                 <td>
                     <div class="user-cell">
-                        <div class="avatar-circle" style="width:32px; height:32px; font-size:0.8rem;">
+                        <div class="avatar-circle">
                             ${data.name ? data.name.charAt(0).toUpperCase() : "?"}
                         </div>
                         <strong>${data.name || "Unknown"}</strong>
                     </div>
                 </td>
-                <td style="color:var(--text-muted);">${data.email || "No Email"}</td>
+                <td style="color:var(--pluto-text-muted);">${data.email || "No Email"}</td>
                 <td>${lastLoginStr}</td>
-                <td style="font-family:monospace; font-size:0.8rem; opacity:0.5;">${doc.id}</td>
+                <td style="font-family:monospace; font-size:0.8rem; color:var(--pluto-text-muted);">${doc.id}</td>
             `;
             tbody.appendChild(tr);
 
             // Build Recent Activity list (just grab the 5 most recent logins)
             if(userCount <= 5) {
                 activityHTML += `
-                    <div style="padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); display:flex; justify-content: space-between;">
+                    <div style="padding: 1rem; display:flex; justify-content: space-between;">
                         <span><strong>${data.name}</strong> logged into the portal.</span>
-                        <span style="color: var(--text-muted); font-size: 0.85rem;">${lastLoginStr}</span>
+                        <span style="color: var(--pluto-text-muted); font-size: 0.85rem;">${lastLoginStr}</span>
                     </div>
                 `;
             }
@@ -185,21 +185,21 @@ async function fetchLeaderboardData(gameId) {
 
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td><span style="background:rgba(255,255,255,0.1); padding:0.25rem 0.75rem; border-radius:12px; font-weight:bold;">#${rank++}</span></td>
+                <td><span style="background:var(--pluto-border); padding:0.25rem 0.75rem; border-radius:12px; font-weight:bold; color:var(--pluto-text);">#${rank++}</span></td>
                 <td><strong>${data.name || "Unknown"}</strong></td>
-                <td style="color:var(--accent); font-weight:bold;">${displayScore}</td>
-                <td style="color:var(--text-muted);">${dateStr}</td>
+                <td style="color:var(--pluto-blue); font-weight:bold;">${displayScore}</td>
+                <td style="color:var(--pluto-text-muted);">${dateStr}</td>
             `;
             tbody.appendChild(tr);
         });
 
         if (rank === 1) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No scores recorded for this game yet.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem; color:var(--pluto-text-muted);">No scores recorded for this game yet.</td></tr>`;
         }
         
     } catch(e) {
         console.error("Error fetching leaderboard:", e);
-         document.getElementById("table-body-leaderboards").innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Requires Firebase Index. Check console.</td></tr>`;
+         document.getElementById("table-body-leaderboards").innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--pluto-red);">Requires Firebase Index. Check console.</td></tr>`;
     }
 }
 
@@ -223,16 +223,16 @@ async function fetchFeedback() {
                 dateStr = data.timestamp.toDate().toLocaleString();
             }
 
-            let badgeColor = "var(--primary)";
-            if(data.type === "bug") badgeColor = "var(--error)";
-            if(data.type === "suggestion") badgeColor = "var(--accent)";
+            let badgeColor = "var(--pluto-blue)";
+            if(data.type === "bug") badgeColor = "var(--pluto-red)";
+            if(data.type === "suggestion") badgeColor = "var(--pluto-orange)";
 
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td style="white-space: nowrap; color:var(--text-muted); font-size:0.85rem;">${dateStr}</td>
+                <td style="white-space: nowrap; color:var(--pluto-text-muted); font-size:0.85rem;">${dateStr}</td>
                 <td>
                     <strong>${data.name || "Anonymous"}</strong><br>
-                    <span style="font-size:0.8rem; color:var(--text-muted);">${data.email || "No email"}</span>
+                    <span style="font-size:0.8rem; color:var(--pluto-text-muted);">${data.email || "No email"}</span>
                 </td>
                 <td>
                     <span style="background-color: ${badgeColor}22; color: ${badgeColor}; border: 1px solid ${badgeColor}55; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; text-transform: uppercase;">
@@ -245,7 +245,7 @@ async function fetchFeedback() {
         });
 
         if (count === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No feedback received yet.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem; color:var(--pluto-text-muted);">No feedback received yet.</td></tr>`;
         }
 
         // Update Stats
@@ -253,7 +253,7 @@ async function fetchFeedback() {
 
     } catch (e) {
         console.error("Error fetching feedback:", e);
-        document.getElementById("table-body-feedback").innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Requires Firebase Index. Check console.</td></tr>`;
+        document.getElementById("table-body-feedback").innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--pluto-red);">Requires Firebase Index. Check console.</td></tr>`;
     }
 }
 
