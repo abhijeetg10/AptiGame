@@ -256,7 +256,9 @@ async function endModule(customTitle) {
     elCorrectCount.innerText = correctAnswers;
     elWrongCount.innerText = wrongAnswers;
 
-    if (currentModule >= TOTAL_MODULES) {
+    const isGameOver = currentModule >= TOTAL_MODULES || customTitle === "Time's Up!";
+
+    if (isGameOver) {
         elNextBtn.innerText = "Saving Score...";
         elNextBtn.disabled = true;
 
@@ -269,7 +271,7 @@ async function endModule(customTitle) {
             const scoreData = {
                 name: playerName,
                 score: correctAnswers, // Stored as Number for sorting
-                totalLevels: LEVELS_PER_MODULE,
+                totalLevels: LEVELS_PER_MODULE * TOTAL_MODULES,
                 timestamp: new Date()
             };
 

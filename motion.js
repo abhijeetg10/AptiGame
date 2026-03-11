@@ -504,7 +504,7 @@ async function endModule(customTitle, isSkip = false) {
             advanceLevel();
             startTimer();
         };
-    } else if (currentModule >= TOTAL_MODULES) {
+    } else if (currentModule >= TOTAL_MODULES || customTitle === "Time's Up!") {
         elNextBtn.innerText = "Saving Score...";
         elNextBtn.disabled = true;
 
@@ -515,7 +515,7 @@ async function endModule(customTitle, isSkip = false) {
             const scoreData = {
                 name: playerName,
                 score: correctAnswers, // Stored as Number for sorting
-                totalLevels: LEVELS_PER_MODULE,
+                totalLevels: LEVELS_PER_MODULE * TOTAL_MODULES,
                 timestamp: new Date()
             };
 

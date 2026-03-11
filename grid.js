@@ -485,7 +485,9 @@ async function endModule(customTitle) {
     elCorrectCount.innerText = correctAnswers;
     elWrongCount.innerText = wrongAnswers;
 
-    if (currentModule >= TOTAL_MODULES) {
+    const isGameOver = currentModule >= TOTAL_MODULES || customTitle === "Time's Up!";
+
+    if (isGameOver) {
         elNextBtn.innerText = "Saving Score...";
         elNextBtn.disabled = true;
 
@@ -498,7 +500,7 @@ async function endModule(customTitle) {
             const scoreData = {
                 name: playerName,
                 score: correctAnswers, // Changed to Number for Firestore Sorting
-                totalLevels: LEVELS_PER_MODULE,
+                totalLevels: LEVELS_PER_MODULE * TOTAL_MODULES, // Fixed total levels calculation
                 timestamp: new Date()
             };
 
