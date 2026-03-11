@@ -249,6 +249,48 @@ function updateTimerDisplay() {
     }
 }
 
+async function saveScoreToFirebase(btnElement, redirectCallback) {
+    if (moduleScores.length === 0) {
+        if (redirectCallback) redirectCallback();
+        return;
+    }
+
+    if (btnElement) {
+        btnElement.innerText = "Saving Score...";
+        btnElement.disabled = true;
+    }
+
+    try {
+        const activeUser = getCurrentUser();
+        const playerName = activeUser && activeUser.displayName ? activeUser.displayName : "Guest Player";
+
+        const averageScore = Math.round(moduleScores.reduce((a, b) => a + b, 0) / moduleScores.length);
+
+        const scoreData = {
+            name: playerName,
+            score: averageScore, // Stored as Number for sorting
+            totalLevels: LEVELS_PER_MODULE,
+            timestamp: new Date()
+        };
+
+        await addDoc(collection(db, "leaderboards", "sudoku", "scores"), scoreData);
+        
+        if (btnElement) {
+            btnElement.innerText = "Score Saved!";
+        }
+    } catch (error) {
+        console.error("Error saving score to Firebase:", error);
+        if (btnElement) {
+            btnElement.innerText = "Save Failed";
+            btnElement.disabled = false;
+        }
+    }
+
+    if (redirectCallback) {
+        setTimeout(redirectCallback, 500); // slight delay to show "Saved!"
+    }
+}
+
 // --- Module Progression ---
 async function endModule(customTitle) {
     clearInterval(timerInterval);
@@ -263,35 +305,9 @@ async function endModule(customTitle) {
     const isGameOver = currentModule >= TOTAL_MODULES || customTitle === "Time's Up!";
 
     if (isGameOver) {
-        elNextBtn.innerText = "Saving Score...";
-        elNextBtn.disabled = true;
-
-        try {
-            // Get Active User Data
-            const activeUser = getCurrentUser();
-            const playerName = activeUser && activeUser.displayName ? activeUser.displayName : "Guest Player";
-
-            const averageScore = Math.round(moduleScores.reduce((a, b) => a + b, 0) / moduleScores.length);
-
-            // Push Score to "sudoku" Collection
-            const scoreData = {
-                name: playerName,
-                score: averageScore, // Stored as Number for sorting
-                totalLevels: LEVELS_PER_MODULE,
-                timestamp: new Date()
-            };
-
-            await addDoc(collection(db, "leaderboards", "sudoku", "scores"), scoreData);
-            
-            elNextBtn.innerText = "Finish Game (Score Saved!)";
-            elNextBtn.disabled = false;
-        } catch (error) {
-            console.error("Error saving score to Firebase:", error);
-            elNextBtn.innerText = "Finish Game (Save Failed)";
-            elNextBtn.disabled = false;
-        }
-
-        elNextBtn.onclick = () => window.location.href = "index.html";
+        saveScoreToFirebase(elNextBtn, () => {
+            window.location.href = "index.html";
+        });
     } else {
         elNextBtn.innerText = "Start Next Module";
         elNextBtn.onclick = nextModule;
@@ -303,17 +319,20 @@ async function endModule(customTitle) {
         backBtn = document.createElement("button");
         backBtn.id = "modal-back-btn";
         backBtn.className = "btn btn-outline";
-        backBtn.innerText = "Back to Modules";
         backBtn.style.marginTop = "0.5rem";
         backBtn.style.display = "block";
         backBtn.style.width = "100%";
         elNextBtn.parentNode.insertBefore(backBtn, elNextBtn.nextSibling);
     }
+    backBtn.innerText = "Save & Back to Modules";
 
     backBtn.onclick = () => {
-        elModal.classList.add("hidden");
-        elModal.style.display = "none";
-        showModuleSelection();
+        saveScoreToFirebase(backBtn, () => {
+            elModal.classList.add("hidden");
+            elModal.style.display = "none";
+            showModuleSelection();
+            moduleScores = []; // reset so we don't save old scores again later
+        });
     };
 
     elModal.classList.remove("hidden");
