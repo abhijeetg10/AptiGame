@@ -1,3 +1,16 @@
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+import { db, auth } from "./firebase-config.js";
+import { getCurrentUser } from "./auth.js";
+
+// --- Auth Guard ---
+onAuthStateChanged(auth, (user) => {
+    if (!user) {
+        alert("Authentication required. Redirecting to home page...");
+        window.location.href = "index.html";
+    }
+});
+
 // --- Configuration ---
 const TOTAL_MODULES = 10;
 const LEVELS_PER_MODULE = 18;
@@ -467,7 +480,8 @@ function updateTimerDisplay() {
     }
 }
 
-function endModule(customTitle, isSkip = false) {
+// --- Module Progression ---
+async function endModule(customTitle, isSkip = false) {
     clearInterval(timerInterval);
 
     elModalTitle.innerText = customTitle || `Module ${currentModule} Complete`;
@@ -491,7 +505,30 @@ function endModule(customTitle, isSkip = false) {
             startTimer();
         };
     } else if (currentModule >= TOTAL_MODULES) {
-        elNextBtn.innerText = "Finish Game";
+        elNextBtn.innerText = "Saving Score...";
+        elNextBtn.disabled = true;
+
+        try {
+            const activeUser = getCurrentUser();
+            const playerName = activeUser && activeUser.displayName ? activeUser.displayName : "Guest Player";
+
+            const scoreData = {
+                name: playerName,
+                score: correctAnswers, // Stored as Number for sorting
+                totalLevels: LEVELS_PER_MODULE,
+                timestamp: new Date()
+            };
+
+            await addDoc(collection(db, "leaderboards", "motion", "scores"), scoreData);
+            
+            elNextBtn.innerText = "Finish Game (Score Saved!)";
+            elNextBtn.disabled = false;
+        } catch (error) {
+            console.error("Error saving score to Firebase:", error);
+            elNextBtn.innerText = "Finish Game (Save Failed)";
+            elNextBtn.disabled = false;
+        }
+
         elNextBtn.onclick = () => window.location.href = "index.html";
     } else {
         elNextBtn.innerText = "Start Next Module";
