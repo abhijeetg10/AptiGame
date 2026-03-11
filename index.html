@@ -588,8 +588,7 @@
 
         // Create a global helper for the renderer to check the active user name
         window.activeUserName = null;
-        import { auth } from "./firebase-config.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+        
         onAuthStateChanged(auth, (user) => {
             window.activeUserName = user && user.displayName ? user.displayName : null;
             // Optionally, we could re-render the active tab here so their pinned row appears instantly upon login
