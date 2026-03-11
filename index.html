@@ -600,35 +600,81 @@
         // 4. Create the Fetch Function
         window.fetchFromFirebase = async function(category) {
             try {
-                const q = query(
-                    collection(db, "leaderboards", category, "scores"), 
-                    orderBy("score", "desc"), 
-                    limit(15) 
-                );
-                
-                const querySnapshot = await getDocs(q);
-                const data = [];
-                let rankCounter = 1;
+                let collectionsToFetch = [];
+                if (category === 'all') {
+                    collectionsToFetch = ['motion', 'sudoku', 'inductive', 'grid'];
+                } else {
+                    collectionsToFetch = [category];
+                }
 
-                querySnapshot.forEach((doc) => {
-                    const docData = doc.data();
-                    
-                    // Handle old string formats ("16 / 18") or new numeric formats
+                let allDocs = [];
+                
+                // Fetch from each relevant collection
+                for (const cat of collectionsToFetch) {
+                    const q = query(
+                        collection(db, "leaderboards", cat, "scores"), 
+                        orderBy("score", "desc"), 
+                        limit(15) 
+                    );
+                    const sn = await getDocs(q);
+                    sn.forEach(doc => {
+                        const d = doc.data();
+                        d._sourceCategory = cat; // metadata
+                        allDocs.push(d);
+                    });
+                }
+
+                const data = [];
+                
+                allDocs.forEach((docData) => {
+                    let percentage = 0;
                     let displayScore = "0";
+                    let gameLabel = docData._sourceCategory.charAt(0).toUpperCase() + docData._sourceCategory.slice(1);
+                    
                     if (typeof docData.score === "number") {
-                        displayScore = `${docData.score} / ${docData.totalLevels || 18}`;
+                        let total = docData.totalLevels || 18;
+                        if (docData._sourceCategory === 'sudoku') total = 10;
+                        if (docData._sourceCategory === 'motion') total = 10;
+                        if (docData._sourceCategory === 'inductive') total = 12; // fallback estimations
+                        
+                        // use explicit exact levels if provided
+                        total = docData.totalLevels || total;
+
+                        displayScore = `${docData.score} / ${total} (${gameLabel})`;
+                        percentage = docData.score / total;
                     } else if (typeof docData.score === "string") {
-                        displayScore = docData.score;
+                        displayScore = `${docData.score} (${gameLabel})`;
+                        let parts = docData.score.split("/");
+                        if (parts.length === 2) {
+                            percentage = parseFloat(parts[0]) / parseFloat(parts[1]);
+                        } else {
+                            percentage = parseFloat(docData.score) || 0;
+                        }
+                    }
+
+                    // If it's a specific category view, remove the game label appendage
+                    if (category !== 'all') {
+                        displayScore = displayScore.split(" (")[0];
                     }
 
                     data.push({
-                        rank: rankCounter++, 
                         name: docData.name || "Unknown",
                         score: displayScore,
+                        _percent: percentage
                     });
                 });
 
-                return data;
+                // Sort combined data fairly by percentage achieved
+                data.sort((a, b) => b._percent - a._percent);
+                
+                // Apply rank counters and truncate to top 15 for the UI
+                let finalData = data.slice(0, 15);
+                let rankCounter = 1;
+                finalData.forEach(d => {
+                    d.rank = rankCounter++;
+                });
+
+                return finalData;
 
             } catch (error) {
                 console.error("Error fetching leaderboard data: ", error);

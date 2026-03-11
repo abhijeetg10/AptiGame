@@ -173,7 +173,14 @@ async function fetchLeaderboardData(gameId) {
             // Format score based on our new numeric logic vs old string logic
             let displayScore = "0";
             if (typeof data.score === "number") {
-                displayScore = `${data.score} / ${data.totalLevels || 18}`;
+                let total = data.totalLevels || 18;
+                if (!data.totalLevels) {
+                    if (gameId === 'sudoku') total = 10;
+                    if (gameId === 'motion') total = 10;
+                    if (gameId === 'inductive') total = 12;
+                    if (gameId === 'grid') total = 18;
+                }
+                displayScore = `${data.score} / ${total}`;
             } else if (typeof data.score === "string") {
                 displayScore = data.score;
             }
