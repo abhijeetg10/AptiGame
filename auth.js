@@ -1,7 +1,6 @@
-import { signInWithPopup, signOut, onAuthStateChanged }
-from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-
-import { auth, provider } from "./firebase-config.js";
+import { signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { auth, provider, db } from "./firebase-config.js";
 
 const loginBtn = document.getElementById("nav-login-btn");
 const userProfile = document.getElementById("nav-user-profile");
@@ -54,6 +53,7 @@ export const loginWithGoogle = async () => {
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
 
+        // 1. Google Sheets Logging
         const payload = {
             name: user.displayName || "Unknown",
             email: user.email || "No Email",
@@ -70,8 +70,20 @@ export const loginWithGoogle = async () => {
             },
             body: JSON.stringify(payload)
         });
+        console.log("User login tracked via Webhook.");
 
-        console.log("User login stored in Google Sheet");
+        // 2. Firebase Database Logging (For the Admin Dashboard)
+        try {
+            await setDoc(doc(db, "users", user.uid), {
+                name: user.displayName || "Unknown",
+                email: user.email || "No Email",
+                photoURL: user.photoURL || "",
+                lastLogin: new Date()
+            }, { merge: true }); // merge: true updates lastLogin if they exist, or creates them if new
+            console.log("User synced to Firebase database.");
+        } catch (dbError) {
+            console.error("Failed to sync user to Database:", dbError);
+        }
 
     } catch (error) {
 

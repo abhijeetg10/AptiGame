@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AptiGame - Admin Dashboard</title>
+    <!-- Same Google Fonts as main site -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Link to universal styles and the specific admin css -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body class="admin-body">
+
+    <!-- OVERLAY: Displayed while checking authentication status -->
+    <div id="auth-overlay" class="auth-overlay">
+        <div class="loader"></div>
+        <h2>Verifying Admin Credentials...</h2>
+    </div>
+
+    <!-- MAIN DASHBOARD (Hidden until verified) -->
+    <div id="admin-dashboard" class="admin-layout hidden">
+        
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-brand">
+                <i class="fas fa-shield-alt"></i> AptiGame Admin
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" data-target="panel-overview"><i class="fas fa-chart-line"></i> Overview</button>
+                <button class="nav-btn" data-target="panel-users"><i class="fas fa-users"></i> Users</button>
+                <button class="nav-btn" data-target="panel-leaderboards"><i class="fas fa-medal"></i> Master Leaderboards</button>
+                <button class="nav-btn" data-target="panel-feedback"><i class="fas fa-comments"></i> Feedback</button>
+            </nav>
+            <div class="sidebar-footer">
+                <div id="admin-profile" class="admin-profile">
+                    <div id="admin-avatar" class="avatar-circle">A</div>
+                    <span id="admin-name">Loading...</span>
+                </div>
+                <button id="admin-logout-btn" class="btn btn-outline" style="width: 100%; margin-top: 1rem;"><i class="fas fa-sign-out-alt"></i> Exit</button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <h1 id="panel-title">Overview</h1>
+                <div class="header-actions">
+                    <button id="refresh-data-btn" class="btn btn-outline"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                
+                <!-- PANEL: OVERVIEW -->
+                <section id="panel-overview" class="admin-panel active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <i class="fas fa-users stat-icon text-primary"></i>
+                            <div class="stat-info">
+                                <h3>Total Users</h3>
+                                <div id="stat-total-users" class="stat-value">--</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-gamepad stat-icon text-accent"></i>
+                            <div class="stat-info">
+                                <h3>Total Games Played</h3>
+                                <div id="stat-total-games" class="stat-value">--</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-comment-dots stat-icon text-success"></i>
+                            <div class="stat-info">
+                                <h3>Feedback Forms</h3>
+                                <div id="stat-total-feedback" class="stat-value">--</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card" style="margin-top: 2rem;">
+                        <h2>Recent Activity</h2>
+                        <div id="recent-activity-list" class="activity-list">
+                            <p style="text-align:center; color: var(--text-muted); padding: 2rem;">Fetching recent events...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PANEL: USERS -->
+                <section id="panel-users" class="admin-panel hidden">
+                    <div class="card data-table-card">
+                        <div class="table-header">
+                            <h2>Registered Users</h2>
+                            <div class="table-search">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="search-users" placeholder="Search by name or email...">
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Email</th>
+                                        <th>Last Login</th>
+                                        <th>ID</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body-users">
+                                    <tr><td colspan="4" style="text-align: center;">Loading users...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PANEL: LEADERBOARDS -->
+                <section id="panel-leaderboards" class="admin-panel hidden">
+                    <div class="leaderboard-controls">
+                        <select id="leaderboard-filter" class="admin-select">
+                            <option value="grid">Grid Challenge</option>
+                            <option value="sudoku">Sudoku Pattern</option>
+                            <option value="inductive">Inductive Logic</option>
+                            <option value="motion">Motion Logic</option>
+                        </select>
+                    </div>
+                    <div class="card data-table-card">
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Player Name</th>
+                                        <th>Score</th>
+                                        <th>Date Achieved</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body-leaderboards">
+                                    <tr><td colspan="4" style="text-align: center;">Select a game to load scores...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PANEL: FEEDBACK -->
+                <section id="panel-feedback" class="admin-panel hidden">
+                    <div class="card data-table-card">
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Sender</th>
+                                        <th>Category</th>
+                                        <th>Message</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body-feedback">
+                                    <tr><td colspan="4" style="text-align: center;">Loading feedback...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase Auth & Admin Logic -->
+    <script type="module" src="admin.js"></script>
+</body>
+</html>
