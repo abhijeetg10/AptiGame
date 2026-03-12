@@ -1,4 +1,4 @@
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, addDoc, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { db, auth } from "./firebase-config.js";
 import { getCurrentUser } from "./auth.js";
@@ -17,6 +17,7 @@ const LEVELS_PER_MODULE = 18;
 const INITIAL_TIME = 6 * 60; // 6 minutes in seconds
 
 // --- State ---
+let highestUnlockedModule = 1;
 let currentModule = 1;
 let currentLevel = 1;
 let correctAnswers = 0;
@@ -69,6 +70,42 @@ if (elBackToModulesBtn) {
     });
 }
 
+// Fetch user progress on initial load
+async function loadUserProgress() {
+    const activeUser = getCurrentUser();
+    if (activeUser) {
+        try {
+            const userDocRef = doc(db, "users", activeUser.uid);
+            const userSnap = await getDoc(userDocRef);
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                if (data.highestModule_inductive) {
+                    highestUnlockedModule = data.highestModule_inductive;
+                }
+            }
+        } catch (e) {
+            console.error("Error loading user progress:", e);
+        }
+    }
+    
+    // Update UI locks
+    moduleBtns.forEach(btn => {
+        let modNum = parseInt(btn.getAttribute("data-module"));
+        if (modNum > highestUnlockedModule) {
+            btn.style.opacity = "0.5";
+            btn.style.pointerEvents = "none";
+            btn.title = "Complete the previous module to unlock";
+        } else {
+            btn.style.opacity = "1";
+            btn.style.pointerEvents = "auto";
+            btn.title = "Click to play";
+        }
+    });
+}
+
+// Ensure game does not auto-start! Wait for module selection.
+setTimeout(loadUserProgress, 1000); // Small delay to ensure auth is fully ready
+
 function startModule(modNum) {
     currentModule = modNum;
     currentLevel = 1;
@@ -91,6 +128,7 @@ function showModuleSelection() {
     elModuleSelection.classList.remove("hidden");
     elGameHeader.classList.add("hidden");
     elGameContainer.classList.add("hidden");
+    loadUserProgress();
 }
 
 // --- Challenge Generator Engine ---
@@ -470,16 +508,60 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
         const activeUser = getCurrentUser();
         const playerName = activeUser && activeUser.displayName ? activeUser.displayName : "Guest Player";
 
-        const averageScore = Math.round(moduleScores.reduce((a, b) => a + b, 0) / moduleScores.length);
+        if (activeUser) {
+            // Cumulative Module Scoring & Deduplication (PB)
+            const scoreRef = doc(db, "leaderboards", "inductive", "scores", activeUser.uid);
+            const scoreSnap = await getDoc(scoreRef);
+            
+            let existingModuleScores = {};
+            if (scoreSnap.exists()) {
+                const oldData = scoreSnap.data();
+                if (oldData.moduleScores) {
+                    existingModuleScores = oldData.moduleScores;
+                } else if (typeof oldData.score === "number") {
+                    existingModuleScores["1"] = oldData.score; // Legacy migration
+                }
+            }
 
-        const scoreData = {
-            name: playerName,
-            score: averageScore, // Stored as Number for sorting
-            totalLevels: LEVELS_PER_MODULE,
-            timestamp: new Date()
-        };
+            if (existingModuleScores[currentModule] === undefined || correctAnswers > existingModuleScores[currentModule]) {
+                existingModuleScores[currentModule] = correctAnswers;
+            }
 
-        await addDoc(collection(db, "leaderboards", "inductive", "scores"), scoreData);
+            let totalScore = 0;
+            let totalPossible = 0;
+            for (const mod in existingModuleScores) {
+                totalScore += existingModuleScores[mod];
+                totalPossible += LEVELS_PER_MODULE; 
+            }
+
+            const scoreData = {
+                name: playerName,
+                score: totalScore, 
+                totalLevels: totalPossible,
+                moduleScores: existingModuleScores,
+                timestamp: new Date()
+            };
+            await setDoc(scoreRef, scoreData);
+
+            // Save Module Progression
+            const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1); // Unlock the next one
+            if (moduleReached > highestUnlockedModule) {
+                highestUnlockedModule = moduleReached;
+                const userDocRef = doc(db, "users", activeUser.uid);
+                await updateDoc(userDocRef, {
+                    highestModule_inductive: highestUnlockedModule
+                });
+            }
+        } else {
+            // Guest fallback (Optional)
+            const scoreData = {
+                name: playerName,
+                score: correctAnswers, 
+                totalLevels: LEVELS_PER_MODULE,
+                timestamp: new Date()
+            };
+            await addDoc(collection(db, "leaderboards", "inductive", "scores"), scoreData);
+        }
         
         if (btnElement) {
             btnElement.innerText = "Score Saved!";
@@ -507,6 +589,7 @@ async function endModule(customTitle) {
     elWrongCount.innerText = wrongAnswers;
 
     moduleScores.push(correctAnswers);
+    saveScoreToFirebase(null, null); // Autosave in background
 
     const isGameOver = currentModule >= TOTAL_MODULES || customTitle === "Time's Up!";
 

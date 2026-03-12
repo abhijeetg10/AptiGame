@@ -614,7 +614,7 @@
                     const q = query(
                         collection(db, "leaderboards", cat, "scores"), 
                         orderBy("score", "desc"), 
-                        limit(15) 
+                        limit(150) // Increased limit to find user ranks outside top 10
                     );
                     const sn = await getDocs(q);
                     sn.forEach(doc => {
@@ -667,14 +667,13 @@
                 // Sort combined data fairly by percentage achieved
                 data.sort((a, b) => b._percent - a._percent);
                 
-                // Apply rank counters and truncate to top 15 for the UI
-                let finalData = data.slice(0, 15);
+                // Apply rank counters based on full dataset
                 let rankCounter = 1;
-                finalData.forEach(d => {
+                data.forEach(d => {
                     d.rank = rankCounter++;
                 });
 
-                return finalData;
+                return data; // Return full array, UI renderer handles slicing top 10 + user pinning
 
             } catch (error) {
                 console.error("Error fetching leaderboard data: ", error);
