@@ -456,7 +456,7 @@
         </p>
     </footer>
 
-
+    <script>
         // --- Hall of Fame Rendering Logic ---
         const podiumContainer = document.getElementById('podium-container');
         const listContainer = document.getElementById('leaderboard-list');
@@ -627,9 +627,11 @@
         onAuthStateChanged(auth, (user) => {
             window.activeUserName = user && user.displayName ? user.displayName : null;
             if (user) {
-                document.getElementById('personal-dashboard').classList.remove('hidden');
+                const cta = document.getElementById('profile-cta');
+                if (cta) cta.classList.remove('hidden');
             } else {
-                document.getElementById('personal-dashboard').classList.add('hidden');
+                const cta = document.getElementById('profile-cta');
+                if (cta) cta.classList.add('hidden');
             }
         });
 
@@ -812,8 +814,8 @@
                 if (category === 'all' && window.activeUserName) {
                     const userEntry = data.find(e => e.name === window.activeUserName);
                     if (userEntry) {
-                        document.getElementById('user-rank').innerText = `#${userEntry.rank}`;
-                        document.getElementById('rank-insight').innerText = userEntry.insight; // Performance Remark in Profile
+                        // Logic moved to profile page primarily, but keeping lightweight hook if needed
+                        console.log("User Global Rank:", userEntry.rank);
                     }
                 }
 
@@ -829,15 +831,6 @@
             if(window.renderLeaderboard) {
                 window.renderLeaderboard('all', data);
             }
-            
-            // Populate Personal Dashboard if user is logged in
-            onAuthStateChanged(auth, (user) => {
-                if (user && user.displayName) {
-                    if (window.allDocsRaw) {
-                        updatePersonalStats(window.allDocsRaw, user.displayName);
-                    }
-                }
-            });
         });
 
         // 6. Handle Feedback Form Submission via Button Click
