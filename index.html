@@ -87,38 +87,19 @@
         </div>
     </header>
     
-    <!-- Personal Performance Dashboard (Shown only when logged in) -->
-    <section id="personal-dashboard" class="personal-dashboard hidden" style="padding: 4rem 2rem; background: var(--bg-alt); text-align: center;">
-        <div class="nav-container">
-            <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 2rem; color: var(--text-main);">Your Progress Tracker</h2>
-            <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; max-width: 1000px; margin: 0 auto;">
-                <!-- Global Rank Card -->
-                <div class="podium-slot rank-1" style="height: auto; width: 100%; max-width: none; border: 2px solid var(--primary);">
-                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">👑</div>
-                    <div class="podium-name">Global Rank</div>
-                    <div class="podium-score" id="user-rank">#--</div>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;" id="rank-insight">Solving more modules increases rank!</p>
+    <!-- Performance Insight CTA (Replaces heavy dashboard) -->
+    <section id="profile-cta" class="hidden" style="padding: 5rem 2rem; background: var(--bg-alt); text-align: center; border-bottom: 1px solid var(--border-color);">
+        <div class="nav-container" style="max-width: 900px;">
+            <div style="background: white; border-radius: 24px; padding: 3rem; box-shadow: var(--shadow-xl); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 2rem; text-align: left;" class="cta-flex-mobile">
+                <div style="flex: 1;">
+                    <span style="font-size: 0.85rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; display: block;">Performance Insight</span>
+                    <h2 style="font-size: 2.25rem; font-weight: 800; color: var(--text-dark); margin-bottom: 1rem; line-height: 1.2;">Track Your Growth & Profile Analysis</h2>
+                    <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 0;">See your global rank, challenge-wise accuracy, and spatial reasoning breakdown in your premium profile.</p>
                 </div>
-                <!-- Accuracy Card -->
-                <div class="podium-slot rank-2" style="height: auto; width: 100%; max-width: none;">
-                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">🎯</div>
-                    <div class="podium-name">Overall Accuracy</div>
-                    <div class="podium-score" id="user-accuracy">0%</div>
-                    <p style="font-size: 0.9rem; font-weight: 600; color: var(--primary); margin-top: 0.5rem;" id="accuracy-insight">Keep practicing!</p>
-                </div>
-                <!-- Logic Speed Card -->
-                <div class="podium-slot rank-1" style="height: auto; width: 100%; max-width: none;">
-                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">⚡</div>
-                    <div class="podium-name">Logic Speed</div>
-                    <div class="podium-score" id="user-speed">0s / level</div>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;" id="speed-insight">Benchmark: 20s</p>
-                </div>
-                <!-- Path Efficiency Card -->
-                <div class="podium-slot rank-3" style="height: auto; width: 100%; max-width: none;">
-                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">📏</div>
-                    <div class="podium-name">Path Efficiency</div>
-                    <div class="podium-score" id="user-efficiency">0%</div>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;" id="efficiency-insight">Motion Challenge Stat</p>
+                <div style="flex-shrink: 0;">
+                    <a href="profile.html" class="btn btn-primary" style="padding: 1.25rem 2.5rem; border-radius: 16px; font-size: 1.1rem; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 10px 20px rgba(201, 0, 118, 0.25);">
+                        View Detailed Profile <i class="fas fa-arrow-right"></i>
+                    </a>
                 </div>
             </div>
         </div>

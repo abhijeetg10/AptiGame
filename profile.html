@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | AptiGame Performance Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/jpeg" href="Logo.jpg">
+    <style>
+        :root {
+            --profile-bg: #fdfdfd;
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            background-color: var(--profile-bg);
+        }
+
+        .profile-wrapper {
+            max-width: 1100px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hero Section */
+        .profile-hero {
+            background: white;
+            border-radius: 24px;
+            padding: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2.5rem;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 6px;
+            background: linear-gradient(90deg, var(--primary), #ec4899);
+        }
+
+        .hero-avatar {
+            width: 120px;
+            height: 120px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 32px;
+            font-size: 3.5rem;
+            font-weight: 800;
+            box-shadow: 0 10px 20px rgba(201, 0, 118, 0.2);
+        }
+
+        .hero-info h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-info p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Bento Grid */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-auto-rows: minmax(180px, auto);
+            gap: 1.5rem;
+        }
+
+        .bento-item {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .bento-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .item-rank {
+            grid-column: span 1;
+            grid-row: span 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: linear-gradient(135deg, #ffffff 0%, #fff1f8 100%);
+        }
+
+        .rank-value {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+            margin: 0.5rem 0;
+        }
+
+        .item-main-stats {
+            grid-column: span 2;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            padding: 0;
+            background: transparent;
+            box-shadow: none;
+            border: none;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        .stat-desc {
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        .item-analysis {
+            grid-column: span 3;
+            padding: 2.5rem;
+        }
+
+        .analysis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .analysis-header h3 {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .game-stats-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .game-stat-item {
+            padding: 1.25rem;
+            background: var(--bg-alt);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .game-name {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+            color: var(--text-dark);
+        }
+
+        .game-score-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .loader-overlay {
+            position: fixed;
+            inset: 0;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 768px) {
+            .profile-hero { flex-direction: column; text-align: center; }
+            .bento-grid { grid-template-columns: 1fr; }
+            .item-rank, .item-main-stats, .item-analysis { grid-column: span 1; }
+            .item-main-stats { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loader-overlay" id="loader">
+        <div style="font-size: 2rem; color: var(--primary);"><i class="fas fa-circle-notch fa-spin"></i> Analyzing Performance...</div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="Logo.jpg" alt="AptiGame Logo" class="logo-img">
+                <span>AptiGame</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="index.html#challenges">Challenges</a></li>
+                <li><a href="mock-tests.html"><i class="fas fa-trophy"></i> Mock Tests</a></li>
+                <li><a href="#" class="active">My Profile</a></li>
+            </ul>
+            <div id="nav-user-profile" style="display: flex; align-items: center; gap: 0.75rem;">
+                <div id="nav-user-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem;">U</div>
+                <span id="nav-user-name" style="font-weight: 600; font-size: 0.95rem;">User</span>
+                <button id="nav-logout-btn" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.85rem; margin-left: 0.5rem; text-decoration: underline;">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="profile-wrapper">
+        <!-- Profile Hero -->
+        <div class="profile-hero">
+            <div class="hero-avatar" id="profile-avatar">U</div>
+            <div class="hero-info">
+                <h1 id="profile-name">Skill Warrior</h1>
+                <p><i class="fas fa-map-marker-alt" style="color: var(--primary);"></i> AptiGame Global Participant</p>
+                <p id="profile-email" style="font-size: 0.9rem; opacity: 0.8;"></p>
+            </div>
+            <div style="margin-left: auto; text-align: right;" class="hidden-mobile">
+                <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">AptiGame Status</div>
+                <div style="font-size: 1.25rem; font-weight: 800; color: var(--success);"><i class="fas fa-check-circle"></i> Verified Student</div>
+            </div>
+        </div>
+
+        <!-- Bento Layout -->
+        <div class="bento-grid">
+            <!-- Rank Slot -->
+            <div class="bento-item item-rank">
+                <span class="stat-label">Global Rank</span>
+                <div class="rank-value" id="user-rank">#--</div>
+                <p class="stat-desc" id="rank-insight">Solving more modules increases rank!</p>
+            </div>
+
+            <!-- Stats Group -->
+            <div class="item-main-stats">
+                <div class="stat-card">
+                    <span class="stat-label">Total Accuracy</span>
+                    <div class="stat-value" id="user-accuracy">0%</div>
+                    <div class="stat-desc" id="accuracy-insight">Keep practicing!</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Logic Speed</span>
+                    <div class="stat-value" id="user-speed">0s</div>
+                    <div class="stat-desc" id="speed-insight">Target: 20s/level</div>
+                </div>
+            </div>
+
+            <!-- Detailed Analysis Section -->
+            <div class="bento-item item-analysis">
+                <div class="analysis-header">
+                    <h3>Challenge Wise Analysis</h3>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">Cumulative performance across modules</div>
+                </div>
+                
+                <div class="game-stats-list" id="game-analysis-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { db, auth } from "./firebase-config.js";
+        import { collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Populate Basic Profile
+            document.getElementById('profile-name').innerText = user.displayName;
+            document.getElementById('profile-email').innerText = user.email;
+            document.getElementById('nav-user-name').innerText = user.displayName.split(' ')[0];
+            const initial = user.displayName.charAt(0).toUpperCase();
+            document.getElementById('profile-avatar').innerText = initial;
+            document.getElementById('nav-user-avatar').innerText = initial;
+
+            // Load Analysis
+            await loadPerformanceAnalysis(user.displayName);
+            document.getElementById('loader').style.opacity = '0';
+            setTimeout(() => document.getElementById('loader').classList.add('hidden'), 500);
+        });
+
+        // Logout
+        document.getElementById('nav-logout-btn').addEventListener('click', () => signOut(auth));
+
+        async function loadPerformanceAnalysis(currentUserName) {
+            const collections = ['motion', 'sudoku', 'inductive', 'grid', 'switch', 'di', 'rc'];
+            let allDocs = [];
+
+            try {
+                for (const cat of collections) {
+                    const q = query(
+                        collection(db, "leaderboards", cat, "scores"), 
+                        orderBy("score", "desc"), 
+                        limit(100)
+                    );
+                    const sn = await getDocs(q);
+                    sn.forEach(doc => {
+                        const d = doc.data();
+                        d._sourceCategory = cat;
+                        allDocs.push(d);
+                    });
+                }
+
+                // --- DATA PROCESSING LOGIC ---
+                const userTotals = {};
+                allDocs.forEach(d => {
+                    const name = d.name || "Unknown";
+                    if (!userTotals[name]) {
+                        userTotals[name] = { 
+                            score: 0, 
+                            totalLevels: 0, 
+                            metrics: { correctLevels: 0, totalTime: 0, timeCount: 0 } 
+                        };
+                    }
+                    userTotals[name].score += d.score || 0;
+                    let levels = 18;
+                    if (['sudoku', 'motion', 'switch'].includes(d._sourceCategory)) levels = 10;
+                    if (d._sourceCategory === 'inductive') levels = 12;
+                    userTotals[name].totalLevels += levels;
+                    
+                    if (d.metrics) {
+                        userTotals[name].metrics.correctLevels += (d.metrics.correctLevels || d.score || 0);
+                        if (d.metrics.timeSpent) {
+                            userTotals[name].metrics.totalTime += d.metrics.timeSpent;
+                            userTotals[name].metrics.timeCount += 1;
+                        }
+                    }
+                });
+
+                // User Specific Stats for Hero Cards
+                const userData = userTotals[currentUserName];
+                if (userData) {
+                    const accuracy = Math.round((userData.metrics.correctLevels / userData.totalLevels) * 100) || 0;
+                    const avgSpeed = userData.metrics.timeCount > 0 ? Math.round(userData.metrics.totalTime / userData.metrics.timeCount) : 0;
+
+                    document.getElementById('user-accuracy').innerText = `${accuracy}%`;
+                    document.getElementById('user-speed').innerText = `${avgSpeed}s`;
+                    
+                    if (accuracy > 85) document.getElementById('accuracy-insight').innerText = "Elite Precision! 🌟";
+                    if (avgSpeed < 15 && avgSpeed > 0) document.getElementById('speed-insight').innerText = "Lightning Fast! ⚡";
+                }
+
+                // Global Ranking
+                const rankingArray = Object.entries(userTotals).map(([name, stats]) => ({
+                    name, 
+                    rawScore: stats.score,
+                    accuracy: Math.round((stats.metrics.correctLevels / stats.totalLevels) * 100) || 0
+                })).sort((a,b) => b.rawScore - a.rawScore || b.accuracy - a.accuracy);
+
+                const rank = rankingArray.findIndex(e => e.name === currentUserName) + 1;
+                if (rank > 0) document.getElementById('user-rank').innerText = `#${rank}`;
+
+                // Challenge Wise List
+                const listEl = document.getElementById('game-analysis-list');
+                const userGames = allDocs.filter(d => d.name === currentUserName);
+                
+                if (userGames.length === 0) {
+                    listEl.innerHTML = '<p style="grid-column: span 3; color: var(--text-muted); text-align: center;">No challenge data found yet. Start playing!</p>';
+                    return;
+                }
+
+                userGames.forEach(game => {
+                    const item = document.createElement('div');
+                    item.className = 'game-stat-item';
+                    let totalLevels = 18;
+                    if (['sudoku', 'motion', 'switch'].includes(game._sourceCategory)) totalLevels = 10;
+                    if (game._sourceCategory === 'inductive') totalLevels = 12;
+
+                    item.innerHTML = `
+                        <div class="game-name">${game._sourceCategory.toUpperCase()}</div>
+                        <div class="game-score-row">
+                            <span>Solved: ${game.score}/${totalLevels}</span>
+                            <span>Rank: #${rankingArray.filter(e => e._sourceCategory === game._sourceCategory).length > 0 ? '---' : 'Active'}</span>
+                        </div>
+                    `;
+                    listEl.appendChild(item);
+                });
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loader').innerHTML = "Failed to load data. Please refresh.";
+            }
+        }
+    </script>
+</body>
+</html>
