@@ -135,23 +135,14 @@ export const getCurrentUser = () => {
 
 // Protect game links
 document.addEventListener("DOMContentLoaded", () => {
-
     const gameLinks = document.querySelectorAll(".game-link");
-
     gameLinks.forEach(link => {
-
         link.addEventListener("click", (e) => {
-
             if (!getCurrentUser()) {
-
                 e.preventDefault();
                 alert("Please log in to play the challenges!");
                 loginWithGoogle();
-
             }
-
         });
-
     });
-
 });

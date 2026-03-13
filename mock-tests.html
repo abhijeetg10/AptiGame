@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Mock Tests - AptiGame</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .page-header {
+            padding: 8rem 2rem 4rem;
+            text-align: center;
+            background: radial-gradient(circle at top right, rgba(238, 242, 255, 1) 0%, rgba(255, 255, 255, 1) 60%);
+        }
+
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header-content .badge {
+            display: inline-block;
+            padding: 0.35rem 1rem;
+            background-color: var(--bg-alt);
+            color: var(--primary);
+            font-size: 0.875rem;
+            font-weight: 700;
+            border-radius: var(--radius-full);
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 10px rgba(201, 0, 118, 0.1);
+        }
+
+        .header-content h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            color: var(--text-main);
+            line-height: 1.1;
+            letter-spacing: -2px;
+        }
+
+        .header-content p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 3rem;
+        }
+
+        .mock-test-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 2rem 6rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .mock-card {
+            background: white;
+            padding: 3.5rem 2.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            border: 1px solid var(--border-color);
+            text-align: left;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .mock-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-xl);
+            border-color: rgba(201, 0, 118, 0.2);
+        }
+
+        .mock-icon-wrapper {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, rgba(201, 0, 118, 0.1), rgba(255, 75, 43, 0.05));
+        }
+
+        .mock-icon-wrapper i {
+            background: linear-gradient(135deg, var(--primary), #ff4b2b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .company-tag {
+            position: absolute;
+            top: 2rem;
+            right: 2.5rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary);
+            background: var(--bg-alt);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+        }
+
+        .mock-card h3 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 1.25rem;
+            color: var(--text-main);
+        }
+
+        .mock-card p {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+            flex: 1;
+        }
+
+        .mock-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 1.5rem;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .meta-item i {
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .toppers-mini {
+            margin-top: 2rem;
+            background: var(--bg-alt);
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+
+        .topper-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+
+        .topper-score {
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .start-btn-wrapper {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .start-btn {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(201, 0, 118, 0.2);
+        }
+
+        .mock-card:hover .start-btn {
+            background: var(--primary-hover);
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(201, 0, 118, 0.3);
+        }
+    </style>
+</head>
+
+<body class="bg-main">
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="Logo.jpg" alt="AptiGame Logo" class="logo-img">
+                <span>AptiGame</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="index.html#challenges">Challenges</a></li>
+                <li><a href="mock-tests.html" class="active" style="color: var(--primary); font-weight: 700;"><i
+                            class="fas fa-trophy"></i> Mock Tests</a></li>
+                <li><a href="index.html#companies">Companies</a></li>
+                <li><a href="index.html#faq">FAQ</a></li>
+            </ul>
+            <a href="#" class="btn btn-primary" id="nav-login-btn">LOG IN</a>
+            <div id="nav-user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                <div id="nav-user-avatar"
+                    style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem;">
+                </div>
+                <span id="nav-user-name" style="font-weight: 600; font-size: 0.95rem;"></span>
+                <button id="nav-logout-btn"
+                    style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.85rem; margin-left: 0.5rem; text-decoration: underline;">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Section -->
+    <header class="page-header">
+        <div class="header-content">
+            <span class="badge">AptiGame Pro</span>
+            <h1>Mock Test for <span class="highlight" style="color: var(--primary);">Preparation</span></h1>
+            <p>Ace your placement rounds with our high-fidelity simulations. Master the logic challenges used by top
+                MNCs and prepare for success.</p>
+        </div>
+    </header>
+
+    <!-- Selection Grid -->
+    <main class="mock-test-grid">
+        <!-- Atlas Copco -->
+        <a href="javascript:void(0)" onclick="startMock('atlas')" class="mock-card">
+            <span class="company-tag">Atlas Copco</span>
+            <div class="mock-icon-wrapper">
+                <i class="fas fa-industry"></i>
+            </div>
+            <h3>Atlas Copco Mock</h3>
+            <p>Master the specialized technical and logical assessments used by Atlas Copco to find top engineering
+                talent globally.</p>
+            <div id="toppers-atlas" class="toppers-mini">
+                <div class="topper-row"><span>#1 Loading...</span> <span class="topper-score">--</span></div>
+            </div>
+            <div class="mock-meta">
+                <div class="meta-item"><i class="fas fa-clock"></i> 24 Mins</div>
+                <div class="meta-item"><i class="fas fa-trophy"></i> Elite Rank</div>
+            </div>
+            <div class="start-btn-wrapper">
+                <div class="start-btn">
+                    START ASSESSMENT <i class="fas fa-play"></i>
+                </div>
+            </div>
+        </a>
+
+        <!-- Capgemini -->
+        <a href="javascript:void(0)" onclick="startMock('capgemini')" class="mock-card">
+            <span class="company-tag">Capgemini</span>
+            <div class="mock-icon-wrapper">
+                <i class="fas fa-laptop-code"></i>
+            </div>
+            <h3>Capgemini Mock</h3>
+            <p>Prepare for Capgemini's unique gamified assessments including deductive reasoning and spatial awareness
+                challenges.</p>
+            <div id="toppers-capgemini" class="toppers-mini">
+                <div class="topper-row"><span>#1 Loading...</span> <span class="topper-score">--</span></div>
+            </div>
+            <div class="mock-meta">
+                <div class="meta-item"><i class="fas fa-clock"></i> 24 Mins</div>
+                <div class="meta-item"><i class="fas fa-trophy"></i> Elite Rank</div>
+            </div>
+            <div class="start-btn-wrapper">
+                <div class="start-btn">
+                    START ASSESSMENT <i class="fas fa-play"></i>
+                </div>
+            </div>
+        </a>
+
+        <!-- TCS -->
+        <a href="javascript:void(0)" onclick="startMock('tcs')" class="mock-card">
+            <span class="company-tag">TCS</span>
+            <div class="mock-icon-wrapper">
+                <i class="fas fa-server"></i>
+            </div>
+            <h3>TCS NQT Mock</h3>
+            <p>A comprehensive simulation of the TCS NQT logic and aptitude sections, designed to boost your percentile
+                scores.</p>
+            <div id="toppers-tcs" class="toppers-mini">
+                <div class="topper-row"><span>#1 Loading...</span> <span class="topper-score">--</span></div>
+            </div>
+            <div class="mock-meta">
+                <div class="meta-item"><i class="fas fa-clock"></i> 24 Mins</div>
+                <div class="meta-item"><i class="fas fa-trophy"></i> Elite Rank</div>
+            </div>
+            <div class="start-btn-wrapper">
+                <div class="start-btn">
+                    START ASSESSMENT <i class="fas fa-play"></i>
+                </div>
+            </div>
+        </a>
+
+        <!-- Cognizant -->
+        <a href="javascript:void(0)" onclick="startMock('cognizant')" class="mock-card">
+            <span class="company-tag">Cognizant</span>
+            <div class="mock-icon-wrapper">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h3>Cognizant Mock</h3>
+            <p>Sharpen your analytical skills for Cognizant's assessment platform with focused logic and data modules.
+            </p>
+            <div id="toppers-cognizant" class="toppers-mini">
+                <div class="topper-row"><span>#1 Loading...</span> <span class="topper-score">--</span></div>
+            </div>
+            <div class="mock-meta">
+                <div class="meta-item"><i class="fas fa-clock"></i> 24 Mins</div>
+                <div class="meta-item"><i class="fas fa-trophy"></i> Elite Rank</div>
+            </div>
+            <div class="start-btn-wrapper">
+                <div class="start-btn">
+                    START ASSESSMENT <i class="fas fa-play"></i>
+                </div>
+            </div>
+        </a>
+    </main>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { collection, getDocs, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+        import { db, auth } from "./firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+
+        // Global function for the buttons
+        window.startMock = function (companyId) {
+            if (!auth.currentUser) {
+                alert("Please login to attempt Mock Tests!");
+                return;
+            }
+            window.location.href = `mock-test-activity.html?company=${companyId}`;
+        };
+
+        // Fetch Toppers for each company
+        async function fetchToppers() {
+            const companies = ['atlas', 'capgemini', 'tcs', 'cognizant'];
+            for (const company of companies) {
+                try {
+                    const q = query(
+                        collection(db, "mock_results"),
+                        where("companyId", "==", company),
+                        orderBy("totalScore", "desc"),
+                        limit(1) // Just top 1 for the mini-preview
+                    );
+                    const sn = await getDocs(q);
+                    const container = document.getElementById(`toppers-${company}`);
+
+                    if (sn.empty) {
+                        container.innerHTML = '<div class="topper-row"><span>Be the first!</span> <span class="topper-score">0</span></div>';
+                    } else {
+                        sn.forEach(doc => {
+                            const data = doc.data();
+                            container.innerHTML = `
+                                <div class="topper-row">
+                                    <span>#1 ${data.userName}</span>
+                                    <span class="topper-score">${data.totalScore}</span>
+                                </div>
+                            `;
+                        });
+                    }
+                } catch (e) {
+                    console.error("Error fetching toppers:", e);
+                }
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                fetchToppers();
+            } else {
+                // Strictly enforce login for the hub
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+    <script type="module" src="auth.js"></script>
+</body>
+
+</html>

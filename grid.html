@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/jpeg" href="Logo.jpg">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 
 <body class="game-body">
@@ -17,16 +19,13 @@
     <nav class="navbar" style="position: relative;">
         <div class="nav-container">
             <a href="index.html" class="logo">
-                <div class="logo-icon"></div>
+                <img src="Logo.jpg" alt="AptiGame Logo" class="logo-img">
                 <span>AptiGame</span>
             </a>
             <ul class="nav-links">
                 <li><a href="index.html" class="active">Home</a></li>
             </ul>
             <a href="#" class="btn btn-primary" id="nav-login-btn" style="margin-left: auto;">LOG IN</a>
-            <div id="nav-user-profile" style="display: none; align-items: center; gap: 0.75rem; margin-left: auto;">
-                <div id="nav-user-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem;"></div>
-                <span id="nav-user-name" style="font-weight: 600; font-size: 0.95rem;"></span>
                 <button id="nav-logout-btn" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.85rem; margin-left: 0.5rem; text-decoration: underline;">Logout</button>
             </div>
         </div>
@@ -47,6 +46,10 @@
             <div class="stat-box">
                 <span class="stat-label">Level</span>
                 <span class="stat-value" id="level-display">1 / 18</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Marks</span>
+                <span class="stat-value" id="score-display">0</span>
             </div>
             <div class="stat-box timer-box">
                 <span class="stat-label">Time Remaining</span>
@@ -165,6 +168,9 @@
             <div class="score-stats">
                 <p>Correct: <span id="correct-count" class="text-success">0</span></p>
                 <p>Wrong: <span id="wrong-count" class="text-error">0</span></p>
+                <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                    <p style="font-size: 1.25rem; font-weight: 700;">Final Marks: <span id="final-marks" style="color: #c90076;">0</span></p>
+                </div>
             </div>
 
             <button id="next-module-btn" class="btn btn-primary btn-large">Start Next Module</button>

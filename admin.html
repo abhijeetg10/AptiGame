@@ -33,7 +33,9 @@
                 <button class="nav-btn active" data-target="panel-overview"><i class="fas fa-chart-line"></i> Overview</button>
                 <button class="nav-btn" data-target="panel-users"><i class="fas fa-users"></i> Users</button>
                 <button class="nav-btn" data-target="panel-leaderboards"><i class="fas fa-medal"></i> Master Leaderboards</button>
-                <button class="nav-btn" data-target="panel-feedback"><i class="fas fa-comments"></i> Feedback</button>
+                <button class="nav-btn" data-target="panel-ratings"><i class="fas fa-star"></i> Playback Ratings</button>
+                <button class="nav-btn" data-target="panel-feedback"><i class="fas fa-comments"></i> Support Feedback</button>
+                <button class="nav-btn" data-target="panel-mock-results"><i class="fas fa-file-invoice"></i> Mock Test Results</button>
             </nav>
             <div class="sidebar-footer">
                 <div id="admin-profile" class="admin-profile">
@@ -75,8 +77,15 @@
                         <div class="stat-card">
                             <i class="fas fa-comment-dots stat-icon text-success"></i>
                             <div class="stat-info">
-                                <h3>Feedback Forms</h3>
+                                <h3>Total Support Requests</h3>
                                 <div id="stat-total-feedback" class="stat-value">--</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-star stat-icon" style="color: #fbbf24;"></i>
+                            <div class="stat-info">
+                                <h3>Average Rating</h3>
+                                <div id="stat-avg-rating" class="stat-value">--</div>
                             </div>
                         </div>
                     </div>
@@ -127,13 +136,19 @@
                     <div class="leaderboard-controls" style="display: flex; justify-content: space-between; align-items: center;">
                         <select id="leaderboard-filter" class="admin-select">
                             <option value="grid">Grid Challenge</option>
+                            <option value="switch">Switch Challenge</option>
                             <option value="sudoku">Sudoku Pattern</option>
                             <option value="inductive">Inductive Logic</option>
                             <option value="motion">Motion Logic</option>
                         </select>
-                        <button id="download-leaderboard-csv" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                            <i class="fas fa-download"></i> Download CSV
-                        </button>
+                        <div style="display: flex; gap: 1rem;">
+                            <button id="reset-leaderboards-btn" class="btn" style="background-color: #ef4444; color: white; padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                <i class="fas fa-trash-alt"></i> Reset All Leaderboards
+                            </button>
+                            <button id="download-leaderboard-csv" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                <i class="fas fa-download"></i> Download CSV
+                            </button>
+                        </div>
                     </div>
                     <div class="card data-table-card">
                         <div class="table-container">
@@ -148,6 +163,33 @@
                                 </thead>
                                 <tbody id="table-body-leaderboards">
                                     <tr><td colspan="4" style="text-align: center;">Select a game to load scores...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PANEL: RATINGS -->
+                <section id="panel-ratings" class="admin-panel">
+                    <div class="card data-table-card">
+                        <div class="table-header" style="justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 1.5rem 2rem 0 2rem; display: flex;">
+                            <h2 style="margin: 0;">User Ratings & Reviews</h2>
+                            <button id="download-ratings-csv" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                <i class="fas fa-download"></i> Download CSV
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>User</th>
+                                        <th>Rating</th>
+                                        <th>Comment</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body-ratings">
+                                    <tr><td colspan="4" style="text-align: center;">Loading ratings...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -175,6 +217,35 @@
                                 </thead>
                                 <tbody id="table-body-feedback">
                                     <tr><td colspan="4" style="text-align: center;">Loading feedback...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PANEL: MOCK TEST RESULTS -->
+                <section id="panel-mock-results" class="admin-panel">
+                    <div class="card data-table-card">
+                        <div class="table-header" style="justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 1.5rem 2rem 0 2rem; display: flex;">
+                            <h2 style="margin: 0;">Company Mock Test Results</h2>
+                            <button id="download-mock-csv" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                <i class="fas fa-download"></i> Download CSV
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Candidate</th>
+                                        <th>Company</th>
+                                        <th>Score</th>
+                                        <th>Time Left</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body-mock-results">
+                                    <tr><td colspan="5" style="text-align: center;">Loading mock results...</td></tr>
                                 </tbody>
                             </table>
                         </div>

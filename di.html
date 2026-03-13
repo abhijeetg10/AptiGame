@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AptiGame - Tab-Based DI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" type="image/jpeg" href="Logo.jpg">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #c90076;
+            --primary-light: #ffedf5;
+            --accent: #3b82f6;
+            --bg-light: #f0f7ff;
+            --card-bg: #ffffff;
+            --card-border: #e2e8f0;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+        }
+
+        .di-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Question Box Styling */
+        .question-box {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .q-badge {
+            background: var(--primary);
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(201, 0, 118, 0.3);
+        }
+
+        .q-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.4;
+        }
+
+        /* Main Game Layout */
+        .game-main {
+            background: white;
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            min-height: 500px;
+            position: relative;
+        }
+
+        .game-info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .guide-text {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #3b82f6;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge {
+            background: #dcfce7;
+            color: #166534;
+            padding: 0.4rem 1rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            border: 1px solid #bbf7d0;
+        }
+
+        .data-card {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.1);
+            border-color: var(--accent);
+            background: #fdfefe;
+        }
+
+        .card-icon {
+            color: #94a3b8;
+            font-size: 2.8rem;
+            transition: color 0.3s;
+        }
+
+        .data-card:hover .card-icon {
+            color: var(--accent);
+        }
+
+        .card-label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.4;
+        }
+
+        .ans-btn {
+            padding: 1rem 2rem;
+            border-radius: 16px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #475569;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            font-family: inherit;
+            font-size: 1.05rem;
+            min-width: 150px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .ans-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Specific Button Themes */
+        .btn-yes:hover { 
+            border-color: #22c55e; 
+            color: #166534; 
+            background: linear-gradient(to bottom, #f0fdf4, #dcfce7);
+        }
+        .btn-yes i { color: #22c55e; }
+
+        .btn-no:hover { 
+            border-color: #ef4444; 
+            color: #991b1b; 
+            background: linear-gradient(to bottom, #fef2f2, #fee2e2);
+        }
+        .btn-no i { color: #ef4444; }
+
+        .btn-cant:hover { 
+            border-color: #64748b; 
+            color: #1e293b; 
+            background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+        }
+        .btn-cant i { color: #64748b; }
+
+        .ans-btn.correct {
+            background: #22c55e !important;
+            color: white !important;
+            border-color: #166534 !important;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.5) !important;
+        }
+        .ans-btn.correct i { color: white !important; }
+
+        .ans-btn.incorrect {
+            background: #ef4444 !important;
+            color: white !important;
+            border-color: #991b1b !important;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important;
+        }
+        .ans-btn.incorrect i { color: white !important; }
+
+        /* Viewing Table Layout */
+        .data-viewer-container {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .data-card {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 18px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .data-card:hover {
+            background: white;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+        }
+
+        .card-icon {
+            color: #fbd38d; /* Folder gold */
+            font-size: 2.5rem;
+        }
+
+        .card-label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #3b82f6;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #1e3a8a;
+            line-height: 1.4;
+        }
+
+        /* Viewing Table Layout */
+        .data-viewer-container {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .back-to-cards {
+            align-self: flex-start;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #3b82f6;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .back-to-cards:hover {
+            background: #eff6ff;
+        }
+
+        .table-wrapper {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .answer-floating-bar {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            display: none;
+            gap: 1rem;
+            z-index: 1000;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translate(-50%, 100px); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+
+        /* Results & Modules - Keeping standard AptiGame style but refined */
+        .module-selection { background: var(--bg-light); }
+
+        @media (max-width: 768px) {
+            .cards-grid { grid-template-columns: 1fr; }
+            .answer-floating-bar { width: 90%; justify-content: center; }
+        }
+    </style>
+</head>
+
+<body class="game-body">
+    <!-- Navbar -->
+    <nav class="navbar" style="position: relative;">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="Logo.jpg" alt="AptiGame Logo" class="logo-img">
+                <span>AptiGame</span>
+            </a>
+            <div id="nav-user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                <div id="nav-user-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem;"></div>
+                <span id="nav-user-name" style="font-weight: 600; font-size: 0.95rem;"></span>
+                <button id="nav-logout-btn" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.85rem; margin-left: 0.5rem; text-decoration: underline;">Logout</button>
+            </div>
+            <a href="#" class="btn btn-primary" id="nav-login-btn">LOG IN</a>
+        </div>
+    </nav>
+
+    <!-- Game Header (Standard) -->
+    <header class="game-header hidden" id="game-header">
+        <a href="#" class="back-link" id="back-to-modules-btn">&larr; Back to Modules</a>
+        <div class="game-stats-bar">
+            <div class="stat-box">
+                <span class="stat-label">Module</span>
+                <span class="stat-value" id="module-display">1 / 5</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Level</span>
+                <span class="stat-value" id="level-display">1 / 18</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Marks</span>
+                <span class="stat-value" id="score-display">0</span>
+            </div>
+            <div class="stat-box timer-box">
+                <span class="stat-label">Time Remaining</span>
+                <span class="stat-value timer" id="timer-display">06:00</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Module Selection -->
+    <div id="module-selection" class="module-selection">
+        <div class="module-container">
+            <h2 style="color: var(--text-dark)">Select a Module</h2>
+            <p style="color: var(--text-muted)">Strategically analyze folders to find the relevant data under pressure.</p>
+            <div class="module-grid" id="module-grid"></div>
+        </div>
+    </div>
+
+    <!-- Main Challenge Area -->
+    <main class="di-container hidden" id="game-container">
+        <!-- Question Header -->
+        <div class="question-box">
+            <div class="q-badge" id="level-indicator">Q1</div>
+            <div class="q-text" id="question-text">Loading logical statement...</div>
+        </div>
+
+        <!-- Main Card Section -->
+        <div class="game-main">
+            <div class="game-info-bar">
+                <div class="guide-text">
+                    <i class="fas fa-folder-open"></i>
+                    <span>Click the correct tab to find your data</span>
+                </div>
+                <div class="status-badge">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Tabs Unlocked!</span>
+                </div>
+            </div>
+
+            <!-- Bento Card Grid -->
+            <div class="cards-grid" id="cards-grid">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- Data Detail Viewer -->
+            <div class="data-viewer-container" id="data-viewer">
+                <div class="back-to-cards" onclick="toggleDataView(false)">
+                    <i class="fas fa-chevron-left"></i> Back to Datasets
+                </div>
+                <div id="tab-data-viewer" class="table-wrapper">
+                    <!-- Tables/Charts here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Floating Answer Bar -->
+    <div class="answer-floating-bar" id="answer-bar">
+        <button class="ans-btn btn-yes" onclick="handleAnswer('Yes')">
+            <i class="fas fa-check-circle"></i> YES
+        </button>
+        <button class="ans-btn btn-no" onclick="handleAnswer('No')">
+            <i class="fas fa-times-circle"></i> NO
+        </button>
+        <button class="ans-btn btn-cant" onclick="handleAnswer('Cant Say')">
+            <i class="fas fa-question-circle"></i> CAN'T SAY
+        </button>
+    </div>
+
+    <!-- Feedback & Results -->
+    <div id="feedback-popup" class="feedback-popup hidden">
+        <div class="feedback-content">
+            <h2 id="feedback-status" style="font-size: 3.5rem; font-weight: 900;"></h2>
+            <p id="feedback-points" style="font-size: 1.5rem; font-weight: 800;"></p>
+        </div>
+    </div>
+
+    <div id="results-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2>Module Complete</h2>
+            <div class="score-display">
+                <div class="score-circle">
+                    <span id="score-text">0 / 0</span>
+                </div>
+            </div>
+            <div class="score-stats">
+                <p>Marks Obtained: <span id="final-marks-val" class="text-success" style="color: var(--primary); font-weight: 800; font-size: 1.5rem;">0</span></p>
+                <p>Accuracy: <span id="accuracy-text">0%</span></p>
+            </div>
+            <button id="next-module-btn" class="btn btn-primary btn-large" style="width: 100%;">Continue</button>
+            <a href="index.html" class="btn btn-outline" style="margin-top: 1rem; display: block;">Return Home</a>
+        </div>
+    </div>
+
+    <script type="module" src="auth.js"></script>
+    <script type="module" src="di.js"></script>
+</body>
+</html>
+
+    <!-- Feedback Popups -->
+    <div id="feedback-popup" class="feedback-popup hidden">
+        <div class="feedback-content">
+            <h2 id="feedback-status" style="font-size: 3.5rem; font-weight: 900; text-transform: uppercase;"></h2>
+            <p id="feedback-points" style="font-size: 1.5rem; font-weight: 800;"></p>
+        </div>
+    </div>
+
+    <!-- Results Modal (Standard) -->
+    <div id="results-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 id="modal-title">Module Complete</h2>
+            <div class="score-display">
+                <div class="score-circle">
+                    <span id="score-text">0 / 0</span>
+                </div>
+            </div>
+            <div class="score-stats">
+                <p>Marks Obtained: <span id="final-marks-val" class="text-success" style="color: var(--primary); font-weight: 800; font-size: 1.5rem;">0</span></p>
+                <p>Accuracy: <span id="accuracy-text" style="font-weight: 600;">0%</span></p>
+            </div>
+
+            <button id="next-module-btn" class="btn btn-primary btn-large" style="width: 100%;">Continue</button>
+            <a href="index.html" class="btn btn-outline" style="margin-top: 1rem; display: block; border: 1px solid var(--border-color);">Return Home</a>
+        </div>
+    </div>
+
+    <!-- Load Auth System -->
+    <script type="module" src="auth.js"></script>
+    <script type="module" src="di.js"></script>
+</body>
+
+</html>

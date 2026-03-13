@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AptiGame - Switch Challenge</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/jpeg" href="Logo.jpg">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+
+<body class="game-body">
+
+    <!-- Navbar -->
+    <nav class="navbar" style="position: relative;">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="Logo.jpg" alt="AptiGame Logo" class="logo-img">
+                <span>AptiGame</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active">Home</a></li>
+            </ul>
+             <a href="#" class="btn btn-primary" id="nav-login-btn">LOG IN</a>
+            <div id="nav-user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                <div id="nav-user-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem;"></div>
+                <span id="nav-user-name" style="font-weight: 600; font-size: 0.95rem;"></span>
+                <button id="nav-logout-btn" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.85rem; margin-left: 0.5rem; text-decoration: underline;">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Game Header (Standard) -->
+    <header class="game-header hidden" id="game-header">
+        <a href="#" class="back-link" id="back-to-modules-btn">&larr; Back to Modules</a>
+
+        <div class="game-stats-bar">
+            <div class="stat-box">
+                <span class="stat-label">Module</span>
+                <span class="stat-value" id="module-display">1 / 5</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Level</span>
+                <span class="stat-value" id="level-display">1 / 18</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Marks</span>
+                <span class="stat-value" id="score-display">0</span>
+            </div>
+            <div class="stat-box timer-box">
+                <span class="stat-label">Time Remaining</span>
+                <span class="stat-value timer" id="timer-display">06:00</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Module Selection Screen -->
+    <div id="module-selection" class="module-selection">
+        <div class="module-container">
+            <h2>Select a Module</h2>
+            <p>Each module contains 18 permutation puzzles testing logical reordering.</p>
+            <div class="module-grid" id="module-grid">
+                <!-- Modules injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game Area -->
+    <main class="game-container hidden" id="game-container">
+        <div class="game-instructions">
+            <h2>Switch Challenge</h2>
+            <p>Identify the correct permutation code that reorders the symbols from Input to Output.</p>
+        </div>
+
+        <div class="switch-playground">
+            <!-- Input Shapes -->
+            <div class="shape-row large" id="input-shapes"></div>
+            
+            <!-- Permutation Visual -->
+            <div class="permutation-zone">
+                <div class="giant-arrow-refined"></div>
+                <div class="answer-panel-horizontal" id="answer-panel"></div>
+            </div>
+
+            <!-- Output Shapes -->
+            <div class="shape-row large" id="output-shapes"></div>
+        </div>
+    </main>
+
+    <!-- Feedback Popups -->
+    <div id="feedback-popup" class="feedback-popup hidden">
+        <div class="feedback-content">
+            <h2 id="feedback-status" style="font-size: 3rem; font-weight: 900;"></h2>
+            <p id="feedback-points" style="font-size: 1.5rem; font-weight: 800;"></p>
+        </div>
+    </div>
+
+    <!-- Results Modal (Standard) -->
+    <div id="results-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 id="modal-title">Module Complete</h2>
+            <div class="score-display">
+                <div class="score-circle">
+                    <span id="score-text">0 / 0</span>
+                </div>
+            </div>
+            <div class="score-stats">
+                <p>Marks Obtained: <span id="final-marks" class="text-success">0</span></p>
+                <p>Accuracy: <span id="accuracy-text">0%</span></p>
+            </div>
+
+            <button id="next-module-btn" class="btn btn-primary btn-large">Continue</button>
+            <a href="index.html" class="btn btn-outline" style="margin-top: 1rem; display: block;">Return Home</a>
+        </div>
+    </div>
+
+    <!-- Load Auth System -->
+    <script type="module" src="auth.js"></script>
+    <script src="switch.js" type="module"></script>
+</body>
+
+</html>

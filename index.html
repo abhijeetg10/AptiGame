@@ -20,6 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/jpeg" href="Logo.jpg">
 </head>
 
 <body>
@@ -27,12 +28,13 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="#" class="logo">
-                <div class="logo-icon"></div>
+                <img src="Logo.jpg" alt="AptiGame Logo" class="logo-img">
                 <span>AptiGame</span>
             </a>
             <ul class="nav-links">
                 <li><a href="#" class="active">Home</a></li>
                 <li><a href="#challenges">Challenges</a></li>
+                <li><a href="mock-tests.html" style="color: var(--primary); font-weight: 700;"><i class="fas fa-trophy"></i> Mock Tests</a></li>
                 <li><a href="#companies">Companies</a></li>
                 <li><a href="#faq">FAQ</a></li>
             </ul>
@@ -51,38 +53,77 @@
 
     <!-- Hero Section -->
     <header class="hero">
-        <div class="hero-content">
-            <span class="badge">AptiGame Prep</span>
-            <h1>Clear Your<br><span class="highlight">Aptitude Tests</span></h1>
-            <p>Master the interactive logic challenges used by top MNCs. Stop reading boring prep books and start
-                playing your way to an offer letter.</p>
-
-            <div class="stats">
-                <div class="avatars">
-                    <div class="avatar" style="background-color: #E2E8F0;"></div>
-                    <div class="avatar" style="background-color: #CBD5E1;"></div>
-                    <div class="avatar" style="background-color: #94A3B8;"></div>
+        <div class="hero-container">
+            <div class="hero-content">
+                <span class="badge">AptiGame Prep</span>
+                <h1>Clear Your<br><span class="highlight">Aptitude Tests</span></h1>
+                <p>Master the interactive logic challenges used by top MNCs. Stop reading boring prep books and start
+                    playing your way to an offer letter.</p>
+    
+                <div class="stats">
+                    <div class="avatars">
+                        <div class="avatar" style="background-color: #E2E8F0;"></div>
+                        <div class="avatar" style="background-color: #CBD5E1;"></div>
+                        <div class="avatar" style="background-color: #94A3B8;"></div>
+                    </div>
+                    <p>Join over <strong>10k+</strong> students</p>
                 </div>
-                <p>Join over <strong>10k+</strong> students</p>
             </div>
-        </div>
-
-        <div class="hero-visuals">
-            <!-- Placeholders for the circular images shown in the reference -->
-            <div class="circle circle-1" aria-label="Student preparing for aptitude test"
-                style="background-image: url('hero_student_1_1773160823080.png'); background-size: cover; background-position: center;">
-            </div>
-            <div class="circle circle-2" aria-label="Student succeeding in logic puzzles"
-                style="background-image: url('hero_student_2_1773160921455.png'); background-size: cover; background-position: center;">
-            </div>
-            <div class="circle circle-3" aria-label="Student practicing gamified assessments"
-                style="background-image: url('hero_student_3_1773160944783.png'); background-size: cover; background-position: center;">
-            </div>
-            <div class="circle circle-4" aria-label="Portrait of Abhijeet Gaikwad"
-                style="background-image: url('Abhi.jpg'); background-size: cover; background-position: center;">
+    
+            <div class="hero-visuals">
+                <!-- Placeholders for the circular images shown in the reference -->
+                <div class="circle circle-1" aria-label="Student preparing for aptitude test"
+                    style="background-image: url('hero_student_1_1773160823080.png'); background-size: cover; background-position: center;">
+                </div>
+                <div class="circle circle-2" aria-label="Student succeeding in logic puzzles"
+                    style="background-image: url('hero_student_2_1773160921455.png'); background-size: cover; background-position: center;">
+                </div>
+                <div class="circle circle-3" aria-label="Student practicing gamified assessments"
+                    style="background-image: url('hero_student_3_1773160944783.png'); background-size: cover; background-position: center;">
+                </div>
+                <div class="circle circle-4" aria-label="Portrait of Abhijeet Gaikwad"
+                    style="background-image: url('Abhi.jpg'); background-size: cover; background-position: center;">
+                </div>
             </div>
         </div>
     </header>
+    
+    <!-- Personal Performance Dashboard (Shown only when logged in) -->
+    <section id="personal-dashboard" class="personal-dashboard hidden" style="padding: 4rem 2rem; background: var(--bg-alt); text-align: center;">
+        <div class="nav-container">
+            <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 2rem; color: var(--text-main);">Your Progress Tracker</h2>
+            <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; max-width: 1000px; margin: 0 auto;">
+                <!-- Global Rank Card -->
+                <div class="podium-slot rank-1" style="height: auto; width: 100%; max-width: none; border: 2px solid var(--primary);">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">👑</div>
+                    <div class="podium-name">Global Rank</div>
+                    <div class="podium-score" id="user-rank">#--</div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;" id="rank-insight">Solving more modules increases rank!</p>
+                </div>
+                <!-- Accuracy Card -->
+                <div class="podium-slot rank-2" style="height: auto; width: 100%; max-width: none;">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">🎯</div>
+                    <div class="podium-name">Overall Accuracy</div>
+                    <div class="podium-score" id="user-accuracy">0%</div>
+                    <p style="font-size: 0.9rem; font-weight: 600; color: var(--primary); margin-top: 0.5rem;" id="accuracy-insight">Keep practicing!</p>
+                </div>
+                <!-- Logic Speed Card -->
+                <div class="podium-slot rank-1" style="height: auto; width: 100%; max-width: none;">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">⚡</div>
+                    <div class="podium-name">Logic Speed</div>
+                    <div class="podium-score" id="user-speed">0s / level</div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;" id="speed-insight">Benchmark: 20s</p>
+                </div>
+                <!-- Path Efficiency Card -->
+                <div class="podium-slot rank-3" style="height: auto; width: 100%; max-width: none;">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">📏</div>
+                    <div class="podium-name">Path Efficiency</div>
+                    <div class="podium-score" id="user-efficiency">0%</div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;" id="efficiency-insight">Motion Challenge Stat</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Why Choose Game-Based Prep Section -->
     <section class="benefits">
@@ -195,56 +236,95 @@
 
             <!-- Card 5: Switch Challenge -->
             <div class="card">
-                <div class="card-img"
-                    style="background-image: url('swith challenge.png'); background-size: cover; background-position: center;">
-                    <span class="card-badge coming-soon">Coming Soon</span>
-                </div>
-                <div class="card-content">
-                    <h3>Switch Challenge</h3>
-                    <p>Follow complex instructions to map inputs to outputs through a series of logical operators.</p>
-                    <div class="card-meta">
-                        <span class="difficulty hard">Hard</span>
-                        <span class="time">12 mins</span>
+                <a href="switch.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
+                    <div class="card-img"
+                        style="background-image: url('swith challenge.png'); background-size: cover; background-position: center;">
+                        <span class="card-badge hot">HOT</span>
                     </div>
-                </div>
+                    <div class="card-content">
+                        <h3>Switch Challenge</h3>
+                        <p>Follow complex instructions to map inputs to outputs through a series of logical operators.</p>
+                        <div class="card-meta">
+                            <span class="difficulty hard">Hard</span>
+                            <span class="time">6 mins</span>
+                        </div>
+                    </div>
+                </a>
             </div>
 
             <!-- Card 6: Tab Based DI -->
             <div class="card">
-                <div class="card-img"
-                    style="background-color: #3b82f6; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-chart-pie" style="font-size: 3rem; color: rgba(255,255,255,0.8);"></i>
-                    <span class="card-badge coming-soon">Coming Soon</span>
-                </div>
-                <div class="card-content">
-                    <h3>Tab Based DI</h3>
-                    <p>Analyze multi-tabbed data tables and charts to solve complex quantitative aptitude problems.</p>
-                    <div class="card-meta">
-                        <span class="difficulty hard">Hard</span>
-                        <span class="time">15 mins</span>
+                <a href="di.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
+                    <div class="card-img"
+                        style="background-image: url('DI.png'); background-size: cover; background-position: center;">
+                        <span class="card-badge new">New</span>
                     </div>
-                </div>
+                    <div class="card-content">
+                        <h3>Tab Based DI</h3>
+                        <p>Analyze multi-tabbed data tables and charts to verify complex logical statements.</p>
+                        <div class="card-meta">
+                            <span class="difficulty hard">Hard</span>
+                            <span class="time">6 mins</span>
+                        </div>
+                    </div>
+                </a>
             </div>
 
             <!-- Card 7: Tab Based RC -->
             <div class="card">
-                <div class="card-img"
-                    style="background-color: #8b5cf6; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-book-reader" style="font-size: 3rem; color: rgba(255,255,255,0.8);"></i>
-                    <span class="card-badge coming-soon">Coming Soon</span>
+                <a href="rc.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
+                    <div class="card-img"
+                        style="background-image: url('RC.png'); background-size: cover; background-position: center;">
+                        <span class="card-badge new">New</span>
+                    </div>
+                    <div class="card-content">
+                        <h3>Tab Based RC</h3>
+                        <p>Navigate through multiple document tabs to synthesize information and answer reading
+                            comprehension questions.</p>
+                        <div class="card-meta">
+                            <span class="difficulty medium">Medium</span>
+                            <span class="time">6 mins</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Card 8: Company Mock Tests [REFINED - WIDE] -->
+            <div class="card" style="grid-column: span 2; border: 2px solid var(--primary); background: linear-gradient(135deg, rgba(201, 0, 118, 0.02) 0%, rgba(255, 255, 255, 1) 100%); display: flex; flex-direction: row; align-items: stretch; min-height: 250px; overflow: hidden;">
+                <div class="card-content" style="flex: 1.2; padding: 2.5rem; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <span class="card-badge hot" style="background: var(--primary); position: static; display: inline-block;">Timed Assessment</span>
+                        <div class="card-meta" style="border: none; padding: 0; margin: 0; font-size: 0.8rem;">
+                            <span class="difficulty hard">Exam Level</span>
+                            <span class="time" style="margin-left: 1rem;">24 mins</span>
+                        </div>
+                    </div>
+                    <h3 style="color: var(--primary); font-size: 2rem; margin-bottom: 1.25rem; font-weight: 800;">Full Company Mock Tests</h3>
+                    <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                        Experience the exact pressure of real hiring rounds with randomized modules, proctoring, and global leaderboards.
+                    </p>
+                    <a href="mock-tests.html" class="btn btn-primary" style="padding: 1.25rem 2.5rem; font-size: 1.1rem; text-align: center; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 0.75rem; width: 100%;">
+                        <i class="fas fa-play"></i> Launch Comprehensive Assessment
+                    </a>
                 </div>
-                <div class="card-content">
-                    <h3>Tab Based RC</h3>
-                    <p>Navigate through multiple document tabs to synthesize information and answer reading
-                        comprehension questions.</p>
-                    <div class="card-meta">
-                        <span class="difficulty medium">Medium</span>
-                        <span class="time">10 mins</span>
+                
+                <div style="flex: 0.8; padding: 2.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(201, 0, 118, 0.01); border-left: 1px solid rgba(201, 0, 118, 0.1);">
+                    <p style="font-size: 0.8rem; color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 2rem; opacity: 0.7;">Practice for Industry Giants</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center; justify-items: center; width: 100%;">
+                        <img src="atlas copco.png" alt="Atlas Copco" style="width: 110px; height: auto; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));">
+                        <img src="cognizant.jpg" alt="Cognizant" style="width: 100px; height: auto; object-fit: contain; border-radius: 4px;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Capgemini_201x_logo.svg/1200px-Capgemini_201x_logo.svg.png" alt="Capgemini" style="width: 110px; height: auto; object-fit: contain;">
+                        <img src="tcs.png" alt="TCS" style="width: 80px; height: auto; object-fit: contain;">
+                    </div>
+                    <div style="margin-top: 2.5rem; display: flex; gap: 1rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">
+                        <span><i class="fas fa-check-circle" style="color: var(--success);"></i> Adaptive Modules</span>
+                        <span><i class="fas fa-check-circle" style="color: var(--success);"></i> Proctored</span>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+    
 
     <!-- Leaderboard Section -->
     <section id="leaderboard" class="leaderboard">
@@ -261,6 +341,9 @@
                 <button class="tab-btn" data-board="sudoku">Sudoku</button>
                 <button class="tab-btn" data-board="inductive">Inductive</button>
                 <button class="tab-btn" data-board="grid">Grid</button>
+                <button class="tab-btn" data-board="switch">Switch</button>
+                <button class="tab-btn" data-board="di">DI</button>
+                <button class="tab-btn" data-board="rc">RC</button>
             </div>
             
             <!-- Hall of Fame Content -->
@@ -270,9 +353,28 @@
                     <!-- Populated by JS -->
                 </div>
                 
-                <!-- Rank 4+ List -->
-                <div class="leaderboard-list" id="leaderboard-list">
-                    <!-- Populated by JS -->
+                <!-- Rank 4+ List (Hidden by default) -->
+                <div id="leaderboard-full-list" class="hidden" style="margin-top: 2rem;">
+                    <div class="leaderboard-list" id="leaderboard-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- See More Button -->
+                <div id="see-more-container" style="padding: 2rem; border-top: 1px solid var(--border-color);">
+                    <button id="toggle-leaderboard-btn" class="btn btn-outline" style="width: 100%; max-width: 300px; color: var(--primary); border-color: var(--primary);">
+                        Show Full Rankings <i class="fas fa-chevron-down" style="margin-left: 0.5rem;"></i>
+                    </button>
+                </div>
+
+                <!-- Pinned User Row (Always visible if logged in) -->
+                <div id="pinned-user-container" style="background: white; border-top: 2px solid var(--primary); padding: 1.5rem; position: sticky; bottom: 0; z-index: 10; box-shadow: 0 -10px 20px rgba(0,0,0,0.05);">
+                    <div id="user-rank-row" class="list-row current-user-row" style="margin: 0; cursor: pointer; display: none;">
+                        <!-- Populated by JS -->
+                    </div>
+                    <div id="user-rank-guest" style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">
+                        <i class="fas fa-user-circle" style="margin-right: 0.5rem;"></i> Login to see your global rank and score
+                    </div>
                 </div>
             </div>
         </div>
@@ -506,54 +608,100 @@
                 const initial = entry.name.charAt(0).toUpperCase();
                 const slot = document.createElement('div');
                 slot.className = `podium-slot rank-${entry.rank}`;
+                
+                let shineOverlay = '';
+                if (entry.rank === 1) {
+                    shineOverlay = '<div class="shine-overlay"></div>';
+                }
+
                 slot.innerHTML = `
+                    ${shineOverlay}
                     <div class="podium-rank-badge">${entry.rank}</div>
                     <div class="podium-avatar">${initial}</div>
                     <div class="podium-name">${entry.name}</div>
                     <div class="podium-score">${entry.score}</div>
+                    <div class="podium-accuracy">Accuracy: ${entry.accuracy}%</div>
                 `;
                 podiumContainer.appendChild(slot);
             });
 
-            // 2. Render List (Ranks 4 to 10)
-            const listData = data.slice(3, 10);
+            // 2. Render List (Ranks 4+)
+            const listData = data.slice(3);
+            const userRankRow = document.getElementById('user-rank-row');
+            const userRankGuest = document.getElementById('user-rank-guest');
+            const currentUserName = window.activeUserName || null;
             
             listData.forEach(entry => {
                 const initial = entry.name.charAt(0).toUpperCase();
                 const row = document.createElement('div');
                 row.className = 'list-row';
+                if (entry.name === currentUserName) row.classList.add('highlight-user');
                 row.innerHTML = `
                     <div class="list-rank">${entry.rank}</div>
                     <div class="list-avatar">${initial}</div>
                     <div class="list-info">
-                        <div class="list-name">${entry.name}</div>
-                        <div class="list-score">${entry.score}</div>
+                        <div class="list-name">${entry.name} ${entry.name === currentUserName ? '(You)' : ''}</div>
+                        <div class="list-score">${entry.score} <span class="list-accuracy">(${entry.accuracy}%)</span></div>
                     </div>
                 `;
                 listContainer.appendChild(row);
             });
 
-            // 3. Render Current User Pinned Row (if outside top 10)
-            const currentUserName = window.activeUserName || null;
-            const userEntry = currentUserName ? data.find(entry => entry.name === currentUserName) : null;
-            
-            if (userEntry && userEntry.rank > 10) {
-                const initial = userEntry.name.charAt(0).toUpperCase();
-                const row = document.createElement('div');
-                row.className = 'list-row current-user-row';
-                row.style.borderTop = "2px solid rgba(99, 102, 241, 0.5)";
-                row.style.marginTop = "1rem";
-                row.style.paddingTop = "1rem";
-                row.innerHTML = `
-                    <div class="list-rank">${userEntry.rank}</div>
-                    <div class="list-avatar">${initial}</div>
-                    <div class="list-info">
-                        <div class="list-name" style="color:var(--primary);">${userEntry.name} (You)</div>
-                        <div class="list-score">${userEntry.score}</div>
-                    </div>
-                `;
-                listContainer.appendChild(row);
+            // 3. Handle Pinned User Row
+            if (currentUserName) {
+                userRankGuest.style.display = 'none';
+                const userEntry = data.find(entry => entry.name === currentUserName);
+                
+                if (userEntry) {
+                    userRankRow.style.display = 'flex';
+                    const initial = userEntry.name.charAt(0).toUpperCase();
+                    userRankRow.innerHTML = `
+                        <div class="list-rank">${userEntry.rank}</div>
+                        <div class="list-avatar">${initial}</div>
+                        <div class="list-info">
+                            <div class="list-name">${userEntry.name} (Your Rank)</div>
+                            <div class="list-score">${userEntry.score} <span class="list-accuracy">Accuracy: ${userEntry.accuracy}%</span></div>
+                            <div class="list-insight" style="font-size: 0.75rem; opacity: 0.9;"><i class="fas fa-lightbulb"></i> ${userEntry.insight}</div>
+                        </div>
+                    `;
+                } else {
+                    userRankRow.style.display = 'none';
+                    userRankGuest.style.display = 'block';
+                    userRankGuest.innerHTML = `<i class="fas fa-play" style="margin-right: 0.5rem;"></i> Play a game to appear on the leaderboard!`;
+                }
+            } else {
+                userRankRow.style.display = 'none';
+                userRankGuest.style.display = 'block';
             }
+
+            // 4. Handle "See More" Button logic
+            const toggleContainer = document.getElementById('see-more-container');
+            if (data.length <= 3) {
+                toggleContainer.style.display = 'none';
+            } else {
+                toggleContainer.style.display = 'block';
+            }
+        }
+
+        /**
+         * Toggles the full leaderboard list visibility
+         */
+        const toggleBtn = document.getElementById('toggle-leaderboard-btn');
+        const fullList = document.getElementById('leaderboard-full-list');
+        
+        if (toggleBtn && fullList) {
+            toggleBtn.addEventListener('click', () => {
+                const isHidden = fullList.classList.contains('hidden');
+                if (isHidden) {
+                    fullList.classList.remove('hidden');
+                    toggleBtn.innerHTML = 'Show Less <i class="fas fa-chevron-up" style="margin-left: 0.5rem;"></i>';
+                } else {
+                    fullList.classList.add('hidden');
+                    toggleBtn.innerHTML = 'Show Full Rankings <i class="fas fa-chevron-down" style="margin-left: 0.5rem;"></i>';
+                    // Scroll back to leaderboard top if closing
+                    document.getElementById('leaderboard').scrollIntoView({ behavior: 'smooth' });
+                }
+            });
         }
 
         // Example trigger (To be replaced by Firebase listener)
@@ -594,87 +742,198 @@
         
         onAuthStateChanged(auth, (user) => {
             window.activeUserName = user && user.displayName ? user.displayName : null;
-            // Optionally, we could re-render the active tab here so their pinned row appears instantly upon login
+            if (user) {
+                document.getElementById('personal-dashboard').classList.remove('hidden');
+            } else {
+                document.getElementById('personal-dashboard').classList.add('hidden');
+            }
         });
+
+        // --- Personal Dashboard Logic ---
+        function updatePersonalStats(docs, currentUserName) {
+            const userDocs = docs.filter(d => d.name === currentUserName);
+            if (userDocs.length === 0) return;
+
+            let totalSolved = 0;
+            let totalPossible = 0;
+            let totalTime = 0;
+            let timeCount = 0;
+            let motionMoves = 0;
+            let motionMin = 0;
+
+            userDocs.forEach(d => {
+                let levels = d.totalLevels || 18;
+                if (d._sourceCategory === 'sudoku' || d._sourceCategory === 'motion' || d._sourceCategory === 'switch') levels = d.totalLevels || 10;
+                if (d._sourceCategory === 'inductive') levels = d.totalLevels || 12;
+                totalPossible += levels;
+
+                if (d.metrics) {
+                    totalSolved += (d.metrics.correctLevels || d.metrics.correctAnswers || d.metrics.correctCount || d.score || 0);
+                    
+                    if (d.metrics.timeSpent) {
+                        totalTime += d.metrics.timeSpent;
+                        timeCount += d.score; 
+                    }
+                    if (d.metrics.totalMoves) {
+                        motionMoves += d.metrics.totalMoves;
+                        motionMin += d.metrics.minMoves || 0;
+                    }
+                } else {
+                    totalSolved += d.score || 0;
+                }
+            });
+
+            const accuracy = Math.round((totalSolved / totalPossible) * 100) || 0;
+            const avgSpeed = timeCount > 0 ? Math.round(totalTime / timeCount) : 0;
+            const efficiency = motionMin > 0 ? Math.round((motionMin / motionMoves) * 100) : 0;
+
+            document.getElementById('user-accuracy').innerText = `${accuracy}%`;
+            document.getElementById('user-speed').innerText = `${avgSpeed}s / level`;
+            document.getElementById('user-efficiency').innerText = `${efficiency}%`;
+
+            // Dynamic insights
+            const accNode = document.getElementById('accuracy-insight');
+            if (accuracy > 85) accNode.innerText = "Elite Precision! 🌟";
+            else if (accuracy > 70) accNode.innerText = "Great job, keep it up!";
+            else accNode.innerText = "Focus on accuracy over speed.";
+
+            const speedNode = document.getElementById('speed-insight');
+            if (avgSpeed < 15 && avgSpeed > 0) speedNode.innerText = "Lightning Fast! ⚡";
+            else speedNode.innerText = "Benchmark: 20s/level";
+
+            const effNode = document.getElementById('efficiency-insight');
+            if (efficiency > 80) effNode.innerText = "Master Architect! 📐";
+            else effNode.innerText = "Motion Challenge Stat";
+        }
 
         // 4. Create the Fetch Function
         window.fetchFromFirebase = async function(category) {
             try {
                 let collectionsToFetch = [];
                 if (category === 'all') {
-                    collectionsToFetch = ['motion', 'sudoku', 'inductive', 'grid'];
+                    collectionsToFetch = ['motion', 'sudoku', 'inductive', 'grid', 'switch', 'di', 'rc'];
                 } else {
                     collectionsToFetch = [category];
                 }
 
                 let allDocs = [];
-                
-                // Fetch from each relevant collection
                 for (const cat of collectionsToFetch) {
                     const q = query(
                         collection(db, "leaderboards", cat, "scores"), 
                         orderBy("score", "desc"), 
-                        limit(150) // Increased limit to find user ranks outside top 10
+                        limit(100)
                     );
                     const sn = await getDocs(q);
                     sn.forEach(doc => {
                         const d = doc.data();
-                        d._sourceCategory = cat; // metadata
+                        d._sourceCategory = cat;
                         allDocs.push(d);
                     });
                 }
-
-                const data = [];
                 
-                allDocs.forEach((docData) => {
-                    let percentage = 0;
-                    let displayScore = "0";
-                    let gameLabel = docData._sourceCategory.charAt(0).toUpperCase() + docData._sourceCategory.slice(1);
-                    
-                    if (typeof docData.score === "number") {
-                        let total = docData.totalLevels || 18;
-                        if (docData._sourceCategory === 'sudoku') total = 10;
-                        if (docData._sourceCategory === 'motion') total = 10;
-                        if (docData._sourceCategory === 'inductive') total = 12; // fallback estimations
-                        
-                        // use explicit exact levels if provided
-                        total = docData.totalLevels || total;
+                window.allDocsRaw = allDocs; // Save for personal stats
+                if (window.activeUserName) {
+                    updatePersonalStats(allDocs, window.activeUserName);
+                }
 
-                        displayScore = `${docData.score} / ${total} (${gameLabel})`;
-                        percentage = docData.score / total;
-                    } else if (typeof docData.score === "string") {
-                        displayScore = `${docData.score} (${gameLabel})`;
-                        let parts = docData.score.split("/");
-                        if (parts.length === 2) {
-                            percentage = parseFloat(parts[0]) / parseFloat(parts[1]);
-                        } else {
-                            percentage = parseFloat(docData.score) || 0;
-                        }
+                // 1. AGGREGATE BY NAME (Cumulative)
+                const userTotals = {};
+                
+                allDocs.forEach(d => {
+                    const name = d.name || "Unknown";
+                    if (!userTotals[name]) {
+                        userTotals[name] = { 
+                            score: 0, 
+                            totalLevels: 0, 
+                            metrics: { 
+                                motionMoves: 0, 
+                                motionMin: 0, 
+                                totalTime: 0, 
+                                timeCount: 0,
+                                correctLevels: 0
+                            } 
+                        };
                     }
+                    
+                    userTotals[name].score += d.score || 0;
+                    
+                    // Total Levels Logic
+                    let levels = d.totalLevels || 18;
+                    if (d._sourceCategory === 'sudoku' || d._sourceCategory === 'motion' || d._sourceCategory === 'switch') levels = d.totalLevels || 10;
+                    if (d._sourceCategory === 'inductive') levels = d.totalLevels || 12;
+                    userTotals[name].totalLevels += levels;
 
-                    // If it's a specific category view, remove the game label appendage
-                    if (category !== 'all') {
-                        displayScore = displayScore.split(" (")[0];
+                    // Metrics Aggregation
+                    if (d.metrics) {
+                        userTotals[name].metrics.correctLevels += (d.metrics.correctLevels || d.metrics.correctAnswers || d.metrics.correctCount || d.score || 0);
+                        
+                        if (d._sourceCategory === 'motion') {
+                            userTotals[name].metrics.motionMoves += d.metrics.totalMoves || 0;
+                            userTotals[name].metrics.motionMin += d.metrics.minMoves || 0;
+                        } else if (d.metrics.timeSpent) {
+                            userTotals[name].metrics.totalTime += d.metrics.timeSpent;
+                            userTotals[name].metrics.timeCount += 1;
+                        }
+                    } else {
+                        // Fallback for very old data if any
+                        userTotals[name].metrics.correctLevels += d.score || 0;
+                    }
+                });
+
+                // 2. CONVERT TO RENDERABLE FORMAT
+                const data = [];
+                for (const [name, stats] of Object.entries(userTotals)) {
+                    // Accuracy is based on CORRECT LEVELS solved, not MARKS
+                    const accuracy = Math.round((stats.metrics.correctLevels / stats.totalLevels) * 100) || 0;
+                    
+                    // Insight Generation
+                    let insight = "Keep practicing!";
+                    const m = stats.metrics;
+                    
+                    if (category === 'motion' || (category === 'all' && m.motionMoves > 0)) {
+                        const ratio = m.motionMoves / Math.max(1, m.motionMin);
+                        if (ratio > 1.3) insight = "Tip: Try finding shorter paths in Motion Logic.";
+                        else if (stats.score / stats.totalLevels < 0.7) insight = "Focus on clearing levels without skipping.";
+                        else insight = "Great spatial awareness!";
+                    } else if (m.totalTime > 0) {
+                        const avgTime = m.totalTime / Math.max(stats.score, 1);
+                        if (avgTime > 15) insight = "Tip: Speed up your pattern recognition for a better rank.";
+                        else insight = "Your logic speed is impressive!";
                     }
 
                     data.push({
-                        name: docData.name || "Unknown",
-                        score: displayScore,
-                        _percent: percentage
+                        name: name,
+                        rawScore: stats.score,
+                        score: `${stats.score} / ${stats.totalLevels}`,
+                        accuracy: accuracy,
+                        insight: insight,
+                        _percent: stats.score / Math.max(1, stats.totalLevels)
                     });
-                });
+                }
 
-                // Sort combined data fairly by percentage achieved
-                data.sort((a, b) => b._percent - a._percent);
+                // Sort by Cumulative Score (Primary) and Accuracy (Secondary)
+                data.sort((a, b) => {
+                    if (b.rawScore !== a.rawScore) {
+                        return b.rawScore - a.rawScore;
+                    }
+                    return b.accuracy - a.accuracy;
+                });
                 
-                // Apply rank counters based on full dataset
                 let rankCounter = 1;
                 data.forEach(d => {
                     d.rank = rankCounter++;
                 });
 
-                return data; // Return full array, UI renderer handles slicing top 10 + user pinning
+                // Update personal rank if data is for "all"
+                if (category === 'all' && window.activeUserName) {
+                    const userEntry = data.find(e => e.name === window.activeUserName);
+                    if (userEntry) {
+                        document.getElementById('user-rank').innerText = `#${userEntry.rank}`;
+                        document.getElementById('rank-insight').innerText = userEntry.insight; // Performance Remark in Profile
+                    }
+                }
 
+                return data;
             } catch (error) {
                 console.error("Error fetching leaderboard data: ", error);
                 return [];
@@ -686,6 +945,15 @@
             if(window.renderLeaderboard) {
                 window.renderLeaderboard('all', data);
             }
+            
+            // Populate Personal Dashboard if user is logged in
+            onAuthStateChanged(auth, (user) => {
+                if (user && user.displayName) {
+                    if (window.allDocsRaw) {
+                        updatePersonalStats(window.allDocsRaw, user.displayName);
+                    }
+                }
+            });
         });
 
         // 6. Handle Feedback Form Submission via Button Click
@@ -733,6 +1001,122 @@
             });
         }
     </script>
+    <!-- Rating & Feedback Modal -->
+    <div id="rating-modal" class="modal-overlay hidden" style="z-index: 2000;">
+        <div class="modal-content rating-content" style="max-width: 450px; text-align: center; padding: 2.5rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🌟</div>
+            <h2 style="margin-bottom: 0.5rem; color: var(--text-dark);">Enjoying AptiGame?</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Your feedback helps us make these challenges better for everyone.</p>
+            
+            <div class="star-rating" style="display: flex; justify-content: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+                <i class="far fa-star star-btn" data-value="1" style="font-size: 2.5rem; color: #fbbf24; cursor: pointer;"></i>
+                <i class="far fa-star star-btn" data-value="2" style="font-size: 2.5rem; color: #fbbf24; cursor: pointer;"></i>
+                <i class="far fa-star star-btn" data-value="3" style="font-size: 2.5rem; color: #fbbf24; cursor: pointer;"></i>
+                <i class="far fa-star star-btn" data-value="4" style="font-size: 2.5rem; color: #fbbf24; cursor: pointer;"></i>
+                <i class="far fa-star star-btn" data-value="5" style="font-size: 2.5rem; color: #fbbf24; cursor: pointer;"></i>
+            </div>
+
+            <textarea id="rating-comment" placeholder="Any suggestions? (Optional)" 
+                style="width: 100%; height: 100px; padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem; font-family: inherit; resize: none;"></textarea>
+
+            <div style="display: flex; gap: 1rem;">
+                <button id="skip-rating-btn" class="btn btn-outline" style="flex: 1;">Later</button>
+                <button id="submit-rating-btn" class="btn btn-primary" style="flex: 2;">Submit Rating</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db, auth } from "./firebase-config.js";
+        import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+
+        let selectedRating = 0;
+        const ratingModal = document.getElementById('rating-modal');
+        const starBtns = document.querySelectorAll('.star-btn');
+        const submitBtn = document.getElementById('submit-rating-btn');
+        const skipBtn = document.getElementById('skip-rating-btn');
+
+        // Star Interaction
+        starBtns.forEach(btn => {
+            btn.addEventListener('mouseenter', () => highlightStars(btn.dataset.value));
+            btn.addEventListener('mouseleave', () => highlightStars(selectedRating));
+            btn.addEventListener('click', () => {
+                selectedRating = btn.dataset.value;
+                highlightStars(selectedRating);
+            });
+        });
+
+        function highlightStars(val) {
+            starBtns.forEach(btn => {
+                if (btn.dataset.value <= val) {
+                    btn.classList.replace('far', 'fas');
+                } else {
+                    btn.classList.replace('fas', 'far');
+                }
+            });
+        }
+
+        // Logic to trigger popup
+        function triggerRatingPopup() {
+            if (sessionStorage.getItem('ratingPromptShown')) return;
+
+            const showPopup = () => {
+                ratingModal.classList.remove('hidden');
+                sessionStorage.setItem('ratingPromptShown', 'true');
+            };
+
+            const isReturningFromGame = document.referrer.includes('.html') && !document.referrer.includes('index.html');
+            
+            if (isReturningFromGame) {
+                setTimeout(showPopup, 3000); 
+            } else {
+                setTimeout(showPopup, 45000); 
+            }
+        }
+
+        submitBtn.addEventListener('click', async () => {
+            if (selectedRating === 0) {
+                alert("Please select a star rating!");
+                return;
+            }
+
+            submitBtn.innerText = "Sending...";
+            submitBtn.disabled = true;
+
+            try {
+                const comment = document.getElementById('rating-comment').value;
+                const user = auth.currentUser;
+                
+                await addDoc(collection(db, "ratings"), {
+                    rating: parseInt(selectedRating),
+                    comment: comment,
+                    userName: user ? user.displayName : "Guest",
+                    timestamp: new Date()
+                });
+
+                ratingModal.innerHTML = `
+                    <div class="modal-content" style="text-align: center; padding: 3rem;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">🚀</div>
+                        <h2>Thank You!</h2>
+                        <p style="color: var(--text-muted);">Your feedback helps us build the best aptitude platform.</p>
+                    </div>
+                `;
+                setTimeout(() => ratingModal.classList.add('hidden'), 2000);
+            } catch (e) {
+                console.error(e);
+                alert("Something went wrong. Please try again.");
+                submitBtn.innerText = "Submit Rating";
+                submitBtn.disabled = false;
+            }
+        });
+
+        skipBtn.addEventListener('click', () => {
+            ratingModal.classList.add('hidden');
+        });
+
+        triggerRatingPopup();
+    </script>
 </body>
 
-</html>
+</html>

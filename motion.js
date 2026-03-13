@@ -12,9 +12,16 @@ onAuthStateChanged(auth, (user) => {
 });
 
 // --- Configuration ---
-const TOTAL_MODULES = 10;
-const LEVELS_PER_MODULE = 18;
-const INITIAL_TIME = 6 * 60; // 6 minutes
+// --- Game State ---
+const LEVELS_PER_MODULE = 15;
+const MODULE_TIME_LIMIT = 360; // 6 mins
+
+// --- Sound Effects ---
+const sounds = {
+    correct: new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3'),
+    wrong: new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'),
+    complete: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3')
+};
 
 const CELL_SIZE = 60; // Pixels per grid cell (fixed for calculation)
 
@@ -24,11 +31,15 @@ let currentModule = 1;
 let currentLevel = 1;
 let correctAnswers = 0;
 let wrongAnswers = 0;
+let score = 0;
 let currentMoves = 0;
-let timeRemaining = INITIAL_TIME;
+let totalMovesPlayed = 0;
+let totalMinMovesPossible = 0;
+let timeRemaining = MODULE_TIME_LIMIT;
 let timerInterval;
 let isTransitioning = false;
 let moduleScores = [];
+const isMock = new URLSearchParams(window.location.search).get('mode') === 'mock';
 
 let gridWidth = 6;
 let gridHeight = 6;
@@ -89,28 +100,30 @@ async function loadUserProgress() {
         }
     }
     
-    // Update UI locks
+    // Update UI locks (All unlocked)
     moduleBtns.forEach(btn => {
-        let modNum = parseInt(btn.getAttribute("data-module"));
-        if (modNum > highestUnlockedModule) {
-            btn.style.opacity = "0.5";
-            btn.style.pointerEvents = "none";
-            btn.title = "Complete the previous module to unlock";
-        } else {
-            btn.style.opacity = "1";
-            btn.style.pointerEvents = "auto";
-            btn.title = "Click to play";
-        }
+        btn.style.opacity = "1";
+        btn.style.pointerEvents = "auto";
+        btn.title = "Click to play";
     });
 }
 
 // Ensure game does not auto-start! Wait for module selection.
-setTimeout(loadUserProgress, 1000); // Small delay to ensure auth is fully ready
+if (!isMock) {
+    setTimeout(loadUserProgress, 1000);
+} else {
+    // Auto-start in mock mode
+    setTimeout(() => startModule(1), 500);
+}
 
 if (elSkipBtn) {
     elSkipBtn.addEventListener("click", () => {
+        clearInterval(timerInterval); // Pause timer
         wrongAnswers++;
-        endModule("Level Skipped", true);
+        sounds.wrong.play().catch(e => console.log("Audio play blocked"));
+        showFeedbackPopup("LEVEL SKIPPED", "#f1f5f9", "#64748b");
+        setTimeout(advanceLevel, 1000);
+        startTimer(); // Resume timer
     });
 }
 
@@ -126,14 +139,17 @@ function startModule(modNum) {
     correctAnswers = 0;
     wrongAnswers = 0;
     moduleScores = [];
-    timeRemaining = INITIAL_TIME;
+    timeRemaining = MODULE_TIME_LIMIT;
 
     elModuleSelection.classList.add("hidden");
     elGameHeader.classList.remove("hidden");
     elGameContainer.classList.remove("hidden");
 
-    startTimer();
+    if (!isMock) startTimer();
+    else if (elTimer) elTimer.style.display = 'none';
     loadLevel();
+    totalMovesPlayed = 0; // Reset for new module
+    totalMinMovesPossible = 0;
 }
 
 function showModuleSelection() {
@@ -157,12 +173,13 @@ function calculateGridSize() {
     gridHeight = size;
 }
 
+let movesLimit = 0;
+
 function loadLevel() {
     isTransitioning = false;
     currentMoves = 0;
     elModule.innerText = `${currentModule} / ${TOTAL_MODULES}`;
     elLevel.innerText = `${currentLevel} / ${LEVELS_PER_MODULE}`;
-    elMoves.innerText = currentMoves;
 
     calculateGridSize();
 
@@ -170,6 +187,24 @@ function loadLevel() {
     elBoard.style.height = `${gridHeight * CELL_SIZE}px`;
 
     generateSolvableBoard();
+    
+    // Calculate moves limit (minimum + offset of 3 or 4)
+    const minMovesCount = window.currentSolutionPath ? window.currentSolutionPath.length : 0;
+    movesLimit = minMovesCount + (Math.floor(Math.random() * 2) + 3);
+    totalMinMovesPossible += minMovesCount;
+    updateMovesDisplay();
+    
+    const elScore = document.getElementById('score-display');
+    if (elScore) elScore.innerText = score;
+}
+
+function updateMovesDisplay() {
+    elMoves.innerText = `${currentMoves} / ${movesLimit}`;
+    if (currentMoves >= movesLimit) {
+        elMoves.style.color = "#ef4444";
+    } else {
+        elMoves.style.color = "inherit";
+    }
 }
 
 function generateSolvableBoard() {
@@ -310,44 +345,79 @@ function onArrowClick(e, entity, dx, dy) {
         entity.el.style.top = `${entity.y * CELL_SIZE}px`;
 
         currentMoves++;
-        elMoves.innerText = currentMoves;
+        totalMovesPlayed++;
+        updateMovesDisplay();
 
-        checkVictory(entity);
+        if (currentMoves >= movesLimit) {
+            checkVictory(entity, true); // Final check, but if still no win, it will fail
+        } else {
+            checkVictory(entity);
+        }
     }
 }
 
-// Check if a theoretical rect collides with anything
-function checkCollisionRect(x, y, w, h, ignoreEntity, holeBlocks = false) {
-    // Stage bounds
-    if (x < 0 || y < 0 || x + w > gridWidth || y + h > gridHeight) return true;
+function checkVictory(movedEntity, movesExhausted = false) {
+    if (isTransitioning) return;
 
-    for (let e of entities) {
-        if (e === ignoreEntity) continue;
-        if (e.type === "hole" && !holeBlocks) continue; // Hole doesn't block player movement, but blocks spawning if flag is true
+    let hole = entities.find(e => e.type === "hole");
+    const isAtHole = movedEntity.type === "ball" && movedEntity.x === hole.x && movedEntity.y === hole.y;
 
-        // AABB Collision
-        if (x < e.x + e.w && x + w > e.x && y < e.y + e.h && y + h > e.y) {
-            return true;
-        }
+    if (isAtHole) {
+        clearInterval(timerInterval); // Pause timer
+        isTransitioning = true;
+        correctAnswers++;
+        
+        // Efficiency Scoring: Min moves = 10, each extra move = -1 mark (floor 2)
+        const minMoves = window.currentSolutionPath ? window.currentSolutionPath.length : 0;
+        const extraMoves = Math.max(0, currentMoves - minMoves);
+        const marksEarned = Math.max(2, 10 - extraMoves);
+        score += marksEarned;
+
+        sounds.correct.play().catch(e => console.log("Audio play blocked"));
+        showFeedbackPopup(`CORRECT!<br><span style="font-size: 1.2rem;">+${marksEarned} MARKS</span>`, "#dcfce7", "#166534");
+        // Optional visual flourish
+        movedEntity.el.style.transform = "scale(0)";
+        setTimeout(() => {
+            advanceLevel();
+            startTimer(); // Resume timer
+        }, 1200);
+    } else if (movesExhausted) {
+        clearInterval(timerInterval); // Pause timer
+        isTransitioning = true;
+        wrongAnswers++;
+        // No negative mark
+
+        sounds.wrong.play().catch(e => console.log("Audio play blocked"));
+        showFeedbackPopup(`MOVES EXHAUSTED!<br><span style="font-size: 1rem; opacity: 0.8;">Minimum moves were: ${window.currentSolutionPath.length}</span>`, "#fee2e2", "#991b1b");
+        setTimeout(() => {
+            advanceLevel();
+            startTimer(); // Resume timer
+        }, 2500);
     }
-    return false;
 }
 
-function checkVictory(movedEntity) {
-    if (movedEntity.type === "ball" && !isTransitioning) {
-        let hole = entities.find(e => e.type === "hole");
-        if (movedEntity.x === hole.x && movedEntity.y === hole.y) {
-            console.log("Victory Triggered!");
-            isTransitioning = true;
-            correctAnswers++;
+// Helper for feedback popups
+function showFeedbackPopup(message, bgColor, textColor) {
+    const feedbackBox = document.createElement("div");
+    feedbackBox.style.position = "fixed";
+    feedbackBox.style.top = "50%";
+    feedbackBox.style.left = "50%";
+    feedbackBox.style.transform = "translate(-50%, -50%)";
+    feedbackBox.style.padding = "2rem 4rem";
+    feedbackBox.style.borderRadius = "var(--radius-lg)";
+    feedbackBox.style.fontSize = "2rem";
+    feedbackBox.style.fontWeight = "800";
+    feedbackBox.style.zIndex = "1000";
+    feedbackBox.style.backgroundColor = bgColor;
+    feedbackBox.style.color = textColor;
+    feedbackBox.style.boxShadow = "var(--shadow-xl)";
+    feedbackBox.style.textAlign = "center";
+    feedbackBox.innerHTML = message;
+    document.body.appendChild(feedbackBox);
 
-            // Optional visual flourish
-            movedEntity.el.style.transform = "scale(0)";
-            setTimeout(() => {
-                advanceLevel();
-            }, 500);
-        }
-    }
+    setTimeout(() => {
+        feedbackBox.remove();
+    }, 1000); // Remove after 1 second
 }
 
 // --- Solvability Engine (BFS) ---
@@ -550,8 +620,8 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
                 }
             }
 
-            if (existingModuleScores[currentModule] === undefined || correctAnswers > existingModuleScores[currentModule]) {
-                existingModuleScores[currentModule] = correctAnswers;
+            if (existingModuleScores[currentModule] === undefined || score > existingModuleScores[currentModule]) {
+                existingModuleScores[currentModule] = score;
             }
 
             let totalScore = 0;
@@ -563,9 +633,14 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
 
             const scoreData = {
                 name: playerName,
-                score: totalScore, 
+                score: totalScore, // This is total Marks now
                 totalLevels: totalPossible,
-                moduleScores: existingModuleScores,
+                metrics: {
+                    totalMoves: totalMovesPlayed,
+                    minMoves: totalMinMovesPossible,
+                    correctLevels: correctAnswers, // Keep for accuracy
+                    totalMarks: score
+                },
                 timestamp: new Date()
             };
             await setDoc(scoreRef, scoreData);
@@ -604,16 +679,48 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
     if (redirectCallback) {
         setTimeout(redirectCallback, 500); // slight delay
     }
+
+    if (isMock) {
+        window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
+    }
 }
 
 // --- Module Progression ---
-async function endModule(customTitle, isSkip = false) {
+async function endModule(customTitle) {
     clearInterval(timerInterval);
+    sounds.complete.play().catch(e => console.log("Audio play blocked"));
+
+    // Confetti celebration
+    if (typeof confetti === 'function') {
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#c90076', '#ff4b2b', '#3b82f6']
+        });
+    }
 
     elModalTitle.innerText = customTitle || `Module ${currentModule} Complete`;
     elScoreText.innerText = `${correctAnswers} / ${LEVELS_PER_MODULE}`;
     elCorrectCount.innerText = correctAnswers;
     elWrongCount.innerText = wrongAnswers;
+    
+    // Display Final Marks
+    let marksEl = document.getElementById('final-marks');
+    if (marksEl) marksEl.innerText = score;
+
+    // Add LinkedIn Share Button
+    let linkedinBtn = document.getElementById('linkedin-share-btn');
+    if (!linkedinBtn) {
+        linkedinBtn = document.createElement('button');
+        linkedinBtn.id = 'linkedin-share-btn';
+        linkedinBtn.className = 'btn btn-outline';
+        linkedinBtn.style.marginTop = '0.5rem';
+        linkedinBtn.style.width = '100%';
+        linkedinBtn.innerHTML = '<i class="fab fa-linkedin"></i> Share on LinkedIn';
+        linkedinBtn.onclick = shareOnLinkedIn;
+        elModal.querySelector('.modal-content').appendChild(linkedinBtn);
+    }
 
     // Show answer button logic
     if (window.currentSolutionPath && window.currentSolutionPath.length > 0) {
@@ -636,9 +743,12 @@ async function endModule(customTitle, isSkip = false) {
             startTimer();
         };
     } else if (currentModule >= TOTAL_MODULES || customTitle === "Time's Up!") {
-        saveScoreToFirebase(elNextBtn, () => {
-            window.location.href = "index.html";
-        });
+        elNextBtn.innerText = "Finish & Exit";
+        elNextBtn.onclick = () => {
+            saveScoreToFirebase(elNextBtn, () => {
+                window.location.href = "index.html";
+            });
+        };
     } else {
         elNextBtn.innerText = "Start Next Module";
         elNextBtn.onclick = () => {
@@ -658,17 +768,21 @@ async function endModule(customTitle, isSkip = false) {
         backBtn.style.width = "100%";
         elNextBtn.parentNode.insertBefore(backBtn, elNextBtn.nextSibling);
     }
-    backBtn.innerText = "Save & Back to Modules";
+    backBtn.innerText = "Back to Modules";
 
     backBtn.onclick = () => {
-        saveScoreToFirebase(backBtn, () => {
-            elModal.classList.add("hidden");
-            elModal.style.display = "none";
-            showModuleSelection();
-            moduleScores = []; // Wipe so we do not save again
-        });
+        elModal.classList.add("hidden");
+        elModal.style.display = "none";
+        showModuleSelection();
+        moduleScores = []; 
     };
 
     elModal.classList.remove("hidden");
     elModal.style.display = "flex";
+}
+
+function shareOnLinkedIn() {
+    const text = `I just completed Motion Challenge Module ${currentModule} on AptiGame with ${correctAnswers}/${LEVELS_PER_MODULE} correct! 🚀 #SpatialReasoning #AptiGame`;
+    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank', 'width=600,height=400');
 }

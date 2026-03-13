@@ -13,18 +13,29 @@ onAuthStateChanged(auth, (user) => {
 
 // --- Configuration ---
 const TOTAL_MODULES = 5;
-const LEVELS_PER_MODULE = 18;
 const INITIAL_TIME = 6 * 60; // 6 minutes in seconds
 
-// --- State ---
-let highestUnlockedModule = 1;
+// --- Game State ---
+const LEVELS_PER_MODULE = 18;
 let currentModule = 1;
 let currentLevel = 1;
+let score = 0;
+let totalPossible = 0;
 let correctAnswers = 0;
 let wrongAnswers = 0;
-let timeRemaining = INITIAL_TIME;
+let totalTimeSpent = 0;
 let timerInterval;
+const MODULE_TIME_LIMIT = 360; // 6 minutes
+let timeRemaining = MODULE_TIME_LIMIT;
 let moduleScores = [];
+const isMock = new URLSearchParams(window.location.search).get('mode') === 'mock';
+
+// --- Sound Effects ---
+const sounds = {
+    correct: new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3'),
+    wrong: new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'),
+    complete: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3')
+};
 
 let gridDimensions = 3; // Starts at 3x3
 let targetAnswer = "";
@@ -83,23 +94,20 @@ async function loadUserProgress() {
         }
     }
     
-    // Update UI locks
+    // Update UI locks (All unlocked)
     moduleBtns.forEach(btn => {
-        let modNum = parseInt(btn.getAttribute("data-module"));
-        if (modNum > highestUnlockedModule) {
-            btn.style.opacity = "0.5";
-            btn.style.pointerEvents = "none";
-            btn.title = "Complete the previous module to unlock";
-        } else {
-            btn.style.opacity = "1";
-            btn.style.pointerEvents = "auto";
-            btn.title = "Click to play";
-        }
+        btn.style.opacity = "1";
+        btn.style.pointerEvents = "auto";
+        btn.title = "Click to play";
     });
 }
 
 // Ensure game does not auto-start! Wait for module selection.
-setTimeout(loadUserProgress, 1000); // Small delay to ensure auth is fully ready
+if (!isMock) {
+    setTimeout(loadUserProgress, 1000);
+} else {
+    setTimeout(() => startModule(1), 500);
+}
 
 function startModule(modNum) {
     currentModule = modNum;
@@ -107,19 +115,23 @@ function startModule(modNum) {
     correctAnswers = 0;
     wrongAnswers = 0;
     moduleScores = [];
-    timeRemaining = INITIAL_TIME;
+    timeRemaining = MODULE_TIME_LIMIT;
 
     // UI swap
     elModuleSelection.classList.add("hidden");
     elGameHeader.classList.remove("hidden");
     elGameContainer.classList.remove("hidden");
 
-    startTimer();
+    if (!isMock) startTimer();
+    else if (elTimer) elTimer.style.display = 'none';
     loadLevel();
+    totalTimeSpent = 0; // Reset for new module session
 }
 
 function showModuleSelection() {
     clearInterval(timerInterval);
+    elModal.classList.add("hidden"); // Ensure modal is hidden when going back to selection
+    elModal.style.display = "none";
     elModuleSelection.classList.remove("hidden");
     elGameHeader.classList.add("hidden");
     elGameContainer.classList.add("hidden");
@@ -243,20 +255,79 @@ function renderOptions(shapes) {
     });
 }
 
+const shapeNames = {
+    "shape-square": "Square",
+    "shape-circle": "Circle",
+    "shape-triangle": "Triangle",
+    "shape-star": "Star",
+    "shape-diamond": "Diamond",
+    "shape-cross": "Cross",
+    "shape-pentagon": "Pentagon",
+    "shape-hexagon": "Hexagon"
+};
+
 function handleAnswer(selectedShape) {
+    clearInterval(timerInterval); // Pause timer
+    let allBtns = elOptions.querySelectorAll(".option-btn");
+    allBtns.forEach(btn => btn.style.pointerEvents = "none");
+
+    const feedbackBox = document.createElement("div");
+    feedbackBox.style.position = "fixed";
+    feedbackBox.style.top = "50%";
+    feedbackBox.style.left = "50%";
+    feedbackBox.style.transform = "translate(-50%, -50%)";
+    feedbackBox.style.padding = "2.5rem 4rem";
+    feedbackBox.style.borderRadius = "var(--radius-lg)";
+    feedbackBox.style.textAlign = "center";
+    feedbackBox.style.zIndex = "1000";
+    feedbackBox.style.boxShadow = "var(--shadow-xl)";
+    feedbackBox.style.minWidth = "350px";
+    document.body.appendChild(feedbackBox);
+
     if (selectedShape === targetAnswer) {
         correctAnswers++;
-        // Visual feedback could be added here
+        score += 3;
+        sounds.correct.play().catch(e => console.log("Audio play blocked"));
+        feedbackBox.innerHTML = `
+            <h1 style="font-size: 3rem; margin-bottom: 0.5rem;">CORRECT!</h1>
+            <p style="font-size: 1.2rem; color: #166534;">+3 MARKS</p>
+        `;
+        feedbackBox.style.backgroundColor = "#dcfce7";
+        feedbackBox.style.color = "#166534";
     } else {
         wrongAnswers++;
+        // No negative mark
+        sounds.wrong.play().catch(e => console.log("Audio play blocked"));
+        const correctName = shapeNames[targetAnswer] || "this shape";
+        feedbackBox.innerHTML = `
+            <h1 style="font-size: 3rem; margin-bottom: 0.5rem;">WRONG!</h1>
+            <p style="font-size: 1.25rem; font-weight: 600;">The correct answer was: <strong>${correctName}</strong></p>
+            <p style="font-size: 1rem; margin-top: 0.5rem; opacity: 0.8;">Reason: Each row and column must have unique shapes.</p>
+        `;
+        feedbackBox.style.backgroundColor = "#fee2e2";
+        feedbackBox.style.color = "#991b1b";
+
+        // Highlight the correct option
+        allBtns.forEach(btn => {
+            const shapeDiv = btn.querySelector('.shape');
+            if (shapeDiv && shapeDiv.classList.contains(targetAnswer)) {
+                btn.style.borderColor = "#166534";
+                btn.style.boxShadow = "0 0 15px rgba(22, 101, 52, 0.5)";
+                btn.style.borderWidth = "4px";
+            }
+        });
     }
 
-    if (currentLevel < LEVELS_PER_MODULE) {
-        currentLevel++;
-        loadLevel();
-    } else {
-        endModule();
-    }
+    setTimeout(() => {
+        feedbackBox.remove();
+        if (currentLevel < LEVELS_PER_MODULE) {
+            currentLevel++;
+            loadLevel();
+            startTimer(); // Resume timer
+        } else {
+            endModule();
+        }
+    }, 2500); // Increased time to read explanation
 }
 
 // --- Timer ---
@@ -266,6 +337,7 @@ function startTimer() {
 
     timerInterval = setInterval(() => {
         timeRemaining--;
+        totalTimeSpent++;
         updateTimerDisplay();
 
         if (timeRemaining <= 0) {
@@ -317,8 +389,8 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
                 }
             }
 
-            if (existingModuleScores[currentModule] === undefined || correctAnswers > existingModuleScores[currentModule]) {
-                existingModuleScores[currentModule] = correctAnswers;
+            if (existingModuleScores[currentModule] === undefined || score > existingModuleScores[currentModule]) {
+                existingModuleScores[currentModule] = score;
             }
 
             let totalScore = 0;
@@ -330,9 +402,13 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
 
             const scoreData = {
                 name: playerName,
-                score: totalScore, 
+                score: totalScore, // Marks
                 totalLevels: totalPossible,
                 moduleScores: existingModuleScores,
+                metrics: {
+                    correctAnswers: correctAnswers, // For accuracy
+                    timeSpent: totalTimeSpent
+                },
                 timestamp: new Date()
             };
             await setDoc(scoreRef, scoreData);
@@ -371,11 +447,26 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
     if (redirectCallback) {
         setTimeout(redirectCallback, 500); // slight delay to show "Saved!"
     }
+
+    if (isMock) {
+        window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
+    }
 }
 
 // --- Module Progression ---
 async function endModule(customTitle) {
     clearInterval(timerInterval);
+    sounds.complete.play().catch(e => console.log("Audio play blocked"));
+    
+    // Confetti celebration
+    if (typeof confetti === 'function') {
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#c90076', '#ff4b2b', '#3b82f6']
+        });
+    }
 
     elModalTitle.innerText = customTitle || `Module ${currentModule} Complete`;
     elScoreText.innerText = `${correctAnswers} / ${LEVELS_PER_MODULE}`;
@@ -388,12 +479,28 @@ async function endModule(customTitle) {
     const isGameOver = currentModule >= TOTAL_MODULES || customTitle === "Time's Up!";
 
     if (isGameOver) {
-        saveScoreToFirebase(elNextBtn, () => {
-            window.location.href = "index.html";
-        });
+        elNextBtn.innerText = "Finish & Exit";
+        elNextBtn.onclick = () => {
+            saveScoreToFirebase(elNextBtn, () => {
+                window.location.href = "index.html";
+            });
+        };
     } else {
         elNextBtn.innerText = "Start Next Module";
         elNextBtn.onclick = nextModule;
+    }
+
+    // Add LinkedIn Share Button
+    let linkedinBtn = document.getElementById('linkedin-share-btn');
+    if (!linkedinBtn) {
+        linkedinBtn = document.createElement('button');
+        linkedinBtn.id = 'linkedin-share-btn';
+        linkedinBtn.className = 'btn btn-outline';
+        linkedinBtn.style.marginTop = '0.5rem';
+        linkedinBtn.style.width = '100%';
+        linkedinBtn.innerHTML = '<i class="fab fa-linkedin"></i> Share on LinkedIn';
+        linkedinBtn.onclick = shareOnLinkedIn;
+        elModal.querySelector('.modal-content').appendChild(linkedinBtn);
     }
 
     // Also provide a button to go back to selection
@@ -407,15 +514,13 @@ async function endModule(customTitle) {
         backBtn.style.width = "100%";
         elNextBtn.parentNode.insertBefore(backBtn, elNextBtn.nextSibling);
     }
-    backBtn.innerText = "Save & Back to Modules";
+    backBtn.innerText = "Back to Modules";
 
     backBtn.onclick = () => {
-        saveScoreToFirebase(backBtn, () => {
-            elModal.classList.add("hidden");
-            elModal.style.display = "none";
-            showModuleSelection();
-            moduleScores = []; // reset so we don't save old scores again later
-        });
+        elModal.classList.add("hidden");
+        elModal.style.display = "none";
+        showModuleSelection();
+        moduleScores = []; 
     };
 
     elModal.classList.remove("hidden");

@@ -1,18 +1,18 @@
 /* --- CSS Variables & Resets --- */
 :root {
     --primary: #c90076;
-    /* Vibrant magenta/pink from reference */
     --primary-hover: #a0005d;
+    --success: #10b981;
+    --error: #ef4444;
     --text-main: #1e293b;
     --text-muted: #64748b;
     --bg-main: #ffffff;
     --bg-alt: #f8fafc;
-    /* Very light slate for sections */
     --border-color: #e2e8f0;
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     --radius-md: 8px;
     --radius-lg: 16px;
     --radius-full: 9999px;
@@ -40,6 +40,27 @@ a {
 
 ul {
     list-style: none;
+}
+
+/* --- Theme Toggle --- */
+.theme-toggle {
+    background: var(--bg-alt);
+    border: 1px solid var(--border-color);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-main);
+    transition: var(--transition);
+    margin-left: 1rem;
+}
+
+.theme-toggle:hover {
+    background: var(--border-color);
+    transform: rotate(15deg);
 }
 
 /* --- Accessibility & Focus --- */
@@ -118,11 +139,10 @@ img {
     color: var(--text-main);
 }
 
-.logo-icon {
-    width: 24px;
-    height: 24px;
-    background: linear-gradient(135deg, var(--primary), #ff4b2b);
-    border-radius: 4px;
+.logo-img {
+    height: 40px; /* Slightly larger for better visibility */
+    width: auto;
+    object-fit: contain;
 }
 
 .nav-links {
@@ -144,6 +164,12 @@ img {
 
 /* --- Hero Section --- */
 .hero {
+    width: 100%;
+    background: radial-gradient(circle at top right, rgba(238, 242, 255, 1) 0%, rgba(255, 255, 255, 1) 60%);
+    overflow: hidden;
+}
+
+.hero-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 6rem 2rem;
@@ -151,7 +177,6 @@ img {
     grid-template-columns: 1fr 1fr;
     gap: 4rem;
     align-items: center;
-    background: radial-gradient(circle at top right, rgba(238, 242, 255, 0.5) 0%, rgba(255, 255, 255, 0) 50%);
 }
 
 .hero-content {
@@ -167,6 +192,10 @@ img {
     font-weight: 600;
     border-radius: var(--radius-full);
     margin-bottom: 1.5rem;
+}
+
+.navbar, .card, .podium-slot, .btn, .leaderboard-row {
+    transition: all 0.3s ease;
 }
 
 .hero h1 {
@@ -579,6 +608,25 @@ img {
     font-size: 0.9rem;
     color: var(--primary);
     font-weight: 800;
+    margin-bottom: 0.25rem;
+}
+
+.podium-accuracy {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.podium-insight {
+    font-size: 0.7rem;
+    color: #f59e0b;
+    font-style: italic;
+    line-height: 1.2;
+    text-align: center;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 0.5rem;
+    margin-top: auto;
 }
 
 .podium-rank-badge {
@@ -600,6 +648,51 @@ img {
 .rank-2 .podium-rank-badge { background-color: #94a3b8; }
 .rank-3 .podium-rank-badge { background-color: #b45309; }
 
+/* Premium Champion Shine (Rank 1) */
+.podium-slot.rank-1 {
+    position: relative;
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.3);
+    /* overflow: visible !important; */ /* Remove hidden to show badge */
+}
+
+.shine-overlay {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.shine-overlay::after {
+    content: "";
+    position: absolute;
+    top: -150%;
+    left: -150%;
+    width: 300%;
+    height: 300%;
+    background: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0) 40%,
+        rgba(255, 215, 0, 0.4) 50%,
+        rgba(255, 255, 255, 0) 60%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(45deg);
+    animation: shine 4s infinite;
+}
+
+.podium-rank-badge {
+    z-index: 5; /* Ensure badge sits above shine */
+}
+
+@keyframes shine {
+    0% { top: -150%; left: -150%; }
+    20%, 100% { top: 150%; left: 150%; }
+}
+
 
 /* --- List Styling (Ranks 4+) --- */
 .leaderboard-list {
@@ -613,18 +706,25 @@ img {
 .list-row {
     display: flex;
     align-items: center;
-    background: white;
-    padding: 1rem 1.5rem;
-    border-radius: var(--radius-md);
+    background: var(--bg-main);
+    padding: 1.25rem 2rem;
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
-    transition: var(--transition);
+    border: 1px solid var(--border);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .list-row:hover {
-    transform: translateX(5px);
+    transform: scale(1.02) translateX(5px);
+    box-shadow: var(--shadow-lg);
     border-color: var(--primary);
-    box-shadow: var(--shadow-md);
+}
+
+.list-rank {
+    font-size: 1.5rem;
+    font-weight: 800;
+    min-width: 50px;
+    color: var(--text-muted);
 }
 
 .list-row.current-user-row {
@@ -686,6 +786,31 @@ img {
 .list-score {
     font-weight: 800;
     color: var(--primary);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.list-accuracy {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.current-user-row .list-accuracy {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.list-insight {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.current-user-row .list-insight {
+    color: rgba(255, 255, 255, 0.9);
 }
 
 /* --- How It Works Section --- */
@@ -1985,4 +2110,221 @@ img {
 .card-badge.coming-soon {
     background-color: #64748b;
     color: #fff;
+}
+/* --- Switch Challenge Styles --- */
+/* --- Switch Challenge Standard Theme --- */
+.switch-playground {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 3rem;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: var(--shadow-xl);
+    max-width: 900px;
+    margin: 2rem auto;
+}
+
+.shape-row {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    justify-content: center;
+    width: 100%;
+}
+
+.permutation-zone {
+    position: relative;
+    width: 100%;
+    margin: 2rem 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.giant-arrow-refined {
+    width: 60px;
+    height: 200px;
+    background: #9acd32;
+    clip-path: polygon(50% 0%, 0% 15%, 35% 15%, 35% 85%, 0% 85%, 50% 100%, 100% 85%, 65% 85%, 65% 15%, 100% 15%);
+    opacity: 0.6;
+    position: absolute;
+    z-index: 1;
+}
+
+.answer-panel-horizontal {
+    display: flex;
+    gap: 20px;
+    z-index: 2;
+}
+
+.answer-btn-themed {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    padding: 1.2rem 2rem;
+    border-radius: 12px;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.answer-btn-themed:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary);
+    background: #fff;
+    box-shadow: var(--shadow-md);
+    color: var(--primary);
+}
+
+.stats-float {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 2rem;
+}
+
+.stat-bubble {
+    background: #f1f5f9;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #475569;
+}
+
+.stat-bubble.highlight {
+    background: var(--primary);
+    color: white;
+}
+
+/* --- Switch Challenge Shapes --- */
+.shape {
+    background: #fff;
+    border: 2px solid #3498db;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.shape::after {
+    content: '';
+    display: block;
+    background: #9acd32;
+}
+
+.shape.circle::after { width: 70%; height: 70%; border-radius: 50%; }
+.shape.square::after { width: 65%; height: 65%; }
+.shape.triangle::after {
+    width: 0; height: 0;
+    border-left: 25px solid transparent;
+    border-right: 25px solid transparent;
+    border-bottom: 45px solid #9acd32;
+    background: none;
+}
+.shape.plus::after { width: 70%; height: 25%; }
+.shape.plus::before {
+    content: ''; position: absolute;
+    width: 25%; height: 70%;
+    background: #9acd32;
+}
+
+/* --- New Shapes --- */
+.shape.star::after {
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    width: 80%; height: 80%;
+}
+.shape.diamond::after {
+    transform: rotate(45deg);
+    width: 60%; height: 60%;
+}
+.shape.pentagon::after {
+    clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+    width: 75%; height: 75%;
+}
+.shape.hexagon::after {
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    width: 80%; height: 80%;
+}
+
+.shape-row.large .shape {
+    width: 90px;
+    height: 90px;
+}
+
+.shape-row.dense .shape {
+    width: 65px;
+    height: 65px;
+    gap: 0.8rem;
+}
+
+.answer-btn-themed.small-text {
+    font-size: 1.1rem;
+    padding: 0.8rem 1.2rem;
+}
+
+/* --- Multi-Stage Visuals --- */
+.multi-stage-visual {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 10;
+    pointer-events: none;
+    transform: translateY(-20px);
+}
+
+.stage-node {
+    background: #f1f5f9;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-family: monospace;
+    font-weight: 700;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    font-size: 0.9rem;
+}
+
+.stage-node.highlight {
+    background: #c90076;
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(201, 0, 118, 0.3);
+}
+
+.stage-arrow {
+    color: #9acd32;
+    font-weight: 800;
+    font-size: 1.2rem;
+}
+
+/* --- Feedback Popups --- */
+.feedback-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2000;
+    pointer-events: none;
+    animation: feedbackPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.feedback-content {
+    background: white;
+    padding: 2.5rem 4rem;
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    text-align: center;
+    border: 4px solid currentColor;
+}
+
+@keyframes feedbackPop {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }

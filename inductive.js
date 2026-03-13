@@ -13,7 +13,16 @@ onAuthStateChanged(auth, (user) => {
 
 // --- Configuration ---
 const TOTAL_MODULES = 5;
+// --- Game State ---
 const LEVELS_PER_MODULE = 18;
+const MODULE_TIME_LIMIT = 360; // 6 mins
+
+// --- Sound Effects ---
+const sounds = {
+    correct: new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3'),
+    wrong: new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'),
+    complete: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3')
+};
 const INITIAL_TIME = 6 * 60; // 6 minutes in seconds
 
 // --- State ---
@@ -23,8 +32,10 @@ let currentLevel = 1;
 let correctAnswers = 0;
 let wrongAnswers = 0;
 let timeRemaining = INITIAL_TIME;
+let totalTimeSpent = 0;
 let timerInterval;
 let moduleScores = [];
+const isMock = new URLSearchParams(window.location.search).get('mode') === 'mock';
 
 let gridDimensions = 3; // Starts at 3x3
 let targetAnswer = "";
@@ -88,23 +99,20 @@ async function loadUserProgress() {
         }
     }
     
-    // Update UI locks
+    // Update UI locks (All unlocked)
     moduleBtns.forEach(btn => {
-        let modNum = parseInt(btn.getAttribute("data-module"));
-        if (modNum > highestUnlockedModule) {
-            btn.style.opacity = "0.5";
-            btn.style.pointerEvents = "none";
-            btn.title = "Complete the previous module to unlock";
-        } else {
-            btn.style.opacity = "1";
-            btn.style.pointerEvents = "auto";
-            btn.title = "Click to play";
-        }
+        btn.style.opacity = "1";
+        btn.style.pointerEvents = "auto";
+        btn.title = "Click to play";
     });
 }
 
 // Ensure game does not auto-start! Wait for module selection.
-setTimeout(loadUserProgress, 1000); // Small delay to ensure auth is fully ready
+if (!isMock) {
+    setTimeout(loadUserProgress, 1000);
+} else {
+    setTimeout(() => startModule(1), 500);
+}
 
 function startModule(modNum) {
     currentModule = modNum;
@@ -119,8 +127,10 @@ function startModule(modNum) {
     elGameHeader.classList.remove("hidden");
     elGameContainer.classList.remove("hidden");
 
-    startTimer();
+    if (!isMock) startTimer();
+    else if (elTimer) elTimer.style.display = 'none';
     loadLevel();
+    totalTimeSpent = 0; // Reset for new module session
 }
 
 function showModuleSelection() {
@@ -269,6 +279,9 @@ function loadLevel() {
     elLevel.innerText = `${currentLevel} / ${LEVELS_PER_MODULE}`;
     selectedOptions = [];
 
+    const elScore = document.getElementById('score-display');
+    if (elScore) elScore.innerText = score;
+
     gridDimensions = calculateGridSize();
 
     // Select distinct colors for this level to mix it up visually
@@ -408,6 +421,7 @@ function handleAnswer(index, btnEl) {
     btnEl.classList.add("selected");
 
     if (selectedOptions.length === 2) {
+        clearInterval(timerInterval); // Pause timer during review
         let allBtns = elChoices.querySelectorAll(".inductive-choice-wrapper");
         allBtns.forEach(b => b.style.pointerEvents = "none");
 
@@ -429,28 +443,35 @@ function handleAnswer(index, btnEl) {
             reasonBox.innerText = `Correct! Rule: ${currentReason}`;
             reasonBox.style.backgroundColor = "rgba(16, 185, 129, 0.2)";
             reasonBox.style.color = "#10b981";
+            sounds.correct.play().catch(e => console.log("Audio play blocked"));
 
             allBtns[selectedOptions[0]].classList.add("correct-selection");
             allBtns[selectedOptions[1]].classList.add("correct-selection");
             correctAnswers++;
+            score += 3;
+            
+            showFeedbackPopup(`CORRECT!<br><span style="font-size: 1.5rem;">+3 MARKS</span>`, "#dcfce7", "#166534");
             setTimeout(() => {
                 reasonBox.remove();
                 advanceLevel();
+                startTimer(); // Resume timer
             }, 1800);
         } else {
             reasonBox.innerText = `Incorrect! The actual Rule was: ${currentReason}`;
             reasonBox.style.backgroundColor = "rgba(239, 68, 68, 0.2)";
             reasonBox.style.color = "#ef4444";
+            sounds.wrong.play().catch(e => console.log("Audio play blocked"));
 
             allBtns[selectedOptions[0]].classList.add("wrong-selection");
             allBtns[selectedOptions[1]].classList.add("wrong-selection");
             wrongAnswers++;
+            // No negative mark
+            
+            showFeedbackPopup(`WRONG!`, "#fee2e2", "#991b1b");
             setTimeout(() => {
-                allBtns[selectedOptions[0]].classList.remove("wrong-selection", "selected");
-                allBtns[selectedOptions[1]].classList.remove("wrong-selection", "selected");
-                selectedOptions = [];
-                allBtns.forEach(b => b.style.pointerEvents = "auto"); // Restore clicks after failure
                 reasonBox.remove();
+                advanceLevel();
+                startTimer(); // Resume timer
             }, 2500);
         }
     }
@@ -472,6 +493,7 @@ function startTimer() {
 
     timerInterval = setInterval(() => {
         timeRemaining--;
+        totalTimeSpent++;
         updateTimerDisplay();
 
         if (timeRemaining <= 0) {
@@ -523,8 +545,8 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
                 }
             }
 
-            if (existingModuleScores[currentModule] === undefined || correctAnswers > existingModuleScores[currentModule]) {
-                existingModuleScores[currentModule] = correctAnswers;
+            if (existingModuleScores[currentModule] === undefined || score > existingModuleScores[currentModule]) {
+                existingModuleScores[currentModule] = score;
             }
 
             let totalScore = 0;
@@ -536,9 +558,13 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
 
             const scoreData = {
                 name: playerName,
-                score: totalScore, 
+                score: totalScore, // Marks
                 totalLevels: totalPossible,
                 moduleScores: existingModuleScores,
+                metrics: {
+                    correctAnswers: correctAnswers, // For accuracy
+                    timeSpent: totalTimeSpent
+                },
                 timestamp: new Date()
             };
             await setDoc(scoreRef, scoreData);
@@ -577,26 +603,60 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
     if (redirectCallback) {
         setTimeout(redirectCallback, 500); // slight delay
     }
+
+    if (isMock) {
+        window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
+    }
 }
 
 // --- Module Progression ---
 async function endModule(customTitle) {
     clearInterval(timerInterval);
+    sounds.complete.play().catch(e => console.log("Audio play blocked"));
+
+    // Confetti celebration
+    if (typeof confetti === 'function') {
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#c90076', '#ff4b2b', '#3b82f6']
+        });
+    }
 
     elModalTitle.innerText = customTitle || `Module ${currentModule} Complete`;
     elScoreText.innerText = `${correctAnswers} / ${LEVELS_PER_MODULE}`;
     elCorrectCount.innerText = correctAnswers;
     elWrongCount.innerText = wrongAnswers;
+    
+    let marksEl = document.getElementById('final-marks');
+    if (marksEl) marksEl.innerText = score;
 
     moduleScores.push(correctAnswers);
     saveScoreToFirebase(null, null); // Autosave in background
 
     const isGameOver = currentModule >= TOTAL_MODULES || customTitle === "Time's Up!";
 
+    // Add LinkedIn Share Button
+    let linkedinBtn = document.getElementById('linkedin-share-btn');
+    if (!linkedinBtn) {
+        linkedinBtn = document.createElement('button');
+        linkedinBtn.id = 'linkedin-share-btn';
+        linkedinBtn.className = 'btn btn-outline';
+        linkedinBtn.style.marginTop = '0.5rem';
+        linkedinBtn.style.width = '100%';
+        linkedinBtn.innerHTML = '<i class="fab fa-linkedin"></i> Share on LinkedIn';
+        linkedinBtn.onclick = shareOnLinkedIn;
+        elModal.querySelector('.modal-content').appendChild(linkedinBtn);
+    }
+
     if (isGameOver) {
-        saveScoreToFirebase(elNextBtn, () => {
-            window.location.href = "index.html";
-        });
+        elNextBtn.innerText = "Finish & Exit";
+        elNextBtn.onclick = () => {
+            saveScoreToFirebase(elNextBtn, () => {
+                window.location.href = "index.html";
+            });
+        };
     } else {
         elNextBtn.innerText = "Start Next Module";
         elNextBtn.onclick = nextModule;
@@ -612,15 +672,13 @@ async function endModule(customTitle) {
         backBtn.style.width = "100%";
         elNextBtn.parentNode.insertBefore(backBtn, elNextBtn.nextSibling);
     }
-    backBtn.innerText = "Save & Back to Modules";
+    backBtn.innerText = "Back to Modules";
 
     backBtn.onclick = () => {
-        saveScoreToFirebase(backBtn, () => {
-            elModal.classList.add("hidden");
-            elModal.style.display = "none";
-            showModuleSelection();
-            moduleScores = []; // Wipe so we do not save again
-        });
+        elModal.classList.add("hidden");
+        elModal.style.display = "none";
+        showModuleSelection();
+        moduleScores = []; 
     };
 
     elModal.classList.remove("hidden");
@@ -633,5 +691,30 @@ function nextModule() {
     startModule(currentModule + 1);
 }
 
-// Ensure game does not auto-start! Wait for module selection.
-// (Removed initGame() call)
+function shareOnLinkedIn() {
+    const text = `I just completed Inductive Challenge Module ${currentModule} on AptiGame with ${correctAnswers}/${LEVELS_PER_MODULE} correct! 🚀 #AptitudeReasoning #AptiGame`;
+    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank', 'width=600,height=400');
+}
+
+function showFeedbackPopup(text, bgColor, textColor) {
+    let popup = document.getElementById('feedback-popup');
+    if (!popup) {
+        popup = document.createElement('div');
+        popup.id = 'feedback-popup';
+        popup.className = 'feedback-popup';
+        document.body.appendChild(popup);
+    }
+    popup.innerHTML = `
+        <div class="feedback-content" style="background: ${bgColor}; color: ${textColor}; padding: 2rem 4rem; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); text-align: center;">
+            <h2 style="font-size: 3.5rem; font-weight: 900; margin: 0; line-height: 1.2;">${text}</h2>
+        </div>
+    `;
+    popup.classList.remove('hidden');
+    popup.style.display = 'flex';
+    
+    setTimeout(() => {
+        popup.classList.add('hidden');
+        popup.style.display = 'none';
+    }, 1200);
+}

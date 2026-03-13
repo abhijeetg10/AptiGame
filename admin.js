@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, getDocs, query, orderBy, limit, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { db, auth } from "./firebase-config.js";
 
@@ -8,6 +8,8 @@ const ADMIN_EMAIL = "argaikwad24@gmail.com";
 let allUsersData = []; // Store fetched users for CSV export
 let allLeaderboardData = [];
 let allFeedbackData = [];
+let allRatingsData = [];
+let allMockResultsData = [];
 
 const elOverlay = document.getElementById("auth-overlay");
 const elDashboard = document.getElementById("admin-dashboard");
@@ -79,7 +81,9 @@ async function fetchAllData() {
     await Promise.all([
         fetchOverviewAndUsers(),
         fetchLeaderboardData("grid"), // Default load
-        fetchFeedback()
+        fetchFeedback(),
+        fetchRatings(),
+        fetchMockResults()
     ]);
 }
 
@@ -285,6 +289,126 @@ async function fetchFeedback() {
         document.getElementById("table-body-feedback").innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--pluto-red);">Requires Firebase Index. Check console.</td></tr>`;
     }
 }
+// 4. Ratings
+async function fetchRatings() {
+    try {
+        const q = query(collection(db, "ratings"), orderBy("timestamp", "desc"));
+        const snapshot = await getDocs(q);
+        
+        const tbody = document.getElementById("table-body-ratings");
+        tbody.innerHTML = "";
+        allRatingsData = [];
+        
+        let totalStars = 0;
+        let count = 0;
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            count++;
+            totalStars += data.rating || 0;
+            
+            let dateStr = "Unknown";
+            if(data.timestamp && data.timestamp.toDate) {
+                dateStr = data.timestamp.toDate().toLocaleString();
+            }
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td style="white-space: nowrap; color:var(--pluto-text-muted); font-size:0.85rem;">${dateStr}</td>
+                <td><strong>${data.userName || "Guest"}</strong></td>
+                <td>
+                    <div style="color: #fbbf24; font-weight: bold;">
+                        ${data.rating} <i class="fas fa-star" style="font-size:0.8rem;"></i>
+                    </div>
+                </td>
+                <td style="max-width: 400px; color: var(--text-dark);">${data.comment || `<i style="color:var(--text-muted)">No comment</i>`}</td>
+            `;
+            tbody.appendChild(tr);
+
+            allRatingsData.push({
+                date: dateStr,
+                user: data.userName || "Guest",
+                rating: data.rating,
+                comment: data.comment || ""
+            });
+        });
+
+        if (count === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem; color:var(--text-muted);">No ratings available.</td></tr>`;
+            document.getElementById("stat-avg-rating").innerText = "--";
+        } else {
+            const avg = (totalStars / count).toFixed(1);
+            document.getElementById("stat-avg-rating").innerText = avg;
+        }
+
+    } catch (e) {
+        console.error("Error fetching ratings:", e);
+        document.getElementById("table-body-ratings").innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Error loading ratings.</td></tr>`;
+    }
+}
+
+// 5. Mock Test Results
+async function fetchMockResults() {
+    try {
+        const q = query(collection(db, "mock_results"), orderBy("timestamp", "desc"));
+        const snapshot = await getDocs(q);
+        
+        const tbody = document.getElementById("table-body-mock-results");
+        if (!tbody) return;
+
+        tbody.innerHTML = "";
+        allMockResultsData = [];
+        
+        let count = 0;
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            count++;
+            
+            let dateStr = "Unknown";
+            if(data.timestamp && data.timestamp.toDate) {
+                dateStr = data.timestamp.toDate().toLocaleString();
+            }
+
+            const status = data.status || "completed";
+            let statusColor = "#64748b"; // default grey
+            if (status === "completed") statusColor = "#10b981"; // green
+            if (status === "in-progress") statusColor = "#f59e0b"; // orange
+            if (status === "aborted" || status === "terminated") statusColor = "#ef4444"; // red
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td style="white-space: nowrap; color:var(--pluto-text-muted); font-size:0.85rem;">${dateStr}</td>
+                <td><strong>${data.userName || "Guest"}</strong></td>
+                <td><span style="background:var(--pluto-border); padding:0.25rem 0.5rem; border-radius:4px; font-size:0.8rem; text-transform:uppercase;">${data.companyId}</span></td>
+                <td style="color:var(--pluto-blue); font-weight:bold;">${data.totalScore}</td>
+                <td style="color:var(--pluto-text-muted);">${data.timeLeft}s</td>
+                <td>
+                    <span style="background-color: ${statusColor}15; color: ${statusColor}; border: 1px solid ${statusColor}33; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.7rem; text-transform: uppercase; font-weight: 800;">
+                        ${status}
+                    </span>
+                </td>
+            `;
+            tbody.appendChild(tr);
+
+            allMockResultsData.push({
+                date: dateStr,
+                user: data.userName || "Guest",
+                company: data.companyId,
+                score: data.totalScore,
+                timeRemaining: data.timeLeft,
+                status: status
+            });
+        });
+
+        if (count === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem; color:var(--text-muted);">No mock tests recorded yet.</td></tr>`;
+        }
+
+    } catch (e) {
+        console.error("Error fetching mock results:", e);
+    }
+}
 
 // --- CSV EXPORT LOGIC ---
 document.getElementById("download-users-csv").addEventListener("click", () => {
@@ -371,3 +495,101 @@ document.getElementById("download-feedback-csv").addEventListener("click", () =>
     link.click();
     document.body.removeChild(link);
 });
+
+document.getElementById("download-ratings-csv").addEventListener("click", () => {
+    if (allRatingsData.length === 0) {
+        alert("No ratings data available to download.");
+        return;
+    }
+
+    let csvContent = "Date,User,Rating,Comment\n";
+    allRatingsData.forEach(entry => {
+        const safeDate = `"${entry.date.replace(/"/g, '""')}"`;
+        const safeUser = `"${entry.user.replace(/"/g, '""')}"`;
+        const safeComment = `"${entry.comment.replace(/"/g, '""')}"`;
+
+        csvContent += `${safeDate},${safeUser},${entry.rating},${safeComment}\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "aptigame_ratings_export.csv");
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+
+document.getElementById("download-mock-csv")?.addEventListener("click", () => {
+    if (allMockResultsData.length === 0) {
+        alert("No mock results available to download.");
+        return;
+    }
+
+    let csvContent = "Date,Candidate,Company,Score,Time Remaining,Status\n";
+    allMockResultsData.forEach(entry => {
+        const safeDate = `"${entry.date.replace(/"/g, '""')}"`;
+        const safeUser = `"${entry.user.replace(/"/g, '""')}"`;
+        const safeCompany = `"${entry.company.replace(/"/g, '""')}"`;
+        const safeScore = `"${entry.score}"`;
+        const safeTime = `"${entry.timeRemaining}s"`;
+        const safeStatus = `"${entry.status}"`;
+
+        csvContent += `${safeDate},${safeUser},${safeCompany},${safeScore},${safeTime},${safeStatus}\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "aptigame_mock_results.csv");
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+// --- RESET LEADERBOARDS LOGIC ---
+const btnResetLeaderboards = document.getElementById("reset-leaderboards-btn");
+
+if (btnResetLeaderboards) {
+    btnResetLeaderboards.addEventListener("click", async () => {
+        const confirmReset = confirm("CRITICAL ACTION: Are you sure you want to PERMANENTLY delete ALL leaderboard entries from all games? This cannot be undone.");
+        
+        if (!confirmReset) return;
+
+        btnResetLeaderboards.innerText = "Clearing...";
+        btnResetLeaderboards.disabled = true;
+
+        try {
+            const games = ["grid", "sudoku", "inductive", "motion", "switch", "di"];
+            let totalDeleted = 0;
+
+            for (const gameId of games) {
+                const q = query(collection(db, "leaderboards", gameId, "scores"));
+                const snapshot = await getDocs(q);
+                
+                const deletePromises = [];
+                snapshot.forEach(document => {
+                    deletePromises.push(deleteDoc(doc(db, "leaderboards", gameId, "scores", document.id)));
+                });
+                
+                await Promise.all(deletePromises);
+                totalDeleted += deletePromises.length;
+                console.log(`Deleted ${deletePromises.length} entries from ${gameId}`);
+            }
+
+            alert(`Success! Successfully cleared ${totalDeleted} entries across all leaderboards.`);
+            // Refresh the current view
+            const currentGame = document.getElementById("leaderboard-filter").value;
+            fetchLeaderboardData(currentGame);
+        } catch (error) {
+            console.error("Error resetting leaderboards:", error);
+            alert("Error: Failed to clear leaderboards. Check console for details.");
+        } finally {
+            btnResetLeaderboards.innerHTML = '<i class="fas fa-trash-alt"></i> Reset All Leaderboards';
+            btnResetLeaderboards.disabled = false;
+        }
+    });
+}

@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/jpeg" href="Logo.jpg">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 
 <body class="game-body">
@@ -17,7 +19,7 @@
     <nav class="navbar" style="position: relative;">
         <div class="nav-container">
             <a href="index.html" class="logo">
-                <div class="logo-icon"></div>
+                <img src="Logo.jpg" alt="AptiGame Logo" class="logo-img">
                 <span>AptiGame</span>
             </a>
             <ul class="nav-links">
@@ -42,6 +44,10 @@
             <div class="stat-box">
                 <span class="stat-label">Moves</span>
                 <span class="stat-value" id="moves-display">0</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Marks</span>
+                <span class="stat-value" id="score-display">0</span>
             </div>
             <div class="stat-box timer-box">
                 <span class="stat-label">Time Remaining</span>
@@ -192,6 +198,9 @@
             <div class="score-stats">
                 <p>Solved: <span id="correct-count" class="text-success">0</span></p>
                 <p>Skipped/Wrong: <span id="wrong-count" class="text-error">0</span></p>
+                <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                    <p style="font-size: 1.25rem; font-weight: 700;">Final Marks: <span id="final-marks" style="color: #c90076;">0</span></p>
+                </div>
             </div>
 
             <button id="show-answer-btn" class="btn btn-outline hidden" style="margin-bottom: 1rem;">Show Answer &
