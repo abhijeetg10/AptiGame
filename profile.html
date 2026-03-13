@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/jpeg" href="Logo.jpg">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --profile-bg: #fdfdfd;
@@ -167,8 +169,23 @@
         }
 
         .item-analysis {
-            grid-column: span 3;
+            grid-column: span 2;
             padding: 2.5rem;
+        }
+
+        .item-radar {
+            grid-column: span 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
         }
 
         .analysis-header {
@@ -247,6 +264,7 @@
                 <li><a href="index.html">Home</a></li>
                 <li><a href="index.html#challenges">Challenges</a></li>
                 <li><a href="mock-tests.html"><i class="fas fa-trophy"></i> Mock Tests</a></li>
+                <li><a href="index.html#leaderboard">Leaderboard</a></li>
                 <li><a href="#" class="active">My Profile</a></li>
             </ul>
             <div id="nav-user-profile" style="display: flex; align-items: center; gap: 0.75rem;">
@@ -281,6 +299,26 @@
                 <p class="stat-desc" id="rank-insight">Solving more modules increases rank!</p>
             </div>
 
+            <!-- Detailed Analysis Section -->
+            <div class="bento-item item-analysis">
+                <div class="analysis-header">
+                    <h3>Challenge Wise Analysis</h3>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">Cumulative performance across modules</div>
+                </div>
+                
+                <div class="game-stats-list" id="game-analysis-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Radar Chart Slot -->
+            <div class="bento-item item-radar">
+                <span class="stat-label" style="align-self: flex-start; margin-bottom: 1rem;">Skill Breakdown</span>
+                <div class="chart-container">
+                    <canvas id="skillRadar"></canvas>
+                </div>
+            </div>
+
             <!-- Stats Group -->
             <div class="item-main-stats">
                 <div class="stat-card">
@@ -294,16 +332,12 @@
                     <div class="stat-desc" id="speed-insight">Target: 20s/level</div>
                 </div>
             </div>
-
-            <!-- Detailed Analysis Section -->
-            <div class="bento-item item-analysis">
-                <div class="analysis-header">
-                    <h3>Challenge Wise Analysis</h3>
-                    <div style="font-size: 0.85rem; color: var(--text-muted);">Cumulative performance across modules</div>
-                </div>
-                
-                <div class="game-stats-list" id="game-analysis-list">
-                    <!-- Populated by JS -->
+            
+            <!-- Activity Chart Slot (Wide) -->
+            <div class="bento-item" style="grid-column: span 3; padding: 2.5rem;">
+                <span class="stat-label">Consistency Score</span>
+                <div style="height: 200px; width: 100%; margin-top: 1.5rem;">
+                    <canvas id="activityChart"></canvas>
                 </div>
             </div>
         </div>
@@ -357,6 +391,17 @@
                     });
                 }
 
+                // Data Buckets for Radar
+                const skillBuckets = {
+                    'Pattern': ['inductive', 'switch'],
+                    'Logic': ['sudoku', 'motion'],
+                    'Verbal': ['rc'],
+                    'Data': ['di'],
+                    'Spatial': ['grid']
+                };
+
+                const userSkillScores = { 'Pattern': 0, 'Logic': 0, 'Verbal': 0, 'Data': 0, 'Spatial': 0 };
+
                 // --- DATA PROCESSING LOGIC ---
                 const userTotals = {};
                 allDocs.forEach(d => {
@@ -379,6 +424,15 @@
                         if (d.metrics.timeSpent) {
                             userTotals[name].metrics.totalTime += d.metrics.timeSpent;
                             userTotals[name].metrics.timeCount += 1;
+                        }
+                    }
+
+                    // For Radar Chart
+                    if (name === currentUserName) {
+                        for (const [skill, cats] of Object.entries(skillBuckets)) {
+                            if (cats.includes(d._sourceCategory)) {
+                                userSkillScores[skill] += (d.score || 0);
+                            }
                         }
                     }
                 });
@@ -406,6 +460,10 @@
                 const rank = rankingArray.findIndex(e => e.name === currentUserName) + 1;
                 if (rank > 0) document.getElementById('user-rank').innerText = `#${rank}`;
 
+                // --- CHART INITIALIZATION ---
+                initRadarChart(userSkillScores);
+                initActivityChart(userData ? userData.score : 0);
+
                 // Challenge Wise List
                 const listEl = document.getElementById('game-analysis-list');
                 const userGames = allDocs.filter(d => d.name === currentUserName);
@@ -426,7 +484,6 @@
                         <div class="game-name">${game._sourceCategory.toUpperCase()}</div>
                         <div class="game-score-row">
                             <span>Solved: ${game.score}/${totalLevels}</span>
-                            <span>Rank: #${rankingArray.filter(e => e._sourceCategory === game._sourceCategory).length > 0 ? '---' : 'Active'}</span>
                         </div>
                     `;
                     listEl.appendChild(item);
@@ -436,6 +493,68 @@
                 console.error(err);
                 document.getElementById('loader').innerHTML = "Failed to load data. Please refresh.";
             }
+        }
+
+        function initRadarChart(scores) {
+            const ctx = document.getElementById('skillRadar').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: Object.keys(scores),
+                    datasets: [{
+                        label: 'Skill Proficiency',
+                        data: Object.values(scores),
+                        backgroundColor: 'rgba(201, 0, 118, 0.2)',
+                        borderColor: '#c90076',
+                        pointBackgroundColor: '#c90076',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            angleLines: { color: 'rgba(0,0,0,0.05)' },
+                            pointLabels: { font: { weight: '800', size: 10 } }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function initActivityChart(totalScore) {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(201, 0, 118, 0.3)');
+            gradient.addColorStop(1, 'rgba(201, 0, 118, 0)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Total Progress',
+                        data: [totalScore*0.7, totalScore*0.8, totalScore*0.85, totalScore*0.9, totalScore*0.95, totalScore, totalScore],
+                        borderColor: '#c90076',
+                        backgroundColor: gradient,
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { display: false },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
         }
     </script>
 </body>

@@ -35,7 +35,7 @@
                 <li><a href="#" class="active">Home</a></li>
                 <li><a href="#challenges">Challenges</a></li>
                 <li><a href="mock-tests.html" style="color: var(--primary); font-weight: 700;"><i class="fas fa-trophy"></i> Mock Tests</a></li>
-                <li><a href="#companies">Companies</a></li>
+                <li><a href="#leaderboard">Leaderboard</a></li>
             </ul>
             <a href="#" class="btn btn-primary" id="nav-login-btn">LOG IN</a>
             <div id="nav-user-profile" style="display: none; align-items: center; gap: 0.75rem;">
@@ -218,7 +218,7 @@
             <div class="card">
                 <a href="switch.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
                     <div class="card-img"
-                        style="background-image: url('swith challenge.png'); background-size: cover; background-position: center;">
+                        style="background-image: url('switch challenge.png'); background-size: cover; background-position: center;">
                         <span class="card-badge hot">HOT</span>
                     </div>
                     <div class="card-content">
@@ -832,51 +832,6 @@
                 window.renderLeaderboard('all', data);
             }
         });
-
-        // 6. Handle Feedback Form Submission via Button Click
-        const feedbackBtn = document.getElementById("feedback-submit-btn");
-        const feedbackForm = document.getElementById("feedback-form");
-        
-        if (feedbackBtn && feedbackForm) {
-            feedbackBtn.addEventListener("click", async () => {
-                
-                // Manual validation
-                const nameNode = document.getElementById("name");
-                const emailNode = document.getElementById("email");
-                const typeNode = document.getElementById("type");
-                const msgNode = document.getElementById("message");
-                
-                if (!nameNode.value || !emailNode.value || !typeNode.value || !msgNode.value) {
-                    alert("Please fill out all fields before submitting.");
-                    return;
-                }
-
-                const originalText = feedbackBtn.innerText;
-                feedbackBtn.innerText = "Sending...";
-                feedbackBtn.disabled = true;
-
-                try {
-                    const feedbackData = {
-                        name: nameNode.value,
-                        email: emailNode.value,
-                        type: typeNode.value,
-                        message: msgNode.value,
-                        timestamp: new Date()
-                    };
-
-                    await addDoc(collection(db, "feedback"), feedbackData);
-                    
-                    alert("Thank you for your feedback! It has been successfully submitted.");
-                    feedbackForm.reset();
-                } catch (error) {
-                    console.error("Error submitting feedback: ", error);
-                    alert("Sorry, there was an issue submitting your feedback.");
-                } finally {
-                    feedbackBtn.innerText = originalText;
-                    feedbackBtn.disabled = false;
-                }
-            });
-        }
     </script>
 </body>
 
