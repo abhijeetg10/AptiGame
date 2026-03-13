@@ -59,6 +59,12 @@
                 <p>Master the interactive logic challenges used by top MNCs. Stop reading boring prep books and start
                     playing your way to an offer letter.</p>
     
+                <div id="hero-profile-btn-container" class="hidden" style="margin-top: 2rem; margin-bottom: 2rem;">
+                    <a href="profile.html" class="btn btn-primary" style="padding: 1rem 2rem; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.75rem; box-shadow: 0 8px 20px rgba(201, 0, 118, 0.2);">
+                        View My Analysis Profile <i class="fas fa-chart-line"></i>
+                    </a>
+                </div>
+
                 <div class="stats">
                     <div class="avatars">
                         <div class="avatar" style="background-color: #E2E8F0;"></div>
@@ -87,23 +93,6 @@
         </div>
     </header>
     
-    <!-- Performance Insight CTA (Replaces heavy dashboard) -->
-    <section id="profile-cta" class="hidden" style="padding: 5rem 2rem; background: var(--bg-alt); text-align: center; border-bottom: 1px solid var(--border-color);">
-        <div class="nav-container" style="max-width: 900px;">
-            <div style="background: white; border-radius: 24px; padding: 3rem; box-shadow: var(--shadow-xl); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 2rem; text-align: left;" class="cta-flex-mobile">
-                <div style="flex: 1;">
-                    <span style="font-size: 0.85rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; display: block;">Performance Insight</span>
-                    <h2 style="font-size: 2.25rem; font-weight: 800; color: var(--text-dark); margin-bottom: 1rem; line-height: 1.2;">Track Your Growth & Profile Analysis</h2>
-                    <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 0;">See your global rank, challenge-wise accuracy, and spatial reasoning breakdown in your premium profile.</p>
-                </div>
-                <div style="flex-shrink: 0;">
-                    <a href="profile.html" class="btn btn-primary" style="padding: 1.25rem 2.5rem; border-radius: 16px; font-size: 1.1rem; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 10px 20px rgba(201, 0, 118, 0.25);">
-                        View Detailed Profile <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- Why Choose Game-Based Prep Section -->
     <section class="benefits">
@@ -423,6 +412,50 @@
     </section>
 
 
+    <!-- Support & Feedback Section -->
+    <section id="support" class="feedback" style="background: var(--bg-main); padding-top: 0;">
+        <div class="nav-container" style="max-width: 800px;">
+            <div style="background: white; border-radius: 32px; padding: 4rem; box-shadow: var(--shadow-xl); border: 1px solid var(--border-color); text-align: left;">
+                <div style="margin-bottom: 3rem; text-align: center;">
+                    <span style="font-size: 0.85rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; display: block;">Support Hub</span>
+                    <h2 style="font-size: 2.5rem; font-weight: 800; color: var(--text-dark); margin-bottom: 1rem;">Found a Bug or Have a Suggestion?</h2>
+                    <p style="color: var(--text-muted); font-size: 1.1rem;">We're constantly improving AptiGame. Drop your thoughts below!</p>
+                </div>
+
+                <form id="feedback-form" class="feedback-form" onsubmit="return false;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;" class="cta-flex-mobile">
+                        <div class="form-group">
+                            <label for="name">Your Name</label>
+                            <input type="text" id="name" placeholder="John Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" placeholder="john@example.com" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="type">Feedback Type</label>
+                        <select id="type" required>
+                            <option value="suggestion">Suggestion</option>
+                            <option value="bug">Report a Bug</option>
+                            <option value="other">General Inquiry</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 2rem;">
+                        <label for="message">Your Message</label>
+                        <textarea id="message" placeholder="Describe your experience or the issue you found..." required></textarea>
+                    </div>
+
+                    <button type="submit" id="feedback-submit-btn" class="btn btn-primary" style="width: 100%; padding: 1.25rem; font-size: 1.1rem; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 0.75rem;">
+                        <span>Submit Feedback</span> <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="abhi-footer">
         <div class="footer-content">
@@ -626,12 +659,11 @@
         
         onAuthStateChanged(auth, (user) => {
             window.activeUserName = user && user.displayName ? user.displayName : null;
+            const heroBtn = document.getElementById('hero-profile-btn-container');
             if (user) {
-                const cta = document.getElementById('profile-cta');
-                if (cta) cta.classList.remove('hidden');
+                if (heroBtn) heroBtn.classList.remove('hidden');
             } else {
-                const cta = document.getElementById('profile-cta');
-                if (cta) cta.classList.add('hidden');
+                if (heroBtn) heroBtn.classList.add('hidden');
             }
         });
 
@@ -832,6 +864,49 @@
                 window.renderLeaderboard('all', data);
             }
         });
+
+        // 6. Support & Feedback Storage Logic
+        const feedbackBtn = document.getElementById("feedback-submit-btn");
+        const feedbackForm = document.getElementById("feedback-form");
+        
+        if (feedbackBtn && feedbackForm) {
+            feedbackBtn.addEventListener("click", async (e) => {
+                e.preventDefault();
+                
+                const nameNode = document.getElementById("name");
+                const emailNode = document.getElementById("email");
+                const typeNode = document.getElementById("type");
+                const msgNode = document.getElementById("message");
+                
+                if (!nameNode.value || !emailNode.value || !typeNode.value || !msgNode.value) {
+                    alert("Please fill out all fields.");
+                    return;
+                }
+
+                const originalText = feedbackBtn.innerHTML;
+                feedbackBtn.innerHTML = '<span>Sending...</span> <i class="fas fa-circle-notch fa-spin"></i>';
+                feedbackBtn.disabled = true;
+
+                try {
+                    await addDoc(collection(db, "feedback"), {
+                        name: nameNode.value,
+                        email: emailNode.value,
+                        type: typeNode.value,
+                        message: msgNode.value,
+                        timestamp: new Date()
+                    });
+                    
+                    alert("Success! Your feedback has been received. Thank you for helping us improve!");
+                    feedbackForm.reset();
+                } catch (error) {
+                    console.error("Feedback error:", error);
+                    alert("Sorry, we couldn't send your feedback. Please try again later.");
+                } finally {
+                    feedbackBtn.innerHTML = originalText;
+                    feedbackBtn.disabled = false;
+                }
+            });
+        }
     </script>
 </body>
 
