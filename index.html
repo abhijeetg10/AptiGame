@@ -36,7 +36,6 @@
                 <li><a href="#challenges">Challenges</a></li>
                 <li><a href="mock-tests.html" style="color: var(--primary); font-weight: 700;"><i class="fas fa-trophy"></i> Mock Tests</a></li>
                 <li><a href="#companies">Companies</a></li>
-                <li><a href="#faq">FAQ</a></li>
             </ul>
             <a href="#" class="btn btn-primary" id="nav-login-btn">LOG IN</a>
             <div id="nav-user-profile" style="display: none; align-items: center; gap: 0.75rem;">
@@ -442,76 +441,6 @@
         </div>
     </section>
 
-    <!-- FAQ Section -->
-    <section id="faq" class="faq">
-        <h2>Frequently Asked Questions</h2>
-        <p class="faq-subtitle">Everything you need to know about the platform and the practice games.<br><br>
-            <strong>Note:</strong> These challenges are purely for practice. They are not the exact questions asked in assessments by companies like Capgemini, Cognizant, or Atlas Copco.
-        </p>
-
-        <div class="faq-list">
-            <div class="faq-item">
-                <div class="faq-question">
-                    <h4>Are these the exact games asked in the interviews?</h4>
-                    <span class="toggle">+</span>
-                </div>
-                <div class="faq-answer">
-                    <p>No, these are strictly for practice. We do not provide the exact questions asked in real assessments (such as Capgemini, Cognizant, or Atlas Copco). Our games simply simulate the test formats to give you the best practice experience.</p>
-                </div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    <h4>Is it free to use?</h4>
-                    <span class="toggle">+</span>
-                </div>
-                <div class="faq-answer">
-                    <p>Yes! All of our simulated challenges and games are completely free to use. Just click on a challenge and start practicing.</p>
-                </div>
-            </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    <h4>Can I practice on my mobile phone?</h4>
-                    <span class="toggle">+</span>
-                </div>
-                <div class="faq-answer">
-                    <p>Absolutely. Our platform is fully responsive and optimized for mobile devices, allowing you to practice anytime, anywhere on your smartphone or tablet.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- Feedback Section -->
-    <section id="feedback" class="feedback">
-        <h2>We Value Your Feedback</h2>
-        <p class="feedback-subtitle">Help us improve AptiGame by sharing your thoughts or reporting issues.</p>
-        
-        <div class="feedback-container">
-            <form id="feedback-form" class="feedback-form">
-                <div class="form-group">
-                    <label for="name">Name</label>
-                    <input type="text" id="name" name="name" placeholder="John Doe" required>
-                </div>
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" placeholder="john@example.com" required>
-                </div>
-                <div class="form-group">
-                    <label for="type">Feedback Type</label>
-                    <select id="type" name="type" required>
-                        <option value="" disabled selected>Select an option</option>
-                        <option value="suggestion">Suggestion</option>
-                        <option value="bug">Bug Report</option>
-                        <option value="question">Question</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="message">Message</label>
-                    <textarea id="message" name="message" rows="5" placeholder="Tell us what you think..." required></textarea>
-                </div>
-                <button type="button" id="feedback-submit-btn" class="btn btn-primary submit-btn">Submit Feedback</button>
-            </form>
-        </div>
-    </section>
 
     <!-- Footer -->
     <footer class="abhi-footer">
@@ -546,32 +475,6 @@
         </p>
     </footer>
 
-    <script>
-        // Simple script for FAQ accordion
-        const faqItems = document.querySelectorAll('.faq-item');
-        faqItems.forEach(item => {
-            const question = item.querySelector('.faq-question');
-            question.addEventListener('click', () => {
-                const isActive = item.classList.contains('active');
-
-                // Close all
-                faqItems.forEach(faq => {
-                    faq.classList.remove('active');
-                    if (faq.querySelector('.faq-answer')) {
-                        faq.querySelector('.faq-answer').style.maxHeight = null;
-                        faq.querySelector('.toggle').textContent = '+';
-                    }
-                });
-
-                // Open clicked if it wasn't active
-                if (!isActive && item.querySelector('.faq-answer')) {
-                    item.classList.add('active');
-                    const answer = item.querySelector('.faq-answer');
-                    answer.style.maxHeight = answer.scrollHeight + "px";
-                    item.querySelector('.toggle').textContent = '-';
-                }
-            });
-        });
 
         // --- Hall of Fame Rendering Logic ---
         const podiumContainer = document.getElementById('podium-container');
@@ -1000,122 +903,6 @@
                 }
             });
         }
-    </script>
-    <!-- Rating & Feedback Modal -->
-    <div id="rating-modal" class="modal-overlay hidden" style="z-index: 2000;">
-        <div class="modal-content rating-content" style="max-width: 450px; text-align: center; padding: 2.5rem;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🌟</div>
-            <h2 style="margin-bottom: 0.5rem; color: var(--text-dark);">Enjoying AptiGame?</h2>
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Your feedback helps us make these challenges better for everyone.</p>
-            
-            <div class="star-rating" style="display: flex; justify-content: center; gap: 0.75rem; margin-bottom: 1.5rem;">
-                <i class="far fa-star star-btn" data-value="1" style="font-size: 2.5rem; color: #fbbf24; cursor: pointer;"></i>
-                <i class="far fa-star star-btn" data-value="2" style="font-size: 2.5rem; color: #fbbf24; cursor: pointer;"></i>
-                <i class="far fa-star star-btn" data-value="3" style="font-size: 2.5rem; color: #fbbf24; cursor: pointer;"></i>
-                <i class="far fa-star star-btn" data-value="4" style="font-size: 2.5rem; color: #fbbf24; cursor: pointer;"></i>
-                <i class="far fa-star star-btn" data-value="5" style="font-size: 2.5rem; color: #fbbf24; cursor: pointer;"></i>
-            </div>
-
-            <textarea id="rating-comment" placeholder="Any suggestions? (Optional)" 
-                style="width: 100%; height: 100px; padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem; font-family: inherit; resize: none;"></textarea>
-
-            <div style="display: flex; gap: 1rem;">
-                <button id="skip-rating-btn" class="btn btn-outline" style="flex: 1;">Later</button>
-                <button id="submit-rating-btn" class="btn btn-primary" style="flex: 2;">Submit Rating</button>
-            </div>
-        </div>
-    </div>
-
-    <script type="module">
-        import { db, auth } from "./firebase-config.js";
-        import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-
-        let selectedRating = 0;
-        const ratingModal = document.getElementById('rating-modal');
-        const starBtns = document.querySelectorAll('.star-btn');
-        const submitBtn = document.getElementById('submit-rating-btn');
-        const skipBtn = document.getElementById('skip-rating-btn');
-
-        // Star Interaction
-        starBtns.forEach(btn => {
-            btn.addEventListener('mouseenter', () => highlightStars(btn.dataset.value));
-            btn.addEventListener('mouseleave', () => highlightStars(selectedRating));
-            btn.addEventListener('click', () => {
-                selectedRating = btn.dataset.value;
-                highlightStars(selectedRating);
-            });
-        });
-
-        function highlightStars(val) {
-            starBtns.forEach(btn => {
-                if (btn.dataset.value <= val) {
-                    btn.classList.replace('far', 'fas');
-                } else {
-                    btn.classList.replace('fas', 'far');
-                }
-            });
-        }
-
-        // Logic to trigger popup
-        function triggerRatingPopup() {
-            if (sessionStorage.getItem('ratingPromptShown')) return;
-
-            const showPopup = () => {
-                ratingModal.classList.remove('hidden');
-                sessionStorage.setItem('ratingPromptShown', 'true');
-            };
-
-            const isReturningFromGame = document.referrer.includes('.html') && !document.referrer.includes('index.html');
-            
-            if (isReturningFromGame) {
-                setTimeout(showPopup, 3000); 
-            } else {
-                setTimeout(showPopup, 45000); 
-            }
-        }
-
-        submitBtn.addEventListener('click', async () => {
-            if (selectedRating === 0) {
-                alert("Please select a star rating!");
-                return;
-            }
-
-            submitBtn.innerText = "Sending...";
-            submitBtn.disabled = true;
-
-            try {
-                const comment = document.getElementById('rating-comment').value;
-                const user = auth.currentUser;
-                
-                await addDoc(collection(db, "ratings"), {
-                    rating: parseInt(selectedRating),
-                    comment: comment,
-                    userName: user ? user.displayName : "Guest",
-                    timestamp: new Date()
-                });
-
-                ratingModal.innerHTML = `
-                    <div class="modal-content" style="text-align: center; padding: 3rem;">
-                        <div style="font-size: 4rem; margin-bottom: 1rem;">🚀</div>
-                        <h2>Thank You!</h2>
-                        <p style="color: var(--text-muted);">Your feedback helps us build the best aptitude platform.</p>
-                    </div>
-                `;
-                setTimeout(() => ratingModal.classList.add('hidden'), 2000);
-            } catch (e) {
-                console.error(e);
-                alert("Something went wrong. Please try again.");
-                submitBtn.innerText = "Submit Rating";
-                submitBtn.disabled = false;
-            }
-        });
-
-        skipBtn.addEventListener('click', () => {
-            ratingModal.classList.add('hidden');
-        });
-
-        triggerRatingPopup();
     </script>
 </body>
 
