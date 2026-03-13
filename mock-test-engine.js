@@ -23,10 +23,10 @@ let currentState = {
 };
 
 const companyNames = {
-    'atlas': 'Atlas Copco',
-    'capgemini': 'Capgemini',
-    'tcs': 'TCS',
-    'cognizant': 'Cognizant'
+    'atlas': 'Mock Test 1',
+    'capgemini': 'Mock Test 2',
+    'tcs': 'Mock Test 3',
+    'cognizant': 'Mock Test 4'
 };
 
 const overlay = document.getElementById('proctor-overlay');
