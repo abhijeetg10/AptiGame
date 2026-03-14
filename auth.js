@@ -59,52 +59,12 @@ async function syncUserToFirestore(user) {
         if (userSnap.exists()) {
             firestoreData = userSnap.data();
             hasRated = firestoreData.hasRated || false;
-            const lastLogin = data.lastLogin;
-            let lastLoginDate = "";
-            
-            if (lastLogin) {
-                const dateObj = (typeof lastLogin.toDate === 'function') ? lastLogin.toDate() : new Date(lastLogin);
-                lastLoginDate = dateObj.toLocaleDateString();
-            }
-
-            // If it's the SAME day, we only increment if it's a NEW session (we can't easily detect full sessions without state, 
-            // but we can at least ensure the record exists). For now, let's just update lastLogin and sync basic info.
-            if (lastLoginDate === today) {
-                loginsToday = (firestoreData.loginsToday || 0); 
-                // We'll increment only if this is reached via explicit login button in loginWithGoogle
-            }
-        }
-
-        // SMART SYNC: Only overwrite if we actually have data, otherwise keep existing
-        const updateData = {
-            lastLogin: new Date(),
-            photoURL: user.photoURL || "",
-            loginsToday: loginsToday,
-            totalLogins: increment(0),
-            hasRated: hasRated
-        };
-
         if (user.displayName) {
-            // Self-healing: If current db record is "Unknown" or "AptiVerse Player", force update it with real name
-            if (!firestoreData || firestoreData.name === "Unknown" || firestoreData.name === "AptiVerse Player") {
-                updateData.name = user.displayName;
-            } else {
-                updateData.name = user.displayName; // Always update to latest name if available
-            }
+            updateData.name = user.displayName;
         }
         
         if (user.email) {
-            if (!firestoreData || firestoreData.email === "No Email" || firestoreData.email === "Guest Mode") {
-                updateData.email = user.email;
-            } else {
-                updateData.email = user.email;
-            }
-        }
-
-        // If it's a completely new user and we STILL don't have a name, then we use "AptiVerse Player"
-        if (!userSnap.exists() && !updateData.name) {
-            updateData.name = "AptiVerse Player";
-            updateData.email = "Guest Mode";
+            updateData.email = user.email;
         }
 
         await setDoc(userDocRef, updateData, { merge: true }); 

@@ -182,7 +182,7 @@ async function fetchOverviewAndUsers() {
 
             // Build Recent Activity list (just grab the 5 most recent logins)
             if(userCount <= 5) {
-                const displayName = (data.name && data.name !== "Unknown") ? data.name : (data.email || "AptiVerse Player");
+                const displayName = data.name || data.email || "Unknown User";
                 activityHTML += `
                     <div style="padding: 1rem; display:flex; justify-content: space-between; border-bottom: 1px solid var(--admin-border); animation: fadeIn 0.3s ease forwards;">
                         <span><strong>${displayName}</strong> logged into the portal.</span>
