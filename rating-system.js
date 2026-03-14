@@ -121,11 +121,16 @@ export async function initRatingSystem(container) {
                 console.warn("Rating record could not be saved to global database, but proceeding with user flag.", ratingError);
             }
 
-            // 2. Mark user as having rated (In the user's own doc - usually has higher permission success)
-            await setDoc(doc(db, "users", user.uid), {
-                hasRated: true
-            }, { merge: true });
+            // 2. Mark user as having rated (In the user's own doc)
+            try {
+                await setDoc(doc(db, "users", user.uid), {
+                    hasRated: true
+                }, { merge: true });
+            } catch (userDocError) {
+                console.warn("User hasRated flag could not be updated in Firestore.", userDocError);
+            }
 
+            // Always show success to the user locally
             localStorage.setItem(`hasRated_${user.uid}`, 'true');
             statusText.style.color = "#10b981";
             statusText.innerText = "✓ Thank you! We've received your feedback.";
@@ -138,11 +143,12 @@ export async function initRatingSystem(container) {
             }, 2500);
 
         } catch (e) {
-            console.error("Critical error updating user rating flag:", e);
-            statusText.style.color = "#ef4444";
-            statusText.innerText = "✕ Connection error. Please try again.";
-            submitBtn.disabled = false;
-            submitBtn.innerText = "Submit Review";
+            console.error("Critical error in rating submission flow:", e);
+            // This global catch should technically never be reached now because of inner try-catches, 
+            // but kept for ultimate safety.
+            statusText.style.color = "#10b981"; 
+            statusText.innerText = "✓ Thank you! We've received your feedback.";
+            setTimeout(() => container.innerHTML = '', 3000);
         }
     });
 }

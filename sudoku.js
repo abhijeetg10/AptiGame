@@ -51,6 +51,7 @@ const elBackToModulesBtn = document.getElementById("back-to-modules-btn");
 const elModule = document.getElementById("module-display");
 const elLevel = document.getElementById("level-display");
 const elTimer = document.getElementById("timer-display");
+const elScore = document.getElementById("score-display");
 const elGrid = document.getElementById("sudoku-grid");
 const elOptions = document.getElementById("options-container");
 
@@ -298,6 +299,7 @@ function handleAnswer(selectedShape) {
     if (selectedShape === targetAnswer) {
         correctAnswers++;
         score += 3;
+        if (elScore) elScore.innerText = score;
         sounds.correct.play().catch(e => console.log("Audio play blocked"));
         feedbackBox.innerHTML = `
             <h1 style="font-size: 3rem; margin-bottom: 0.5rem;">CORRECT!</h1>
@@ -500,6 +502,10 @@ async function endModule(customTitle) {
     elScoreText.innerText = `${correctAnswers} / ${LEVELS_PER_MODULE}`;
     elCorrectCount.innerText = correctAnswers;
     elWrongCount.innerText = wrongAnswers;
+
+    // Display Final Marks
+    let marksEl = document.getElementById('final-marks');
+    if (marksEl) marksEl.innerText = score;
 
     moduleScores.push(correctAnswers);
     saveScoreToFirebase(null, null); // Autosave in background
