@@ -719,7 +719,6 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
         }
     }
 
-    }
 
     if (redirectCallback) {
         setTimeout(redirectCallback, 500); // slight delay

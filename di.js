@@ -378,6 +378,7 @@ function startTimer() {
         const secs = timeLeft % 60;
         elTimer.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         if (timeLeft <= 0) endGame();
+    }, 1000);
 }
 
 async function endGame() {
