@@ -774,9 +774,9 @@ async function endModule(customTitle) {
 
     // Show answer button logic
     if (window.currentSolutionPath && window.currentSolutionPath.length > 0) {
-        elShowAnswerBtn.classList.remove("hidden");
+    if (elShowAnswerBtn) elShowAnswerBtn.classList.remove("hidden");
     } else {
-        elShowAnswerBtn.classList.add("hidden");
+        if (elShowAnswerBtn) elShowAnswerBtn.classList.add("hidden");
     }
 
     if (!isSkip) {
