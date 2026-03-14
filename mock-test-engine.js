@@ -182,7 +182,7 @@ function generateSequence() {
         const pick = pool[Math.floor(Math.random() * pool.length)];
         if(!randoms.includes(pick)) randoms.push(pick);
     }
-    currentState.sequence = ['rc.html', 'di.html', ...randoms];
+    currentState.sequence = ['rc.html', 'di.html', 'motion.html', 'sudoku.html', 'inductive.html', 'grid.html', 'switch.html'];
     saveState();
 }
 
