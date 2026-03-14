@@ -35,6 +35,62 @@ const strikeEl = document.getElementById('strike-count');
 const alertTitle = document.getElementById('alert-title');
 const alertMsg = document.getElementById('alert-msg');
 
+// Instruction Overlays
+const onboardingOverlay = document.getElementById('onboarding-overlay');
+const moduleOverlay = document.getElementById('module-overlay');
+const moduleIndicator = document.getElementById('module-indicator');
+const moduleTitle = document.getElementById('module-title');
+const moduleDesc = document.getElementById('module-desc');
+const moduleExample = document.getElementById('module-example');
+const moduleTip = document.getElementById('module-tip');
+const startAssessmentBtn = document.getElementById('start-assessment-btn');
+const beginModuleBtn = document.getElementById('begin-module-btn');
+
+const GAME_INFO = {
+    'motion.html': {
+        title: "Motion Tracking",
+        desc: "Observe the moving objects and predict their trajectories. This module tests your visual spatial awareness and reaction time.",
+        tip: "Keep your eyes on the primary target; peripheral motion is often a distraction.",
+        example: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=800&auto=format&fit=crop"
+    },
+    'sudoku.html': {
+        title: "Sudoku Logic",
+        desc: "Fill the grid such that every row, column, and subgrid contains unique values. Accuracy is critical in this logical reasoning task.",
+        tip: "Start with the sections that have the most pre-filled numbers.",
+        example: "https://images.unsplash.com/photo-1543269664-76ec3997d9ea?q=80&w=800&auto=format&fit=crop"
+    },
+    'inductive.html': {
+        title: "Inductive Reasoning",
+        desc: "Identify the pattern in the sequence of shapes and choose the next logical figure. Focus on rotations and color changes.",
+        tip: "Analyze one element (like shape or color) at a time to find the underlying rule.",
+        example: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=800&auto=format&fit=crop"
+    },
+    'grid.html': {
+        title: "Grid Memory",
+        desc: "Remember the highlighted cells in the grid and recall them after they disappear. Tests short-term visual memory.",
+        tip: "Try to group cells into shapes (like L-shapes or squares) to remember them easier.",
+        example: "https://images.unsplash.com/photo-1516116216624-53e697fedbea?q=80&w=800&auto=format&fit=crop"
+    },
+    'switch.html': {
+        title: "Switch Challenge",
+        desc: "Toggle the switches to route the current through the bridge. Requires fast logical switching and problem solving.",
+        tip: "Follow the path from the end-point backwards to see which switches are needed.",
+        example: "https://images.unsplash.com/photo-1555664424-6cc5c2826cf9?q=80&w=800&auto=format&fit=crop"
+    },
+    'rc.html': {
+        title: "Reading Comprehension",
+        desc: "Read the provided passages and answer the questions. This module evaluates your analytical reading and synthesis skins.",
+        tip: "Read the questions first to know what specific details to look for in the text.",
+        example: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=800&auto=format&fit=crop"
+    },
+    'di.html': {
+        title: "Data Interpretation",
+        desc: "Analyze charts and graphs to answer specific data-driven questions. Tests quantitative reasoning and data synthesis.",
+        tip: "Check the units and axis labels carefully before performing any calculations.",
+        example: "https://images.unsplash.com/photo-1551288049-bbda38a594a0?q=80&w=800&auto=format&fit=crop"
+    }
+};
+
 // --- INITIALIZATION ---
 function init() {
     document.getElementById('company-name').innerText = companyNames[companyId] || 'Mock Test';
@@ -46,6 +102,12 @@ function init() {
         if (parsed.companyId === companyId && !parsed.isFinished) {
             currentState = { ...currentState, ...parsed };
             console.log("Recovered state:", currentState);
+            
+            // If we recovered, don't show onboarding, but we might need instructions for current module
+            onboardingOverlay.style.display = 'none';
+            if (currentState.currentModuleIndex > 0 || currentState.isStarted) {
+                resumeAfterRecovery();
+            }
         } else {
             generateSequence();
         }
@@ -64,24 +126,53 @@ function init() {
         }
     });
 
-    // 2. Start Timer
-    startTimer();
-    
-    // 3. Load Current Module
-    loadModule(currentState.currentModuleIndex);
+    // 2. Setup Listeners
+    setupListeners();
 
-    // 4. Listen for signals from child iframe
+    // 3. Proctoring Setup
+    setupProctoring();
+
+    sessionStorage.setItem('mock_test_active', 'true');
+    saveState();
+}
+
+function setupListeners() {
+    // Start Assessment
+    startAssessmentBtn.onclick = async () => {
+        try {
+            await document.documentElement.requestFullscreen();
+        } catch (e) {
+            console.warn("Fullscreen request failed:", e);
+        }
+        
+        onboardingOverlay.style.display = 'none';
+        currentState.isStarted = true;
+        saveState();
+        
+        startTimer();
+        showModuleInstructions(0);
+    };
+
+    // Begin Specific Module
+    beginModuleBtn.onclick = () => {
+        moduleOverlay.style.display = 'none';
+        currentState.isPaused = false;
+        saveState();
+        
+        loadModule(currentState.currentModuleIndex);
+    };
+
+    // Listen for signals from child iframe
     window.addEventListener('message', (event) => {
         if(event.data.type === 'MODULE_COMPLETE') {
             handleModuleComplete(event.data.score);
         }
     });
+}
 
-    // 5. Proctoring Setup
-    setupProctoring();
-
-    sessionStorage.setItem('mock_test_active', 'true');
-    saveState();
+function resumeAfterRecovery() {
+    startTimer();
+    loadModule(currentState.currentModuleIndex);
 }
 
 function generateSequence() {
@@ -219,12 +310,29 @@ function loadModule(index) {
     const dots = document.querySelectorAll('.indicator-dot');
     const progress = document.getElementById('progress-fill');
     
-    dots.forEach((d, i) => d.classList.toggle('active', i === index));
-    progress.style.width = `${(index / MODULES_COUNT) * 100}%`;
+    if (progress) progress.style.width = `${(index / MODULES_COUNT) * 100}%`;
     
     iframe.src = currentState.sequence[index] + "?mode=mock";
     currentState.currentModuleIndex = index;
     saveState();
+}
+
+function showModuleInstructions(index) {
+    const moduleFile = currentState.sequence[index];
+    const info = GAME_INFO[moduleFile] || { title: "Next Module", desc: "Complete the next section of the assessment.", tip: "Keep going!", example: "" };
+
+    currentState.isPaused = true;
+    currentState.currentModuleIndex = index;
+    saveState();
+
+    moduleIndicator.innerText = `MODULE ${index + 1} OF ${MODULES_COUNT}`;
+    moduleTitle.innerText = info.title;
+    moduleDesc.innerText = info.desc;
+    moduleTip.innerText = info.tip;
+    moduleExample.src = info.example || "";
+    moduleExample.style.display = info.example ? "block" : "none";
+
+    moduleOverlay.style.display = 'flex';
 }
 
 function handleModuleComplete(score) {
@@ -232,7 +340,7 @@ function handleModuleComplete(score) {
     updateFirestoreRecord("in-progress"); // Sync progress
     
     if(currentState.currentModuleIndex < MODULES_COUNT - 1) {
-        loadModule(currentState.currentModuleIndex + 1);
+        showModuleInstructions(currentState.currentModuleIndex + 1);
     } else {
         finishTest();
     }
