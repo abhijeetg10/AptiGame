@@ -1,5 +1,5 @@
 /**
- * logger.js - Simple error monitoring and logging utility for AptiGame
+ * logger.js - Simple error monitoring and logging utility for AptiVerse
  */
 
 export const Logger = {

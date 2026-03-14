@@ -169,6 +169,7 @@ async function fetchOverviewAndUsers() {
         }
 
         // Update Stats
+        document.getElementById('panel-title').innerText = 'AptiVerse Overview';
         document.getElementById("stat-total-users").innerText = userCount;
         const recentActivityEl = document.getElementById("recent-activity-list");
         if (recentActivityEl) recentActivityEl.innerHTML = activityHTML;
@@ -486,7 +487,7 @@ document.getElementById("download-users-csv").addEventListener("click", () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", "aptigame_users_export.csv");
+    link.setAttribute("download", "aptiverse_users_export.csv");
     link.style.display = "none";
     document.body.appendChild(link);
     link.click();
@@ -514,7 +515,7 @@ document.getElementById("download-leaderboard-csv").addEventListener("click", ()
     const link = document.createElement("a");
     link.setAttribute("href", url);
     const gameType = allLeaderboardData[0] ? allLeaderboardData[0].game : "mixed";
-    link.setAttribute("download", `aptigame_leaderboard_${gameType}.csv`);
+    link.setAttribute("download", `aptiverse_leaderboard_${gameType}.csv`);
     link.style.display = "none";
     document.body.appendChild(link);
     link.click();
@@ -542,7 +543,7 @@ document.getElementById("download-feedback-csv").addEventListener("click", () =>
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", "aptigame_feedback_export.csv");
+    link.setAttribute("download", "aptiverse_feedback_export.csv");
     link.style.display = "none";
     document.body.appendChild(link);
     link.click();
@@ -568,7 +569,7 @@ document.getElementById("download-ratings-csv").addEventListener("click", () => 
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", "aptigame_ratings_export.csv");
+    link.setAttribute("download", "aptiverse_ratings_export.csv");
     link.style.display = "none";
     document.body.appendChild(link);
     link.click();
@@ -597,7 +598,7 @@ document.getElementById("download-mock-csv")?.addEventListener("click", () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", "aptigame_mock_results.csv");
+    link.setAttribute("download", "aptiverse_mock_results.csv");
     link.style.display = "none";
     document.body.appendChild(link);
     link.click();

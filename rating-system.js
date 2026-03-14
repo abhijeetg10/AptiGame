@@ -5,7 +5,7 @@ const RATING_HTML = `
 <div class="rating-wrapper" style="display: flex; justify-content: center; align-items: center; width: 100%; min-height: 100%; padding: 1rem 0;">
     <div class="rating-container" style="margin-top: 1rem; padding: 2.5rem; text-align: center; background: #ffffff; border-radius: 24px; animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); max-height: 75vh; overflow-y: auto; width: 95%; max-width: 500px; box-sizing: border-box; border: 1px solid rgba(226, 232, 240, 0.8); box-shadow: 0 0 0 1px rgba(201, 0, 118, 0.05), 0 20px 50px rgba(0, 0, 0, 0.1), 0 0 0 4px rgba(201, 0, 118, 0.03); position: relative;">
         <h3 style="margin-bottom: 0.5rem; color: #0f172a; font-weight: 800; font-size: 1.5rem; letter-spacing: -0.025em;">Enjoyed this challenge?</h3>
-        <p style="color: #64748b; font-size: 1rem; margin-bottom: 1.5rem; opacity: 0.9;">Your feedback helps us make AptiGame better!</p>
+        <p style="color: #64748b; font-size: 1rem; margin-bottom: 1.5rem; opacity: 0.9;">Your feedback helps us make AptiVerse better!</p>
         
         <div class="star-rating" style="display: flex; justify-content: center; gap: 0.85rem; margin-bottom: 1.5rem;">
             <i class="far fa-star rating-star" data-rating="1" style="font-size: 2.5rem; color: #cbd5e1; cursor: pointer; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s;"></i>

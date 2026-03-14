@@ -830,7 +830,7 @@ async function endModule(customTitle) {
 }
 
 function shareOnLinkedIn() {
-    const text = `I just completed Motion Challenge Module ${currentModule} on AptiGame with ${correctAnswers}/${LEVELS_PER_MODULE} correct! 🚀 #SpatialReasoning #AptiGame`;
+    const text = `I just completed Motion Challenge Module ${currentModule} on AptiVerse with ${correctAnswers}/${LEVELS_PER_MODULE} correct! 🚀 #SpatialReasoning #AptiVerse`;
     const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
     window.open(url, '_blank', 'width=600,height=400');
 }
