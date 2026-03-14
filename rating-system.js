@@ -112,7 +112,7 @@ export async function initRatingSystem(container) {
         try {
             // 1. Add to ratings collection (Optional/Non-blocking for user experience)
             try {
-                await addDoc(collection(db, "ratings"), {
+                await addDoc(collection(db, "rating"), {
                     uid: user.uid,
                     userName: user.displayName || "Anonymous",
                     userEmail: user.email || "N/A",

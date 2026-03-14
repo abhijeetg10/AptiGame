@@ -337,11 +337,11 @@ async function fetchRatings() {
     try {
         let snapshot;
         try {
-            const q = query(collection(db, "ratings"), orderBy("timestamp", "desc"));
+            const q = query(collection(db, "rating"), orderBy("timestamp", "desc"));
             snapshot = await getDocs(q);
         } catch (indexError) {
             console.warn("Ratings index missing, falling back to client-side sort:", indexError);
-            snapshot = await getDocs(collection(db, "ratings"));
+            snapshot = await getDocs(collection(db, "rating"));
         }
         
         const tbody = document.getElementById("table-body-ratings");
