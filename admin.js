@@ -831,6 +831,7 @@ function renderTrafficChart(labels, visitCounts, uniqueCounts) {
                     labels: {
                         usePointStyle: true,
                         padding: 20,
+                        color: '#f1f5f9',
                         font: { family: "'Outfit', sans-serif", size: 12, weight: '600' }
                     }
                 },
@@ -838,21 +839,31 @@ function renderTrafficChart(labels, visitCounts, uniqueCounts) {
                     mode: 'index',
                     intersect: false,
                     backgroundColor: '#1e293b',
+                    titleColor: '#fff',
+                    bodyColor: '#cbd5e1',
+                    borderColor: 'rgba(255,255,255,0.1)',
+                    borderWidth: 1,
                     padding: 12,
                     titleFont: { size: 14, weight: '700' },
                     bodyFont: { size: 13 },
-                    cornerRadius: 8
+                    cornerRadius: 12
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: { color: '#f1f5f9' },
-                    ticks: { font: { family: "'Outfit', sans-serif" } }
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { 
+                        color: '#94a3b8',
+                        font: { family: "'Outfit', sans-serif", size: 11 } 
+                    }
                 },
                 x: {
                     grid: { display: false },
-                    ticks: { font: { family: "'Outfit', sans-serif" } }
+                    ticks: { 
+                        color: '#94a3b8',
+                        font: { family: "'Outfit', sans-serif", size: 11 } 
+                    }
                 }
             },
             interaction: {
