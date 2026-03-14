@@ -2,31 +2,47 @@ import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc } from "https:
 import { db, auth } from "./firebase-config.js";
 
 const RATING_HTML = `
-<div class="rating-container" style="margin-top: 2rem; padding: 2rem; border-top: 2px solid #f1f5f9; text-align: center; background: #f8fafc; border-radius: 20px; animation: slideUp 0.5s ease-out;">
-    <h3 style="margin-bottom: 0.75rem; color: #0f172a; font-weight: 800; font-size: 1.5rem;">Enjoyed this challenge?</h3>
-    <p style="color: #64748b; font-size: 1rem; margin-bottom: 1.5rem;">Your feedback helps us make AptiGame better!</p>
+<div class="rating-container" style="margin-top: 1.5rem; padding: 1.5rem; border-top: 2px solid #f1f5f9; text-align: center; background: #f8fafc; border-radius: 20px; animation: slideUp 0.5s ease-out; max-height: 450px; overflow-y: auto; width: 100%; box-sizing: border-box;">
+    <h3 style="margin-bottom: 0.5rem; color: #0f172a; font-weight: 800; font-size: 1.35rem;">Enjoyed this challenge?</h3>
+    <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 1.25rem;">Your feedback helps us make AptiGame better!</p>
     
-    <div class="star-rating" style="display: flex; justify-content: center; gap: 0.75rem; margin-bottom: 1.5rem;">
-        <i class="far fa-star rating-star" data-rating="1" style="font-size: 2.5rem; color: #cbd5e1; cursor: pointer; transition: transform 0.2s, color 0.2s;"></i>
-        <i class="far fa-star rating-star" data-rating="2" style="font-size: 2.5rem; color: #cbd5e1; cursor: pointer; transition: transform 0.2s, color 0.2s;"></i>
-        <i class="far fa-star rating-star" data-rating="3" style="font-size: 2.5rem; color: #cbd5e1; cursor: pointer; transition: transform 0.2s, color 0.2s;"></i>
-        <i class="far fa-star rating-star" data-rating="4" style="font-size: 2.5rem; color: #cbd5e1; cursor: pointer; transition: transform 0.2s, color 0.2s;"></i>
-        <i class="far fa-star rating-star" data-rating="5" style="font-size: 2.5rem; color: #cbd5e1; cursor: pointer; transition: transform 0.2s, color 0.2s;"></i>
+    <div class="star-rating" style="display: flex; justify-content: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+        <i class="far fa-star rating-star" data-rating="1" style="font-size: 2.2rem; color: #cbd5e1; cursor: pointer; transition: transform 0.2s, color 0.2s;"></i>
+        <i class="far fa-star rating-star" data-rating="2" style="font-size: 2.2rem; color: #cbd5e1; cursor: pointer; transition: transform 0.2s, color 0.2s;"></i>
+        <i class="far fa-star rating-star" data-rating="3" style="font-size: 2.2rem; color: #cbd5e1; cursor: pointer; transition: transform 0.2s, color 0.2s;"></i>
+        <i class="far fa-star rating-star" data-rating="4" style="font-size: 2.2rem; color: #cbd5e1; cursor: pointer; transition: transform 0.2s, color 0.2s;"></i>
+        <i class="far fa-star rating-star" data-rating="5" style="font-size: 2.2rem; color: #cbd5e1; cursor: pointer; transition: transform 0.2s, color 0.2s;"></i>
     </div>
     
-    <div id="rating-comment-box" class="hidden" style="margin-bottom: 1.5rem; animation: fadeIn 0.3s ease-in;">
+    <div id="rating-comment-box" class="hidden" style="margin-bottom: 1rem; animation: fadeIn 0.3s ease-in;">
         <textarea id="rating-comment" placeholder="Any suggestions to make it better? (Optional)" 
-            style="width: 100%; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 16px; font-family: inherit; resize: none; min-height: 100px; font-size: 1rem; transition: border-color 0.2s; outline: none;"></textarea>
-        <button id="submit-rating-btn" class="btn btn-primary" style="width: 100%; margin-top: 1.25rem; padding: 1rem; font-size: 1.1rem; border-radius: 14px; box-shadow: 0 4px 12px rgba(201, 0, 118, 0.2);">Submit Review</button>
+            style="width: 100%; padding: 0.85rem; border: 2px solid #e2e8f0; border-radius: 16px; font-family: inherit; resize: none; min-height: 80px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"></textarea>
+        <button id="submit-rating-btn" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.85rem; font-size: 1.05rem; border-radius: 14px; box-shadow: 0 4px 12px rgba(201, 0, 118, 0.2);">Submit Review</button>
     </div>
     
-    <p id="rating-status" style="font-size: 1rem; color: #10b981; font-weight: 700; min-height: 1.5rem; margin-top: 1rem;"></p>
+    <p id="rating-status" style="font-size: 0.95rem; color: #10b981; font-weight: 700; min-height: 1.5rem; margin-top: 0.75rem;"></p>
     
     <style>
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .rating-star:hover { transform: scale(1.2); }
         #rating-comment:focus { border-color: #c90076; }
+        
+        /* Premium Scrollbar */
+        .rating-container::-webkit-scrollbar { width: 6px; }
+        .rating-container::-webkit-scrollbar-track { background: transparent; }
+        .rating-container::-webkit-scrollbar-thumb { 
+            background: #cbd5e1; 
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+        .rating-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        @media (max-width: 480px) {
+            .rating-container { padding: 1rem; max-height: 350px; }
+            .rating-star { font-size: 1.8rem !important; }
+            h3 { font-size: 1.2rem !important; }
+        }
     </style>
 </div>
 `;
