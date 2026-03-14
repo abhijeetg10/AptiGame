@@ -276,10 +276,15 @@ function showFeedback(isCorrect, solution = "") {
     }, 1200);
 }
 
-async function finishModule() {
+async function endModule() {
     clearInterval(timerInterval);
     isGameActive = false;
     
+    if (isMock) {
+        window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
+        return;
+    }
+
     const modal = document.getElementById('results-modal');
     const ratingContainer = document.getElementById('rating-section');
     if (ratingContainer) initRatingSystem(ratingContainer);

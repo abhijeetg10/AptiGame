@@ -381,8 +381,11 @@ function startTimer() {
     }, 1000);
 }
 
-async function endGame() {
     clearInterval(timerInterval);
+    if (isMock) {
+        window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
+        return;
+    }
     const ratingContainer = document.getElementById('rating-section');
     if (ratingContainer) initRatingSystem(ratingContainer);
 
