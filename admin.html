@@ -11,6 +11,9 @@
     <!-- Link to universal styles and the specific admin css -->
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="admin.css">
+    <link rel="icon" type="image/png" href="logo.png">
+    <script type="module" src="analytics.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="admin-body">
@@ -33,7 +36,8 @@
                 <button class="nav-btn active" data-target="panel-overview"><i class="fas fa-chart-line"></i> Overview</button>
                 <button class="nav-btn" data-target="panel-users"><i class="fas fa-users"></i> Users</button>
                 <button class="nav-btn" data-target="panel-leaderboards"><i class="fas fa-medal"></i> Master Leaderboards</button>
-                <button class="nav-btn" data-target="panel-ratings"><i class="fas fa-star"></i> Playback Ratings</button>
+                <button class="nav-btn" data-target="panel-ratings"><i class="fas fa-star"></i> Ratings</button>
+                <button class="nav-btn" data-target="panel-traffic"><i class="fas fa-chart-area"></i> Traffic</button>
                 <button class="nav-btn" data-target="panel-feedback"><i class="fas fa-comments"></i> Support Feedback</button>
                 <button class="nav-btn" data-target="panel-mock-results"><i class="fas fa-file-invoice"></i> Mock Test Results</button>
             </nav>
@@ -252,6 +256,42 @@
                                     <tr><td colspan="5" style="text-align: center;">Loading mock results...</td></tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TRAFFIC ANALYTICS PANEL -->
+                <section id="panel-traffic" class="admin-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <div>
+                            <h2 style="font-size: 1.75rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">Traffic Analytics</h2>
+                            <p style="color: #64748b;">Monitor visitor trends and engagement.</p>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; background: #f1f5f9; padding: 0.4rem; border-radius: 12px;">
+                            <button class="traffic-filter active" data-range="1h">1h</button>
+                            <button class="traffic-filter" data-range="24h">24h</button>
+                            <button class="traffic-filter" data-range="7d">7d</button>
+                            <button class="traffic-filter" data-range="30d">30d</button>
+                        </div>
+                    </div>
+
+                    <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+                        <div style="display: flex; gap: 2rem; margin-bottom: 2rem;">
+                            <div class="stat-mini">
+                                <span style="color: #64748b; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Total Visits</span>
+                                <div id="traffic-total-visits" style="font-size: 1.5rem; font-weight: 800; color: #0f172a;">---</div>
+                            </div>
+                            <div class="stat-mini">
+                                <span style="color: #64748b; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Unique Visitors</span>
+                                <div id="traffic-unique-visitors" style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">---</div>
+                            </div>
+                            <div class="stat-mini">
+                                <span style="color: #64748b; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Repeat Rate</span>
+                                <div id="traffic-repeat-rate" style="font-size: 1.5rem; font-weight: 800; color: #10b981;">---</div>
+                            </div>
+                        </div>
+                        <div style="height: 400px; width: 100%;">
+                            <canvas id="trafficChart"></canvas>
                         </div>
                     </div>
                 </section>

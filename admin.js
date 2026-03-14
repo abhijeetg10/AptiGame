@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy, limit, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, getDocs, query, orderBy, limit, deleteDoc, doc, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { db, auth } from "./firebase-config.js";
 
@@ -10,6 +10,7 @@ let allLeaderboardData = [];
 let allFeedbackData = [];
 let allRatingsData = [];
 let allMockResultsData = [];
+let trafficChart = null;
 
 const elOverlay = document.getElementById("auth-overlay");
 const elDashboard = document.getElementById("admin-dashboard");
@@ -73,6 +74,15 @@ document.getElementById("leaderboard-filter").addEventListener("change", (e) => 
     fetchLeaderboardData(e.target.value);
 });
 
+// Traffic Filters
+document.querySelectorAll(".traffic-filter").forEach(btn => {
+    btn.addEventListener("click", () => {
+        document.querySelectorAll(".traffic-filter").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        fetchTrafficData(btn.getAttribute("data-range"));
+    });
+});
+
 
 // --- DATA FETCHING ENGINE ---
 
@@ -83,7 +93,8 @@ async function fetchAllData() {
         fetchLeaderboardData("grid"), // Default load
         fetchFeedback(),
         fetchRatings(),
-        fetchMockResults()
+        fetchMockResults(),
+        fetchTrafficData("24h") // Default load traffic
     ]);
 }
 
@@ -687,3 +698,150 @@ window.onclick = (event) => {
         modal.classList.add("hidden");
     }
 };
+// 6. Traffic Analytics
+async function fetchTrafficData(range) {
+    try {
+        const now = new Date();
+        let startTime;
+
+        switch (range) {
+            case "1h": startTime = new Date(now.getTime() - 60 * 60 * 1000); break;
+            case "24h": startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000); break;
+            case "7d": startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); break;
+            case "30d": startTime = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); break;
+            default: startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        }
+
+        const q = query(
+            collection(db, "traffic"),
+            where("timestamp", ">=", Timestamp.fromDate(startTime)),
+            orderBy("timestamp", "asc")
+        );
+
+        const snapshot = await getDocs(q);
+        const data = [];
+        snapshot.forEach(doc => data.push(doc.data()));
+
+        processAndRenderTraffic(data, range);
+
+    } catch (e) {
+        console.error("Error fetching traffic data:", e);
+    }
+}
+
+function processAndRenderTraffic(data, range) {
+    const visitsByTime = {};
+    const uniqueByTime = {};
+    
+    // Grouping logic based on range
+    data.forEach(item => {
+        const date = item.timestamp.toDate();
+        let label;
+        
+        if (range === "1h") {
+            label = date.toLocaleTimeString([], { minute: '2-digit' });
+        } else if (range === "24h") {
+            label = date.getHours() + ":00";
+        } else {
+            label = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        }
+
+        visitsByTime[label] = (visitsByTime[label] || 0) + 1;
+        if (item.isNew) {
+            uniqueByTime[label] = (uniqueByTime[label] || 0) + 1;
+        }
+    });
+
+    const labels = Object.keys(visitsByTime);
+    const visitCounts = Object.values(visitsByTime);
+    const uniqueCounts = labels.map(l => uniqueByTime[l] || 0);
+
+    // Update Mini Stats
+    const totalVisits = data.length;
+    const uniqueVisitors = new Set(data.map(d => d.visitorId)).size;
+    const repeatRate = totalVisits > 0 ? Math.round(((totalVisits - uniqueVisitors) / totalVisits) * 100) : 0;
+
+    document.getElementById("traffic-total-visits").innerText = totalVisits;
+    document.getElementById("traffic-unique-visitors").innerText = uniqueVisitors;
+    document.getElementById("traffic-repeat-rate").innerText = repeatRate + "%";
+
+    renderTrafficChart(labels, visitCounts, uniqueCounts);
+}
+
+function renderTrafficChart(labels, visitCounts, uniqueCounts) {
+    const ctx = document.getElementById('trafficChart').getContext('2d');
+    
+    if (trafficChart) {
+        trafficChart.destroy();
+    }
+
+    trafficChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Total Visits',
+                    data: visitCounts,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#6366f1'
+                },
+                {
+                    label: 'Unique Visitors',
+                    data: uniqueCounts,
+                    borderColor: '#c90076',
+                    backgroundColor: 'transparent',
+                    fill: false,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#c90076'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20,
+                        font: { family: "'Outfit', sans-serif", size: 12, weight: '600' }
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: '#1e293b',
+                    padding: 12,
+                    titleFont: { size: 14, weight: '700' },
+                    bodyFont: { size: 13 },
+                    cornerRadius: 8
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#f1f5f9' },
+                    ticks: { font: { family: "'Outfit', sans-serif" } }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { family: "'Outfit', sans-serif" } }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+}
