@@ -145,6 +145,7 @@ if (elShowAnswerBtn) {
 function startModule(modNum) {
     currentModule = modNum;
     currentLevel = 1;
+    score = 0;
     correctAnswers = 0;
     wrongAnswers = 0;
     moduleScores = [];
