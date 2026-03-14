@@ -242,19 +242,32 @@ async function fetchLeaderboardData(gameId) {
 // 3. Feedback
 async function fetchFeedback() {
     try {
-        const q = query(collection(db, "feedback"), orderBy("timestamp", "desc"));
-        const snapshot = await getDocs(q);
+        let snapshot;
+        try {
+            const q = query(collection(db, "feedback"), orderBy("timestamp", "desc"));
+            snapshot = await getDocs(q);
+        } catch (indexError) {
+            console.warn("Feedback index missing, falling back to client-side sort:", indexError);
+            snapshot = await getDocs(collection(db, "feedback"));
+        }
         
         const tbody = document.getElementById("table-body-feedback");
         tbody.innerHTML = "";
         allFeedbackData = [];
         
-        let count = 0;
+        let docs = [];
+        snapshot.forEach(doc => docs.push(doc.data()));
 
-        snapshot.forEach(doc => {
-            const data = doc.data();
+        // Client-side sort fallback if needed (or just sort always to be safe)
+        docs.sort((a, b) => {
+            const dateA = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(0);
+            const dateB = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(0);
+            return dateB - dateA;
+        });
+
+        let count = 0;
+        docs.forEach(data => {
             count++;
-            
             let dateStr = "Unknown";
             if(data.timestamp && data.timestamp.toDate) {
                 dateStr = data.timestamp.toDate().toLocaleString();
@@ -298,24 +311,39 @@ async function fetchFeedback() {
 
     } catch (e) {
         console.error("Error fetching feedback:", e);
-        document.getElementById("table-body-feedback").innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--pluto-red);">Requires Firebase Index. Check console.</td></tr>`;
+        document.getElementById("table-body-feedback").innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--pluto-red);">Error loading feedback. Check console.</td></tr>`;
     }
 }
 // 4. Ratings
 async function fetchRatings() {
     try {
-        const q = query(collection(db, "ratings"), orderBy("timestamp", "desc"));
-        const snapshot = await getDocs(q);
+        let snapshot;
+        try {
+            const q = query(collection(db, "ratings"), orderBy("timestamp", "desc"));
+            snapshot = await getDocs(q);
+        } catch (indexError) {
+            console.warn("Ratings index missing, falling back to client-side sort:", indexError);
+            snapshot = await getDocs(collection(db, "ratings"));
+        }
         
         const tbody = document.getElementById("table-body-ratings");
         tbody.innerHTML = "";
         allRatingsData = [];
         
+        let docs = [];
+        snapshot.forEach(doc => docs.push(doc.data()));
+
+        // Sort on client side
+        docs.sort((a, b) => {
+            const dateA = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(0);
+            const dateB = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(0);
+            return dateB - dateA;
+        });
+
         let totalStars = 0;
         let count = 0;
 
-        snapshot.forEach(doc => {
-            const data = doc.data();
+        docs.forEach(data => {
             count++;
             totalStars += data.rating || 0;
             
@@ -362,8 +390,14 @@ async function fetchRatings() {
 // 5. Mock Test Results
 async function fetchMockResults() {
     try {
-        const q = query(collection(db, "mock_results"), orderBy("timestamp", "desc"));
-        const snapshot = await getDocs(q);
+        let snapshot;
+        try {
+            const q = query(collection(db, "mock_results"), orderBy("timestamp", "desc"));
+            snapshot = await getDocs(q);
+        } catch (indexError) {
+            console.warn("Mock results index missing, falling back to client-side sort:", indexError);
+            snapshot = await getDocs(collection(db, "mock_results"));
+        }
         
         const tbody = document.getElementById("table-body-mock-results");
         if (!tbody) return;
@@ -371,10 +405,17 @@ async function fetchMockResults() {
         tbody.innerHTML = "";
         allMockResultsData = [];
         
-        let count = 0;
+        let docs = [];
+        snapshot.forEach(doc => docs.push(doc.data()));
 
-        snapshot.forEach(doc => {
-            const data = doc.data();
+        docs.sort((a, b) => {
+            const dateA = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(0);
+            const dateB = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(0);
+            return dateB - dateA;
+        });
+
+        let count = 0;
+        docs.forEach(data => {
             count++;
             
             let dateStr = "Unknown";
