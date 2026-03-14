@@ -167,9 +167,12 @@ function loadLevel() {
     // Generate valid latin square (simple sudoku-like grid where no row/col has repeat)
     let gridData = generateLatinSquare(gridDimensions, currentShapes);
 
-    // Pick ONE random cell to mask
-    let maskRow = Math.floor(Math.random() * gridDimensions);
-    let maskCol = Math.floor(Math.random() * gridDimensions);
+    // Pick ONE non-empty random cell to mask as the question
+    let maskRow, maskCol;
+    do {
+        maskRow = Math.floor(Math.random() * gridDimensions);
+        maskCol = Math.floor(Math.random() * gridDimensions);
+    } while (gridData[maskRow][maskCol] === "");
 
     targetAnswer = gridData[maskRow][maskCol];
     gridData[maskRow][maskCol] = "?"; // Mask it
@@ -308,7 +311,10 @@ function handleAnswer(selectedShape) {
         const correctName = shapeNames[targetAnswer] || "this shape";
         feedbackBox.innerHTML = `
             <h1 style="font-size: 3rem; margin-bottom: 0.5rem;">WRONG!</h1>
-            <p style="font-size: 1.25rem; font-weight: 600;">The correct answer was: <strong>${correctName}</strong></p>
+            <p style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem;">The correct answer was: <strong>${correctName}</strong></p>
+            <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                <div class="shape ${targetAnswer}" style="width: 60px; height: 60px;"></div>
+            </div>
             <p style="font-size: 1rem; margin-top: 0.5rem; opacity: 0.8;">Reason: Each row and column must have unique shapes.</p>
         `;
         feedbackBox.style.backgroundColor = "#fee2e2";
@@ -425,9 +431,9 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
             if (moduleReached > highestUnlockedModule) {
                 highestUnlockedModule = moduleReached;
                 const userDocRef = doc(db, "users", activeUser.uid);
-                await updateDoc(userDocRef, {
+                await setDoc(userDocRef, {
                     highestModule_sudoku: highestUnlockedModule
-                });
+                }, { merge: true });
             }
         } else {
             // Guest fallback (Optional)

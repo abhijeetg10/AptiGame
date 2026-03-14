@@ -679,9 +679,9 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
             if (moduleReached > highestUnlockedModule) {
                 highestUnlockedModule = moduleReached;
                 const userDocRef = doc(db, "users", activeUser.uid);
-                await updateDoc(userDocRef, {
+                await setDoc(userDocRef, {
                     highestModule_motion: highestUnlockedModule
-                });
+                }, { merge: true });
             }
         } else {
             // Guest fallback (Optional)

@@ -474,13 +474,17 @@ function handleAnswer(index, btnEl) {
             allBtns[selectedOptions[1]].classList.add("wrong-selection");
             wrongAnswers++;
             // No negative mark
+
+            // Highlight the correct pair visually
+            allBtns[correctPairIndices[0]].classList.add("correct-selection-highlight");
+            allBtns[correctPairIndices[1]].classList.add("correct-selection-highlight");
             
-            showFeedbackPopup(`WRONG!`, "#fee2e2", "#991b1b");
+            showFeedbackPopup(`WRONG!<br><span style="font-size: 1rem; opacity: 0.8;">The correct pair followed the rule: ${currentReason}</span>`, "#fee2e2", "#991b1b");
             setTimeout(() => {
                 reasonBox.remove();
                 advanceLevel();
                 startTimer(); // Resume timer
-            }, 2500);
+            }, 3000);
         }
     }
 }
@@ -582,9 +586,9 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
             if (moduleReached > highestUnlockedModule) {
                 highestUnlockedModule = moduleReached;
                 const userDocRef = doc(db, "users", activeUser.uid);
-                await updateDoc(userDocRef, {
+                await setDoc(userDocRef, {
                     highestModule_inductive: highestUnlockedModule
-                });
+                }, { merge: true });
             }
         } else {
             // Guest fallback (Optional)

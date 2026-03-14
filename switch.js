@@ -293,10 +293,36 @@ async function finishModule() {
     const user = await getCurrentUser();
     if (user) {
         try {
-            await addDoc(collection(db, "leaderboards", "switch", "scores"), {
-                name: user.displayName,
-                score: score, // Store Marks
-                totalLevels: LEVELS_PER_MODULE,
+            // Cumulative Module Scoring & Deduplication
+            const scoreRef = doc(db, "leaderboards", "switch", "scores", user.uid);
+            const scoreSnap = await getDoc(scoreRef);
+            
+            let existingModuleScores = {};
+            if (scoreSnap.exists()) {
+                const oldData = scoreSnap.data();
+                if (oldData.moduleScores) {
+                    existingModuleScores = oldData.moduleScores;
+                } else if (typeof oldData.score === "number") {
+                    existingModuleScores["1"] = oldData.score; // Migration
+                }
+            }
+
+            if (existingModuleScores[currentModule] === undefined || score > existingModuleScores[currentModule]) {
+                existingModuleScores[currentModule] = score;
+            }
+
+            let totalScore = 0;
+            let totalPossible = 0;
+            for (const mod in existingModuleScores) {
+                totalScore += existingModuleScores[mod];
+                totalPossible += LEVELS_PER_MODULE; 
+            }
+
+            await setDoc(scoreRef, {
+                name: user.displayName || "Guest Player",
+                score: totalScore,
+                totalLevels: totalPossible,
+                moduleScores: existingModuleScores,
                 metrics: {
                     correctCount: correctCount,
                     totalMarks: score,
@@ -308,9 +334,10 @@ async function finishModule() {
             // Save Module Progression
             const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1);
             if (moduleReached > highestUnlockedModule) {
-                await updateDoc(doc(db, "users", user.uid), {
+                highestUnlockedModule = moduleReached;
+                await setDoc(doc(db, "users", user.uid), {
                     highestModule_switch: moduleReached
-                });
+                }, { merge: true });
             }
         } catch (e) {
             Logger.handleFirestoreError("saveScore_switch", e);
