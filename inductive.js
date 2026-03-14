@@ -26,7 +26,7 @@ const sounds = {
 const INITIAL_TIME = 6 * 60; // 6 minutes in seconds
 
 // --- State ---
-let highestUnlockedModule = 1;
+let highestUnlockedModule = 5;
 let currentModule = 1;
 let currentLevel = 1;
 let score = 0;
@@ -92,7 +92,7 @@ async function loadUserProgress() {
             if (userSnap.exists()) {
                 const data = userSnap.data();
                 if (data.highestModule_inductive) {
-                    highestUnlockedModule = data.highestModule_inductive;
+                    highestUnlockedModule = Math.max(5, data.highestModule_inductive);
                 }
             }
         } catch (e) {

@@ -11,7 +11,7 @@ const SHAPES_POOL = ['circle', 'square', 'triangle', 'plus', 'star', 'diamond', 
 const { TOTAL_MODULES, LEVELS_PER_MODULE, MODULE_TIME_LIMIT } = GAME_CONFIG;
 
 // --- Game State ---
-let highestUnlockedModule = 1;
+let highestUnlockedModule = 5;
 let currentModule = 1;
 let currentLevel = 1;
 let score = 0;
@@ -67,10 +67,10 @@ function renderModuleSelection() {
         const card = document.createElement('div');
         card.className = 'card module-card';
         
-        const isLocked = i > highestUnlockedModule;
-        card.style.cursor = isLocked ? "not-allowed" : "pointer";
-        card.style.opacity = isLocked ? "0.5" : "1";
-        card.title = isLocked ? "Complete previous modules to unlock" : "Click to play";
+        const isLocked = i > highestUnlockedModule && !isMock; // Unlock all for normal play
+        card.style.cursor = "pointer";
+        card.style.opacity = "1";
+        card.title = "Click to play";
 
         card.style.textAlign = 'left';
         card.innerHTML = `

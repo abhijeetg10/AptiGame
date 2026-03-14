@@ -17,7 +17,7 @@ onAuthStateChanged(auth, (user) => {
 // --- Constants & Config ---
 const { TOTAL_MODULES, LEVELS_PER_MODULE, MODULE_TIME_LIMIT } = GAME_CONFIG;
 
-let highestUnlockedModule = 1;
+let highestUnlockedModule = 5;
 let currentModule = 1;
 let currentLevel = 1;
 let score = 0;
@@ -86,7 +86,7 @@ async function loadUserProgress() {
             if (userSnap.exists()) {
                 const data = userSnap.data();
                 if (data.highestModule_sudoku) {
-                    highestUnlockedModule = data.highestModule_sudoku;
+                    highestUnlockedModule = Math.max(5, data.highestModule_sudoku);
                 }
             }
         } catch (e) {

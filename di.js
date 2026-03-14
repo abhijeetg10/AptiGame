@@ -9,7 +9,7 @@ import { Logger } from "./logger.js";
 const { TOTAL_MODULES, LEVELS_PER_MODULE, MODULE_TIME_LIMIT, POINTS_PER_CORRECT } = GAME_CONFIG;
 
 // --- State Variables ---
-let highestUnlockedModule = 1;
+let highestUnlockedModule = 5;
 let currentModule = 1;
 let currentLevel = 1;
 let score = 0;
@@ -65,9 +65,13 @@ async function loadUserProgress() {
     const user = auth.currentUser;
     if (user) {
         try {
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (userDoc.exists() && userDoc.data().highestModule_di) {
-                highestUnlockedModule = userDoc.data().highestModule_di;
+            const userDocRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userDocRef);
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                if (data.highestModule_di) {
+                    highestUnlockedModule = Math.max(5, data.highestModule_di);
+                }
             }
         } catch (e) { console.error(e); }
     }

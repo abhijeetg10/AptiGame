@@ -1,23 +1,33 @@
-import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { db, auth } from "./firebase-config.js";
 
 const RATING_HTML = `
-<div class="rating-container" style="margin-top: 2rem; padding: 1.5rem; border-top: 2px solid #f1f5f9; text-align: center;">
-    <h3 style="margin-bottom: 1rem; color: #1e293b; font-weight: 800;">Enjoyed this challenge?</h3>
-    <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.25rem;">Your feedback helps us make AptiGame better!</p>
-    <div class="star-rating" style="display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1.5rem;">
-        <i class="far fa-star rating-star" data-rating="1" style="font-size: 2rem; color: #cbd5e1; cursor: pointer; transition: all 0.2s;"></i>
-        <i class="far fa-star rating-star" data-rating="2" style="font-size: 2rem; color: #cbd5e1; cursor: pointer; transition: all 0.2s;"></i>
-        <i class="far fa-star rating-star" data-rating="3" style="font-size: 2rem; color: #cbd5e1; cursor: pointer; transition: all 0.2s;"></i>
-        <i class="far fa-star rating-star" data-rating="4" style="font-size: 2rem; color: #cbd5e1; cursor: pointer; transition: all 0.2s;"></i>
-        <i class="far fa-star rating-star" data-rating="5" style="font-size: 2rem; color: #cbd5e1; cursor: pointer; transition: all 0.2s;"></i>
+<div class="rating-container" style="margin-top: 2rem; padding: 2rem; border-top: 2px solid #f1f5f9; text-align: center; background: #f8fafc; border-radius: 20px; animation: slideUp 0.5s ease-out;">
+    <h3 style="margin-bottom: 0.75rem; color: #0f172a; font-weight: 800; font-size: 1.5rem;">Enjoyed this challenge?</h3>
+    <p style="color: #64748b; font-size: 1rem; margin-bottom: 1.5rem;">Your feedback helps us make AptiGame better!</p>
+    
+    <div class="star-rating" style="display: flex; justify-content: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+        <i class="far fa-star rating-star" data-rating="1" style="font-size: 2.5rem; color: #cbd5e1; cursor: pointer; transition: transform 0.2s, color 0.2s;"></i>
+        <i class="far fa-star rating-star" data-rating="2" style="font-size: 2.5rem; color: #cbd5e1; cursor: pointer; transition: transform 0.2s, color 0.2s;"></i>
+        <i class="far fa-star rating-star" data-rating="3" style="font-size: 2.5rem; color: #cbd5e1; cursor: pointer; transition: transform 0.2s, color 0.2s;"></i>
+        <i class="far fa-star rating-star" data-rating="4" style="font-size: 2.5rem; color: #cbd5e1; cursor: pointer; transition: transform 0.2s, color 0.2s;"></i>
+        <i class="far fa-star rating-star" data-rating="5" style="font-size: 2.5rem; color: #cbd5e1; cursor: pointer; transition: transform 0.2s, color 0.2s;"></i>
     </div>
-    <div id="rating-comment-box" class="hidden" style="margin-bottom: 1.5rem;">
-        <textarea id="rating-comment" placeholder="Any suggestions? (Optional)" 
-            style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 12px; font-family: inherit; resize: none; min-height: 80px;"></textarea>
-        <button id="submit-rating-btn" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.75rem;">Submit Review</button>
+    
+    <div id="rating-comment-box" class="hidden" style="margin-bottom: 1.5rem; animation: fadeIn 0.3s ease-in;">
+        <textarea id="rating-comment" placeholder="Any suggestions to make it better? (Optional)" 
+            style="width: 100%; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 16px; font-family: inherit; resize: none; min-height: 100px; font-size: 1rem; transition: border-color 0.2s; outline: none;"></textarea>
+        <button id="submit-rating-btn" class="btn btn-primary" style="width: 100%; margin-top: 1.25rem; padding: 1rem; font-size: 1.1rem; border-radius: 14px; box-shadow: 0 4px 12px rgba(201, 0, 118, 0.2);">Submit Review</button>
     </div>
-    <p id="rating-status" style="font-size: 0.85rem; color: #10b981; font-weight: 600; min-height: 1.2rem;"></p>
+    
+    <p id="rating-status" style="font-size: 1rem; color: #10b981; font-weight: 700; min-height: 1.5rem; margin-top: 1rem;"></p>
+    
+    <style>
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .rating-star:hover { transform: scale(1.2); }
+        #rating-comment:focus { border-color: #c90076; }
+    </style>
 </div>
 `;
 
@@ -78,36 +88,39 @@ export async function initRatingSystem(container) {
         if (selectedRating === 0) return;
 
         submitBtn.disabled = true;
-        submitBtn.innerText = "Submitting...";
+        submitBtn.innerText = "Saving your feedback...";
 
         try {
             // 1. Add to ratings collection
             await addDoc(collection(db, "ratings"), {
                 uid: user.uid,
-                userName: user.displayName,
-                userEmail: user.email,
+                userName: user.displayName || "Anonymous",
+                userEmail: user.email || "N/A",
                 rating: selectedRating,
                 comment: commentArea.value,
                 timestamp: serverTimestamp()
             });
 
-            // 2. Mark user as having rated
-            await updateDoc(doc(db, "users", user.uid), {
+            // 2. Mark user as having rated (Use setDoc merge to be safe)
+            await setDoc(doc(db, "users", user.uid), {
                 hasRated: true
-            });
+            }, { merge: true });
 
             localStorage.setItem(`hasRated_${user.uid}`, 'true');
-            statusText.innerText = "Thank you for your rating!";
+            statusText.style.color = "#10b981";
+            statusText.innerText = "✓ Thank you! We've received your feedback.";
             
             setTimeout(() => {
+                container.style.transition = 'all 0.5s ease';
                 container.style.opacity = '0';
+                container.style.transform = 'translateY(-20px)';
                 setTimeout(() => container.innerHTML = '', 500);
-            }, 2000);
+            }, 2500);
 
         } catch (e) {
             console.error("Error submitting rating:", e);
             statusText.style.color = "#ef4444";
-            statusText.innerText = "Failed to submit. Please try again.";
+            statusText.innerText = "✕ Connection error. Please try again.";
             submitBtn.disabled = false;
             submitBtn.innerText = "Submit Review";
         }

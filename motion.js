@@ -27,7 +27,7 @@ const sounds = {
 const CELL_SIZE = 60; // Pixels per grid cell (fixed for calculation)
 
 // --- State ---
-let highestUnlockedModule = 1;
+let highestUnlockedModule = 5;
 let currentModule = 1;
 let currentLevel = 1;
 let correctAnswers = 0;
@@ -94,7 +94,7 @@ async function loadUserProgress() {
             if (userSnap.exists()) {
                 const data = userSnap.data();
                 if (data.highestModule_motion) {
-                    highestUnlockedModule = data.highestModule_motion;
+                    highestUnlockedModule = Math.max(5, data.highestModule_motion);
                 }
             }
         } catch (e) {
@@ -256,6 +256,7 @@ function generateSolvableBoard() {
             let tx = Math.floor(Math.random() * (gridWidth - w + 1));
             let ty = Math.floor(Math.random() * (gridHeight - h + 1));
 
+            // Use includeHole = true to ensure hurdles don't block the target or overlap the ball
             if (!checkCollisionRect(tx, ty, w, h, null, true)) {
                 addEntity(`hurdle-${attempts}`, tx, ty, w, h, "hurdle", isSticky, axis);
             }
@@ -440,6 +441,25 @@ function checkStateCollision(x, y, w, h, ignoreId, stateArray) {
         if (e.id === ignoreId) continue;
         if (e.type === "hole") continue;
         if (x < e.x + e.w && x + w > e.x && y < e.y + e.h && y + h > e.y) return true;
+    }
+    return false;
+}
+
+function checkCollisionRect(x, y, w, h, ignoreEntity, includeHole = false) {
+    // 1. Check world boundaries
+    if (x < 0 || y < 0 || x + w > gridWidth || y + h > gridHeight) return true;
+    
+    // 2. Check collision with other entities
+    for (let e of entities) {
+        if (e === ignoreEntity) continue;
+        
+        // During normal moves, ball can enter hole. 
+        // During generation (includeHole=true), hurdles cannot cover the hole.
+        if (e.type === "hole" && !includeHole) continue;
+        
+        if (x < e.x + e.w && x + w > e.x && y < e.y + e.h && y + h > e.y) {
+            return true;
+        }
     }
     return false;
 }
