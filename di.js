@@ -181,7 +181,7 @@ function generateLevelData() {
             const target = r3[h2];
             const percent = Math.round((sum / target) * 100);
             
-            questionText = `In "${selectedTab.title}", is the ${selectedTab.rows[0].label} and ${selectedTab.rows[3 % selectedTab.rows.length].label} together on ${h1} approx ${percent}% of ${r3.label} on ${h2}?`;
+            questionText = `Is the ${selectedTab.rows[0].label} and ${selectedTab.rows[3 % selectedTab.rows.length].label} together on ${h1} approx ${percent}% of ${r3.label} on ${h2}?`;
             solution = "Yes";
         } else if (roll < 0.66) {
             // "Were 1995 and 1997 the pair of years in which qualified was same?" style
@@ -190,12 +190,12 @@ function generateLevelData() {
             const h2 = selectedTab.headers[3 % (selectedTab.headers.length - 1) + 1];
             
             const isSame = row[h1] === row[h2];
-            questionText = `In dataset "${selectedTab.title}", are ${h1} and ${h2} the pair of columns where ${row.label} value is the same?`;
+            questionText = `Are ${h1} and ${h2} the pair of columns where ${row.label} value is the same?`;
             solution = isSame ? "Yes" : "No";
         } else {
             const randomRow = selectedTab.rows[Math.floor(Math.random() * selectedTab.rows.length)];
             const h = selectedTab.headers[1];
-            questionText = `Does the dataset "${selectedTab.title}" show that ${randomRow.label} ${h} value exceeds 500?`;
+            questionText = `Does the relevant data show that ${randomRow.label} ${h} value exceeds 500?`;
             solution = randomRow[h] > 500 ? "Yes" : "No";
         }
     } else {

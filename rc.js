@@ -135,11 +135,11 @@ function generateRCData() {
 
     const roll = Math.random();
     if (roll < 0.5) {
-        questionText = `Does the document "${targetDoc.title}" state that ${targetFact}?`;
+        questionText = `Is it explicitly stated that ${targetFact}?`;
         solution = "Yes";
     } else {
         const wrongDoc = docs.find(d => d.id !== targetDoc.id);
-        questionText = `Does the document "${wrongDoc.title}" mention ${targetFact}?`;
+        questionText = `Is it mentioned anywhere that ${targetFact}?`;
         solution = "No";
     }
 
