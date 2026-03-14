@@ -366,8 +366,14 @@ async function fetchRatings() {
             totalStars += data.rating || 0;
             
             let dateStr = "Unknown";
-            if(data.timestamp && data.timestamp.toDate) {
-                dateStr = data.timestamp.toDate().toLocaleString();
+            if (data.timestamp) {
+                if (data.timestamp.toDate) {
+                    dateStr = data.timestamp.toDate().toLocaleString();
+                } else if (data.timestamp instanceof Date) {
+                    dateStr = data.timestamp.toLocaleString();
+                } else {
+                    dateStr = new Date(data.timestamp).toLocaleString();
+                }
             }
 
             const tr = document.createElement("tr");
@@ -437,8 +443,14 @@ async function fetchMockResults() {
             count++;
             
             let dateStr = "Unknown";
-            if(data.timestamp && data.timestamp.toDate) {
-                dateStr = data.timestamp.toDate().toLocaleString();
+            if (data.timestamp) {
+                if (data.timestamp.toDate) {
+                    dateStr = data.timestamp.toDate().toLocaleString();
+                } else if (data.timestamp instanceof Date) {
+                    dateStr = data.timestamp.toLocaleString();
+                } else {
+                    dateStr = new Date(data.timestamp).toLocaleString();
+                }
             }
 
             const status = data.status || "completed";
