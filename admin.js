@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy, limit, deleteDoc, doc, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, getDocs, query, orderBy, limit, deleteDoc, doc, where, Timestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { db, auth } from "./firebase-config.js";
 
@@ -646,21 +646,25 @@ if (btnResetLeaderboards) {
         btnResetLeaderboards.disabled = true;
 
         try {
-            const games = ["grid", "sudoku", "inductive", "motion", "switch", "di"];
+            const games = ["grid", "sudoku", "inductive", "motion", "switch", "di", "rc"];
             let totalDeleted = 0;
 
             for (const gameId of games) {
+                btnResetLeaderboards.innerText = `Clearing ${gameId.toUpperCase()}...`;
                 const q = query(collection(db, "leaderboards", gameId, "scores"));
                 const snapshot = await getDocs(q);
                 
-                const deletePromises = [];
-                snapshot.forEach(document => {
-                    deletePromises.push(deleteDoc(doc(db, "leaderboards", gameId, "scores", document.id)));
+                if (snapshot.empty) continue;
+
+                // Use Firestore Batch for reliable deletion
+                const batch = writeBatch(db);
+                snapshot.forEach(scoreDoc => {
+                    batch.delete(doc(db, "leaderboards", gameId, "scores", scoreDoc.id));
                 });
                 
-                await Promise.all(deletePromises);
-                totalDeleted += deletePromises.length;
-                console.log(`Deleted ${deletePromises.length} entries from ${gameId}`);
+                await batch.commit();
+                totalDeleted += snapshot.size;
+                console.log(`Deleted ${snapshot.size} entries from ${gameId}`);
             }
 
             alert(`Success! Successfully cleared ${totalDeleted} entries across all leaderboards.`);
@@ -730,7 +734,6 @@ async function fetchTrafficData(range) {
             default: startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         }
 
-    try {
         let snapshot;
         try {
             const q = query(
@@ -761,8 +764,6 @@ async function fetchTrafficData(range) {
         const data = [];
         snapshot.forEach(doc => data.push(doc.data()));
         processAndRenderTraffic(data, range);
-
-    } catch (e) {
 
     } catch (e) {
         console.error("Error fetching traffic data:", e);
