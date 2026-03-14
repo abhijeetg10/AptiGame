@@ -1,5 +1,6 @@
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-import { db } from "./firebase-config.js";
+import { logEvent } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics.js";
+import { db, analytics } from "./firebase-config.js";
 
 /**
  * analytics.js - Custom traffic tracking for AptiVerse
@@ -7,7 +8,14 @@ import { db } from "./firebase-config.js";
 
 async function trackVisit() {
     try {
-        // 1. Identification
+        // 1. Official Firebase Analytics SDK logging
+        logEvent(analytics, 'page_view', {
+            page_title: document.title,
+            page_location: window.location.href,
+            page_path: window.location.pathname
+        });
+
+        // 2. Identification (Custom Firestore Tracking)
         let visitorId = localStorage.getItem('aptiverse_visitor_id');
         let isNew = false;
 
@@ -17,7 +25,7 @@ async function trackVisit() {
             isNew = true;
         }
 
-        // 2. Logging to Firestore
+        // 3. Logging to Firestore (For the Admin Dashboard)
         // We log every visit (page load) to get granular data for graphs
         await addDoc(collection(db, "traffic"), {
             visitorId: visitorId,
@@ -27,7 +35,7 @@ async function trackVisit() {
             userAgent: navigator.userAgent
         });
 
-        console.log(`Traffic logged: ${isNew ? 'New' : 'Returning'} visitor`);
+        console.log(`Traffic logged to official SDK and Firestore: ${isNew ? 'New' : 'Returning'} visitor`);
     } catch (e) {
         // Silent fail to not disrupt user experience
         console.warn("Traffic tracking failed:", e);
