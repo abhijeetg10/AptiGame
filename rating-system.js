@@ -91,17 +91,21 @@ export async function initRatingSystem(container) {
         submitBtn.innerText = "Saving your feedback...";
 
         try {
-            // 1. Add to ratings collection
-            await addDoc(collection(db, "ratings"), {
-                uid: user.uid,
-                userName: user.displayName || "Anonymous",
-                userEmail: user.email || "N/A",
-                rating: selectedRating,
-                comment: commentArea.value,
-                timestamp: serverTimestamp()
-            });
+            // 1. Add to ratings collection (Optional/Non-blocking for user experience)
+            try {
+                await addDoc(collection(db, "ratings"), {
+                    uid: user.uid,
+                    userName: user.displayName || "Anonymous",
+                    userEmail: user.email || "N/A",
+                    rating: selectedRating,
+                    comment: commentArea.value,
+                    timestamp: new Date()
+                });
+            } catch (ratingError) {
+                console.warn("Rating record could not be saved to global database, but proceeding with user flag.", ratingError);
+            }
 
-            // 2. Mark user as having rated (Use setDoc merge to be safe)
+            // 2. Mark user as having rated (In the user's own doc - usually has higher permission success)
             await setDoc(doc(db, "users", user.uid), {
                 hasRated: true
             }, { merge: true });
@@ -118,7 +122,7 @@ export async function initRatingSystem(container) {
             }, 2500);
 
         } catch (e) {
-            console.error("Error submitting rating:", e);
+            console.error("Critical error updating user rating flag:", e);
             statusText.style.color = "#ef4444";
             statusText.innerText = "✕ Connection error. Please try again.";
             submitBtn.disabled = false;

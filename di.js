@@ -390,11 +390,24 @@ async function endGame() {
     elScoreText.innerText = `${correctAnswers} / ${LEVELS_PER_MODULE}`;
     elFinalMarks.innerText = score;
     elAccuracyText.innerText = `${Math.round((correctAnswers / LEVELS_PER_MODULE) * 100)}%`;
-
     const user = auth.currentUser;
     if (user) {
+        // 1. PRIORITIZE PROGRESSION
         try {
-            // Cumulative Module Scoring & Deduplication
+            const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1);
+            if (moduleReached > highestUnlockedModule) {
+                highestUnlockedModule = moduleReached;
+                await setDoc(doc(db, "users", user.uid), {
+                    highestModule_di: moduleReached
+                }, { merge: true });
+                console.log("DI progression saved.");
+            }
+        } catch (progError) {
+            console.error("DI progression save failed:", progError);
+        }
+
+        // 2. ATTEMPT LEADERBOARD (Non-blocking)
+        try {
             const scoreRef = doc(db, "leaderboards", "di", "scores", user.uid);
             const scoreSnap = await getDoc(scoreRef);
             
@@ -426,18 +439,10 @@ async function endGame() {
                 moduleScores: existingModuleScores,
                 metrics: { correctAnswers, timeSpent: MODULE_TIME_LIMIT - timeLeft },
                 timestamp: new Date()
-            });
-
-            // Save Module Progression
-            const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1);
-            if (moduleReached > highestUnlockedModule) {
-                highestUnlockedModule = moduleReached;
-                await setDoc(doc(db, "users", user.uid), {
-                    highestModule_di: highestUnlockedModule
-                }, { merge: true });
-            }
-        } catch (e) {
-            Logger.handleFirestoreError("saveScore_di", e);
+            }, { merge: true });
+            console.log("DI leaderboard updated.");
+        } catch (lbError) {
+            console.warn("DI leaderboard save failed (Permissions?):", lbError);
         }
     }
 

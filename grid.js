@@ -586,66 +586,80 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
         const playerName = activeUser && activeUser.displayName ? activeUser.displayName : "Guest Player";
 
         if (activeUser) {
-            // Cumulative Module Scoring & Deduplication (PB)
-            const scoreRef = doc(db, "leaderboards", "grid", "scores", activeUser.uid);
-            const scoreSnap = await getDoc(scoreRef);
-            
-            let existingModuleScores = {};
-            if (scoreSnap.exists()) {
-                const oldData = scoreSnap.data();
-                if (oldData.moduleScores) {
-                    existingModuleScores = oldData.moduleScores;
-                } else if (typeof oldData.score === "number") {
-                    existingModuleScores["1"] = oldData.score; // Legacy migration
+            // 1. PRIORITIZE PROGRESSION
+            let progressSaved = false;
+            try {
+                const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1);
+                if (moduleReached > highestUnlockedModule) {
+                    highestUnlockedModule = moduleReached;
+                    await setDoc(doc(db, "users", activeUser.uid), {
+                        highestModule_grid: highestUnlockedModule
+                    }, { merge: true });
                 }
+                progressSaved = true;
+            } catch (progError) {
+                console.error("Grid progression save failed:", progError);
             }
 
-            if (existingModuleScores[currentModule] === undefined || score > existingModuleScores[currentModule]) {
-                existingModuleScores[currentModule] = score;
-            }
+            // 2. ATTEMPT LEADERBOARD (Non-blocking)
+            try {
+                const scoreRef = doc(db, "leaderboards", "grid", "scores", activeUser.uid);
+                const scoreSnap = await getDoc(scoreRef);
+                
+                let existingModuleScores = {};
+                if (scoreSnap.exists()) {
+                    const oldData = scoreSnap.data();
+                    if (oldData.moduleScores) {
+                        existingModuleScores = oldData.moduleScores;
+                    } else if (typeof oldData.score === "number") {
+                        existingModuleScores["1"] = oldData.score; // Migration
+                    }
+                }
 
-            let totalScore = 0;
-            let totalPossible = 0;
-            for (const mod in existingModuleScores) {
-                totalScore += existingModuleScores[mod];
-                totalPossible += LEVELS_PER_MODULE; 
-            }
+                if (existingModuleScores[currentModule] === undefined || score > existingModuleScores[currentModule]) {
+                    existingModuleScores[currentModule] = score;
+                }
 
-            const scoreData = {
-                name: playerName,
-                score: totalScore, // Marks
-                totalLevels: totalPossible,
-                moduleScores: existingModuleScores,
-                metrics: {
-                    correctAnswers: correctAnswers, // For accuracy
-                    timeSpent: totalTimeSpent
-                },
-                timestamp: new Date()
-            };
-            await setDoc(scoreRef, scoreData);
+                let totalScore = 0;
+                let totalPossible = 0;
+                for (const mod in existingModuleScores) {
+                    totalScore += existingModuleScores[mod];
+                    totalPossible += LEVELS_PER_MODULE; 
+                }
 
-            // Save Module Progression
-            const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1); // Unlock the next one
-            if (moduleReached > highestUnlockedModule) {
-                highestUnlockedModule = moduleReached;
-                const userDocRef = doc(db, "users", activeUser.uid);
-                await setDoc(userDocRef, {
-                    highestModule_grid: highestUnlockedModule
+                await setDoc(scoreRef, {
+                    name: playerName,
+                    score: totalScore,
+                    totalLevels: totalPossible,
+                    moduleScores: existingModuleScores,
+                    metrics: {
+                        correctAnswers: correctAnswers,
+                        timeSpent: totalTimeSpent
+                    },
+                    timestamp: new Date()
                 }, { merge: true });
+            } catch (lbError) {
+                console.warn("Grid leaderboard save failed (Permissions?):", lbError);
+            }
+
+            if (btnElement) {
+                btnElement.innerText = progressSaved ? "Progress Saved!" : "Save Failed";
+                if (progressSaved) btnElement.style.backgroundColor = "#10b981";
             }
         } else {
-            // Guest fallback (Optional)
-            const scoreData = {
-                name: playerName,
-                score: correctAnswers, 
-                totalLevels: LEVELS_PER_MODULE, 
-                timestamp: new Date()
-            };
-            await addDoc(collection(db, "leaderboards", "grid", "scores"), scoreData);
-        }
-        
-        if (btnElement) {
-            btnElement.innerText = "Score Saved!";
+            // Guest fallback
+            try {
+                await addDoc(collection(db, "leaderboards", "grid", "scores"), {
+                    name: playerName,
+                    score: correctAnswers, 
+                    totalLevels: LEVELS_PER_MODULE, 
+                    timestamp: new Date()
+                });
+                if (btnElement) btnElement.innerText = "Score Saved!";
+            } catch (guestError) {
+                console.error("Guest save failed:", guestError);
+                if (btnElement) btnElement.innerText = "Save Failed";
+            }
         }
     } catch (error) {
         Logger.handleFirestoreError("saveScore_grid", error);

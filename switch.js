@@ -293,52 +293,63 @@ async function finishModule() {
     const user = await getCurrentUser();
     if (user) {
         try {
-            // Cumulative Module Scoring & Deduplication
-            const scoreRef = doc(db, "leaderboards", "switch", "scores", user.uid);
-            const scoreSnap = await getDoc(scoreRef);
-            
-            let existingModuleScores = {};
-            if (scoreSnap.exists()) {
-                const oldData = scoreSnap.data();
-                if (oldData.moduleScores) {
-                    existingModuleScores = oldData.moduleScores;
-                } else if (typeof oldData.score === "number") {
-                    existingModuleScores["1"] = oldData.score; // Migration
+            // 1. PRIORITIZE PROGRESSION
+            try {
+                const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1);
+                if (moduleReached > highestUnlockedModule) {
+                    highestUnlockedModule = moduleReached;
+                    await setDoc(doc(db, "users", user.uid), {
+                        highestModule_switch: moduleReached
+                    }, { merge: true });
+                    console.log("Switch progression saved.");
                 }
+            } catch (progError) {
+                console.error("Switch progression save failed:", progError);
             }
 
-            if (existingModuleScores[currentModule] === undefined || score > existingModuleScores[currentModule]) {
-                existingModuleScores[currentModule] = score;
-            }
+            // 2. ATTEMPT LEADERBOARD (Non-blocking)
+            try {
+                const scoreRef = doc(db, "leaderboards", "switch", "scores", user.uid);
+                const scoreSnap = await getDoc(scoreRef);
+                
+                let existingModuleScores = {};
+                if (scoreSnap.exists()) {
+                    const oldData = scoreSnap.data();
+                    if (oldData.moduleScores) {
+                        existingModuleScores = oldData.moduleScores;
+                    } else if (typeof oldData.score === "number") {
+                        existingModuleScores["1"] = oldData.score; // Migration
+                    }
+                }
 
-            let totalScore = 0;
-            let totalPossible = 0;
-            for (const mod in existingModuleScores) {
-                totalScore += existingModuleScores[mod];
-                totalPossible += LEVELS_PER_MODULE; 
-            }
+                if (existingModuleScores[currentModule] === undefined || score > existingModuleScores[currentModule]) {
+                    existingModuleScores[currentModule] = score;
+                }
 
-            await setDoc(scoreRef, {
-                name: user.displayName || "Guest Player",
-                score: totalScore,
-                totalLevels: totalPossible,
-                moduleScores: existingModuleScores,
-                metrics: {
-                    correctCount: correctCount,
-                    totalMarks: score,
-                    timeSpent: MODULE_TIME_LIMIT - timeLeft
-                },
-                timestamp: new Date()
-            });
+                let totalScore = 0;
+                let totalPossible = 0;
+                for (const mod in existingModuleScores) {
+                    totalScore += existingModuleScores[mod];
+                    totalPossible += LEVELS_PER_MODULE; 
+                }
 
-            // Save Module Progression
-            const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1);
-            if (moduleReached > highestUnlockedModule) {
-                highestUnlockedModule = moduleReached;
-                await setDoc(doc(db, "users", user.uid), {
-                    highestModule_switch: moduleReached
+                await setDoc(scoreRef, {
+                    name: user.displayName || "Guest Player",
+                    score: totalScore,
+                    totalLevels: totalPossible,
+                    moduleScores: existingModuleScores,
+                    metrics: {
+                        correctCount: correctCount,
+                        totalMarks: score,
+                        timeSpent: MODULE_TIME_LIMIT - timeLeft
+                    },
+                    timestamp: new Date()
                 }, { merge: true });
+                console.log("Switch leaderboard updated.");
+            } catch (lbError) {
+                console.warn("Switch leaderboard save failed (Permissions?):", lbError);
             }
+
         } catch (e) {
             Logger.handleFirestoreError("saveScore_switch", e);
         }

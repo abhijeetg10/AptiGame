@@ -285,8 +285,22 @@ async function endGame() {
 
     const user = auth.currentUser;
     if (user) {
+        // 1. PRIORITIZE PROGRESSION
         try {
-            // Cumulative Module Scoring & Deduplication
+            const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1);
+            if (moduleReached > highestUnlockedModule) {
+                highestUnlockedModule = moduleReached;
+                await setDoc(doc(db, "users", user.uid), {
+                    highestModule_rc: moduleReached
+                }, { merge: true });
+                console.log("RC progression saved.");
+            }
+        } catch (progError) {
+            console.error("RC progression save failed:", progError);
+        }
+
+        // 2. ATTEMPT LEADERBOARD (Non-blocking)
+        try {
             const scoreRef = doc(db, "leaderboards", "rc", "scores", user.uid);
             const scoreSnap = await getDoc(scoreRef);
             
@@ -318,18 +332,10 @@ async function endGame() {
                 moduleScores: existingModuleScores,
                 metrics: { correctAnswers, timeSpent: MODULE_TIME_LIMIT - timeLeft },
                 timestamp: new Date()
-            });
-
-            // Save Module Progression
-            const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1);
-            if (moduleReached > highestUnlockedModule) {
-                highestUnlockedModule = moduleReached;
-                await setDoc(doc(db, "users", user.uid), {
-                    highestModule_rc: highestUnlockedModule
-                }, { merge: true });
-            }
-        } catch (e) {
-            Logger.handleFirestoreError("saveScore_rc", e);
+            }, { merge: true });
+            console.log("RC leaderboard updated.");
+        } catch (lbError) {
+            console.warn("RC leaderboard save failed (Permissions?):", lbError);
         }
     }
 
