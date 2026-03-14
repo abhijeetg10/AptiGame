@@ -73,9 +73,18 @@ async function loadUserProgress() {
                     highestUnlockedModule = Math.max(5, data.highestModule_di);
                 }
             }
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error("Error loading progress:", e);
+        }
     }
-    initModuleGrid();
+    
+    if (isMock) {
+        startModule(1);
+        if (elModuleSelection) elModuleSelection.style.display = 'none';
+        if (elGameContainer) elGameContainer.classList.remove('hidden');
+    } else {
+        initModuleGrid();
+    }
 }
 
 function initModuleGrid() {
@@ -476,6 +485,7 @@ async function endGame() {
 
     if (isMock) {
         window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
+        return;
     }
 }
 

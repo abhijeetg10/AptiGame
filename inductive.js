@@ -100,19 +100,25 @@ async function loadUserProgress() {
         }
     }
     
-    // Update UI locks
-    moduleBtns.forEach(btn => {
-        const modNum = parseInt(btn.getAttribute("data-module"));
-        if (modNum <= highestUnlockedModule) {
-            btn.style.opacity = "1";
-            btn.style.pointerEvents = "auto";
-            btn.title = "Click to play";
-        } else {
-            btn.style.opacity = "0.5";
-            btn.style.pointerEvents = "none";
-            btn.title = "Complete previous modules to unlock";
-        }
-    });
+    if (isMock) {
+        startModule(1);
+        if (elModuleSelection) elModuleSelection.style.display = 'none';
+        if (elGameContainer) elGameContainer.classList.remove('hidden');
+    } else {
+        // Update UI locks
+        moduleBtns.forEach(btn => {
+            const modNum = parseInt(btn.getAttribute("data-module"));
+            if (modNum <= highestUnlockedModule) {
+                btn.style.opacity = "1";
+                btn.style.pointerEvents = "auto";
+                btn.title = "Click to play";
+            } else {
+                btn.style.opacity = "0.5";
+                btn.style.pointerEvents = "none";
+                btn.title = "Complete previous modules to unlock";
+            }
+        });
+    }
 }
 
 // Ensure game does not auto-start! Wait for module selection.

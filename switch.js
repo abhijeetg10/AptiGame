@@ -40,7 +40,11 @@ const elFeedbackPoints = document.getElementById('feedback-points');
 
 // --- Initialization ---
 function init() {
-    renderModuleSelection();
+    if (isMock) {
+        startModule(1);
+    } else {
+        renderModuleSelection();
+    }
     
     document.getElementById('back-to-modules-btn').onclick = (e) => {
         e.preventDefault();

@@ -214,6 +214,7 @@ window.resumeTest = function() {
     }
 };
 
+
 function startTimer() {
     const timerEl = document.getElementById('global-timer');
     const interval = setInterval(() => {
