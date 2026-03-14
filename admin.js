@@ -730,17 +730,39 @@ async function fetchTrafficData(range) {
             default: startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         }
 
-        const q = query(
-            collection(db, "traffic"),
-            where("timestamp", ">=", Timestamp.fromDate(startTime)),
-            orderBy("timestamp", "asc")
-        );
+    try {
+        let snapshot;
+        try {
+            const q = query(
+                collection(db, "traffic"),
+                where("timestamp", ">=", Timestamp.fromDate(startTime)),
+                orderBy("timestamp", "asc")
+            );
+            snapshot = await getDocs(q);
+        } catch (indexError) {
+            console.warn("Traffic index missing, falling back to client-side filter:", indexError);
+            const allTraffic = await getDocs(collection(db, "traffic"));
+            // Client-side filter and sort
+            const filtered = [];
+            allTraffic.forEach(doc => {
+                const data = doc.data();
+                const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
+                if (ts >= startTime) filtered.push(data);
+            });
+            filtered.sort((a,b) => {
+                const da = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(a.timestamp);
+                const db = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(b.timestamp);
+                return da - db;
+            });
+            processAndRenderTraffic(filtered, range);
+            return;
+        }
 
-        const snapshot = await getDocs(q);
         const data = [];
         snapshot.forEach(doc => data.push(doc.data()));
-
         processAndRenderTraffic(data, range);
+
+    } catch (e) {
 
     } catch (e) {
         console.error("Error fetching traffic data:", e);
@@ -753,9 +775,14 @@ function processAndRenderTraffic(data, range) {
     
     // Grouping logic based on range
     data.forEach(item => {
-        const date = item.timestamp.toDate();
+        let date = new Date(0);
+        if (item.timestamp) {
+            if (item.timestamp.toDate) date = item.timestamp.toDate();
+            else if (item.timestamp instanceof Date) date = item.timestamp;
+            else date = new Date(item.timestamp);
+        }
+
         let label;
-        
         if (range === "1h") {
             label = date.toLocaleTimeString([], { minute: '2-digit' });
         } else if (range === "24h") {
