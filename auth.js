@@ -55,9 +55,10 @@ async function syncUserToFirestore(user) {
         let loginsToday = 1;
         let hasRated = false;
 
+        let firestoreData = null;
         if (userSnap.exists()) {
-            const data = userSnap.data();
-            hasRated = data.hasRated || false;
+            firestoreData = userSnap.data();
+            hasRated = firestoreData.hasRated || false;
             const lastLogin = data.lastLogin;
             let lastLoginDate = "";
             
@@ -69,7 +70,7 @@ async function syncUserToFirestore(user) {
             // If it's the SAME day, we only increment if it's a NEW session (we can't easily detect full sessions without state, 
             // but we can at least ensure the record exists). For now, let's just update lastLogin and sync basic info.
             if (lastLoginDate === today) {
-                loginsToday = (data.loginsToday || 0); 
+                loginsToday = (firestoreData.loginsToday || 0); 
                 // We'll increment only if this is reached via explicit login button in loginWithGoogle
             }
         }
@@ -85,7 +86,7 @@ async function syncUserToFirestore(user) {
 
         if (user.displayName) {
             // Self-healing: If current db record is "Unknown" or "AptiVerse Player", force update it with real name
-            if (!userSnap.exists() || data.name === "Unknown" || data.name === "AptiVerse Player") {
+            if (!firestoreData || firestoreData.name === "Unknown" || firestoreData.name === "AptiVerse Player") {
                 updateData.name = user.displayName;
             } else {
                 updateData.name = user.displayName; // Always update to latest name if available
@@ -93,7 +94,7 @@ async function syncUserToFirestore(user) {
         }
         
         if (user.email) {
-            if (!userSnap.exists() || data.email === "No Email" || data.email === "Guest Mode") {
+            if (!firestoreData || firestoreData.email === "No Email" || firestoreData.email === "Guest Mode") {
                 updateData.email = user.email;
             } else {
                 updateData.email = user.email;
