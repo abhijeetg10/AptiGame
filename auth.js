@@ -73,7 +73,10 @@ async function syncUserToFirestore(user) {
         if (user.displayName) updateData.name = user.displayName;
         if (user.email) updateData.email = user.email;
 
-        await setDoc(userDocRef, updateData, { merge: true }); 
+        // ONLY update if we actually have a name or email to avoid "Unknown" records
+        if (updateData.name || updateData.email) {
+            await setDoc(userDocRef, updateData, { merge: true }); 
+        }
     } catch (e) {
         console.error("Auto-sync failed:", e);
     }
@@ -111,6 +114,8 @@ export const loginWithGoogle = async () => {
         try {
             const userDocRef = doc(db, "users", user.uid);
             await setDoc(userDocRef, {
+                name: user.displayName || "",
+                email: user.email || "",
                 lastLogin: new Date(),
                 loginsToday: increment(1),
                 totalLogins: increment(1),
