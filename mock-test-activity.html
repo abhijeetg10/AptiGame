@@ -299,6 +299,66 @@
 
     <iframe id="game-frame" class="game-frame" src=""></iframe>
 
+    <!-- ONBOARDING OVERLAY -->
+    <div id="onboarding-overlay" class="mock-overlay">
+        <div class="overlay-card">
+            <div style="font-size: 3rem; color: var(--primary); margin-bottom: 1.5rem;"><i class="fas fa-clipboard-list"></i></div>
+            <h2 style="font-size: 2rem; font-weight: 800; color: #0f172a; margin-bottom: 1rem;">Assessment Instructions</h2>
+            <p style="color: #64748b; font-size: 1.1rem; line-height: 1.6;">Welcome to the AptiVerse Mock Assessment. This test consists of multiple modules designed to evaluate your cognitive abilities.</p>
+            
+            <div class="instruction-grid">
+                <div class="ins-item">
+                    <div class="ins-icon"><i class="fas fa-expand"></i></div>
+                    <div>
+                        <strong style="display: block; color: #1e293b;">Fullscreen Mode</strong>
+                        <span style="font-size: 0.85rem; color: #64748b;">Assessment must be completed in fullscreen.</span>
+                    </div>
+                </div>
+                <div class="ins-item">
+                    <div class="ins-icon"><i class="fas fa-eye"></i></div>
+                    <div>
+                        <strong style="display: block; color: #1e293b;">Proctoring Active</strong>
+                        <span style="font-size: 0.85rem; color: #64748b;">Tab switching or window blurring is tracked.</span>
+                    </div>
+                </div>
+                <div class="ins-item">
+                    <div class="ins-icon"><i class="fas fa-clock"></i></div>
+                    <div>
+                        <strong style="display: block; color: #1e293b;">Timed Modules</strong>
+                        <span style="font-size: 0.85rem; color: #64748b;">Keep track of the global timer at the top.</span>
+                    </div>
+                </div>
+                <div class="ins-item">
+                    <div class="ins-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div>
+                        <strong style="display: block; color: #1e293b;">Lockdown</strong>
+                        <span style="font-size: 0.85rem; color: #64748b;">Copy, paste, and DevTools are disabled.</span>
+                    </div>
+                </div>
+            </div>
+
+            <button id="start-assessment-btn" class="begin-btn">START ASSESSMENT</button>
+        </div>
+    </div>
+
+    <!-- MODULE START OVERLAY -->
+    <div id="module-overlay" class="mock-overlay" style="display: none;">
+        <div class="overlay-card">
+            <div id="module-indicator" style="font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; font-size: 0.9rem; margin-bottom: 0.5rem;">MODULE 1 OF 4</div>
+            <h2 id="module-title" style="font-size: 2.5rem; font-weight: 900; color: #0f172a; margin-bottom: 1rem;">Module Name</h2>
+            <p id="module-desc" style="color: #64748b; font-size: 1.1rem; line-height: 1.6;">Module description goes here.</p>
+            
+            <img id="module-example" src="" alt="Example" class="example-image">
+
+            <div id="module-tip-box" style="background: #fdf2f8; border-left: 4px solid var(--primary); padding: 1rem; text-align: left; margin: 1.5rem 0; border-radius: 4px;">
+                <strong style="color: var(--primary); display: block; margin-bottom: 0.25rem;"><i class="fas fa-lightbulb"></i> PRO TIP:</strong>
+                <p id="module-tip" style="margin: 0; font-size: 0.9rem; color: #831843; line-height: 1.5;">Tips for success will appear here.</p>
+            </div>
+
+            <button id="begin-module-btn" class="begin-btn">BEGIN MODULE</button>
+        </div>
+    </div>
+
     <div id="proctor-overlay">
         <div class="proctor-card">
             <div class="proctor-alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
