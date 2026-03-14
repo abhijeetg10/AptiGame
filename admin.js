@@ -281,8 +281,14 @@ async function fetchFeedback() {
         docs.forEach(data => {
             count++;
             let dateStr = "Unknown";
-            if(data.timestamp && data.timestamp.toDate) {
-                dateStr = data.timestamp.toDate().toLocaleString();
+            if (data.timestamp) {
+                if (data.timestamp.toDate) {
+                    dateStr = data.timestamp.toDate().toLocaleString();
+                } else if (data.timestamp instanceof Date) {
+                    dateStr = data.timestamp.toLocaleString();
+                } else {
+                    dateStr = new Date(data.timestamp).toLocaleString();
+                }
             }
 
             let badgeColor = "var(--pluto-blue)";
@@ -387,7 +393,7 @@ async function fetchRatings() {
 
         if (count === 0) {
             tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem; color:var(--text-muted);">No ratings available.</td></tr>`;
-            document.getElementById("stat-avg-rating").innerText = "--";
+            document.getElementById("stat-avg-rating").innerText = "0.0";
         } else {
             const avg = (totalStars / count).toFixed(1);
             document.getElementById("stat-avg-rating").innerText = avg;

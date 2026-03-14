@@ -118,7 +118,7 @@ export async function initRatingSystem(container) {
                     userEmail: user.email || "N/A",
                     rating: selectedRating,
                     comment: commentArea.value,
-                    timestamp: new Date()
+                    timestamp: serverTimestamp()
                 });
             } catch (ratingError) {
                 console.warn("Rating record could not be saved to global database, but proceeding with user flag.", ratingError);
