@@ -629,7 +629,9 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
     if (btnElement) {
         btnElement.innerText = "Saving Score...";
         btnElement.disabled = true;
-     try {
+    }
+
+    try {
         const activeUser = getCurrentUser();
         const playerName = activeUser && activeUser.displayName ? activeUser.displayName : "Guest Player";
 
