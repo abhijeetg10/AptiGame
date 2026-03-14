@@ -1568,24 +1568,24 @@ img {
     background-color: #fdf2f8;
 }
 
-/* --- Shapes (Pure CSS) --- */
-.shape {
+/* --- Sudoku Shapes (Pure CSS) --- */
+.sudoku-grid .shape {
     width: 40px;
     height: 40px;
     display: inline-block;
 }
 
-.shape-square {
+.sudoku-grid .shape-square {
     background-color: #ef4444;
     border-radius: 4px;
 }
 
-.shape-circle {
+.sudoku-grid .shape-circle {
     background-color: #f59e0b;
     border-radius: 50%;
 }
 
-.shape-triangle {
+.sudoku-grid .shape-triangle {
     width: 0;
     height: 0;
     border-left: 20px solid transparent;
@@ -1595,29 +1595,29 @@ img {
     background: none;
 }
 
-.shape-star {
+.sudoku-grid .shape-star {
     /* CSS Star trick using clip-path */
     background-color: #3b82f6;
     clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
 }
 
-.shape-diamond {
+.sudoku-grid .shape-diamond {
     background-color: #8b5cf6;
     transform: rotate(45deg) scale(0.8);
     border-radius: 2px;
 }
 
-.shape-cross {
+.sudoku-grid .shape-cross {
     background: #ec4899;
     clip-path: polygon(20% 0%, 0% 20%, 30% 50%, 0% 80%, 20% 100%, 50% 70%, 80% 100%, 100% 80%, 70% 50%, 100% 20%, 80% 0%, 50% 30%);
 }
 
-.shape-pentagon {
+.sudoku-grid .shape-pentagon {
     background: #14b8a6;
     clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
 }
 
-.shape-hexagon {
+.sudoku-grid .shape-hexagon {
     background: #f43f5e;
     clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
 }
@@ -1950,8 +1950,8 @@ img {
     animation: shake 0.4s;
 }
 
-/* --- Shape Geometries --- */
-.ind-cell {
+/* --- Inductive Geometries --- */
+.inductive-board .ind-cell {
     width: var(--cell-size, 50px);
     height: var(--cell-size, 50px);
     background: #fff;
@@ -1961,21 +1961,21 @@ img {
     justify-content: center;
 }
 
-.shape {
+.inductive-board .shape {
     width: var(--shape-size, 32px);
     height: var(--shape-size, 32px);
 }
 
-.shape-circle {
+.inductive-board .shape-circle {
     border-radius: 50%;
 }
 
-.shape-square {
+.inductive-board .shape-square {
     border-radius: 0;
     /* Square */
 }
 
-.shape-triangle {
+.inductive-board .shape-triangle {
     width: 0;
     height: 0;
     background: transparent !important;
@@ -1984,26 +1984,26 @@ img {
     border-bottom: var(--shape-size, 32px) solid;
 }
 
-.shape-cross {
+.inductive-board .shape-cross {
     position: relative;
     background: transparent !important;
 }
 
-.shape-cross::before,
-.shape-cross::after {
+.inductive-board .shape-cross::before,
+.inductive-board .shape-cross::after {
     content: "";
     position: absolute;
     background-color: var(--shape-color, #000);
 }
 
-.shape-cross::before {
+.inductive-board .shape-cross::before {
     top: 5%;
     bottom: 5%;
     left: 35%;
     right: 35%;
 }
 
-.shape-cross::after {
+.inductive-board .shape-cross::after {
     left: 5%;
     right: 5%;
     top: 35%;
@@ -2240,7 +2240,7 @@ img {
 }
 
 /* --- Switch Challenge Shapes --- */
-.shape {
+.switch-playground .shape {
     background: #fff;
     border: 2px solid #3498db;
     border-radius: 6px;
@@ -2251,42 +2251,42 @@ img {
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-.shape::after {
+.switch-playground .shape::after {
     content: '';
     display: block;
     background: #9acd32;
 }
 
-.shape.circle::after { width: 70%; height: 70%; border-radius: 50%; }
-.shape.square::after { width: 65%; height: 65%; }
-.shape.triangle::after {
+.switch-playground .shape.circle::after { width: 70%; height: 70%; border-radius: 50%; }
+.switch-playground .shape.square::after { width: 65%; height: 65%; }
+.switch-playground .shape.triangle::after {
     width: 0; height: 0;
     border-left: 25px solid transparent;
     border-right: 25px solid transparent;
     border-bottom: 45px solid #9acd32;
     background: none;
 }
-.shape.plus::after { width: 70%; height: 25%; }
-.shape.plus::before {
+.switch-playground .shape.plus::after { width: 70%; height: 25%; }
+.switch-playground .shape.plus::before {
     content: ''; position: absolute;
     width: 25%; height: 70%;
     background: #9acd32;
 }
 
-/* --- New Shapes --- */
-.shape.star::after {
+/* --- Switch Challenge New Shapes --- */
+.switch-playground .shape.star::after {
     clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
     width: 80%; height: 80%;
 }
-.shape.diamond::after {
+.switch-playground .shape.diamond::after {
     transform: rotate(45deg);
     width: 60%; height: 60%;
 }
-.shape.pentagon::after {
+.switch-playground .shape.pentagon::after {
     clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
     width: 75%; height: 75%;
 }
-.shape.hexagon::after {
+.switch-playground .shape.hexagon::after {
     clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
     width: 80%; height: 80%;
 }
