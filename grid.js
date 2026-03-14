@@ -679,6 +679,7 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
 }
 
 // --- Module Progression ---
+async function endModule(customTitle) {
     clearInterval(timerInterval);
     if (isMock) {
         window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
