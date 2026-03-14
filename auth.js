@@ -83,10 +83,24 @@ async function syncUserToFirestore(user) {
             hasRated: hasRated
         };
 
-        if (user.displayName) updateData.name = user.displayName;
-        if (user.email) updateData.email = user.email;
+        if (user.displayName) {
+            // Self-healing: If current db record is "Unknown" or "AptiVerse Player", force update it with real name
+            if (!userSnap.exists() || data.name === "Unknown" || data.name === "AptiVerse Player") {
+                updateData.name = user.displayName;
+            } else {
+                updateData.name = user.displayName; // Always update to latest name if available
+            }
+        }
+        
+        if (user.email) {
+            if (!userSnap.exists() || data.email === "No Email" || data.email === "Guest Mode") {
+                updateData.email = user.email;
+            } else {
+                updateData.email = user.email;
+            }
+        }
 
-        // If it's a completely new user and we STILL don't have a name, then we use "Visitor" instead of "Unknown"
+        // If it's a completely new user and we STILL don't have a name, then we use "AptiVerse Player"
         if (!userSnap.exists() && !updateData.name) {
             updateData.name = "AptiVerse Player";
             updateData.email = "Guest Mode";
