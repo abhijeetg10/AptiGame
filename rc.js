@@ -112,35 +112,63 @@ function initModuleGrid() {
 // initModuleGrid() will be called from loadUserProgress()
 
 // --- Data Generation ---
+// --- Data Generation ---
 function generateRCData() {
     const topics = [
-        { name: "Global Climate Policy", facts: ["Carbon tax is 5%", "Target year is 2050", "Budget is $2B", "Renewables share 40%"] },
-        { name: "Advanced Robotics AI", facts: ["Version 4.2 released", "Sensor range is 10m", "Processing speed 2GHz", "Battery life 12h"] },
-        { name: "Urban Planning 2030", facts: ["Green space min 30%", "Bike lanes 500km", "Traffic limit 40kph", "Population cap 2M"] },
-        { name: "Maritime Logistics", facts: ["Port capacity 1M TEU", "Dredging depth 15m", "Vessel limit 400m", "Wait time 48h"] },
-        { name: "Deep Sea Exploration", facts: ["Pressure 1000 atm", "Oxygen duration 8h", "Max depth 11km", "Species found 450"] },
-        { name: "Semiconductor Markets", facts: ["Yield rate 94%", "Nano-size 3nm", "Fabrication cost $5B", "Lead time 16 weeks"] }
+        { name: "Global Climate Policy", facts: ["Carbon tax is 5%", "Target year is 2050", "Initial Budget is $2.5B", "Current Renewables share 40%"] },
+        { name: "Advanced Robotics AI", facts: ["Version 4.2 released", "Sensor range is 25m", "Standard Processing speed 2GHz", "Emergency Battery life 12h"] },
+        { name: "Urban Planning 2030", facts: ["Green space min 30%", "Planned Bike lanes 500km", "City Traffic limit 40kph", "Projected Population cap 2M"] },
+        { name: "Maritime Logistics", facts: ["Port capacity 1.5M TEU", "Dredging depth 18m", "Vessel length limit 400m", "Standard Wait time 48h"] },
+        { name: "Deep Sea Exploration", facts: ["Pressure 1100 atm", "Max Oxygen duration 8h", "Max recorded depth 11km", "New Species found 450"] },
+        { name: "Semiconductor Markets", facts: ["Average Yield rate 94%", "Nano-size 3nm", "Fabrication cost $5.8B", "Production Lead time 16 weeks"] }
     ];
 
     const docs = topics.map((t, idx) => {
-        const p = `The current ${t.name} framework outlines several critical parameters. ${t.facts[0]}. Furthermore, the ${t.facts[1]} remains a key milestone. Additional reports suggest a ${t.facts[2]} is required for Phase 1. Finally, researchers noted that ${t.facts[3]} during the last audit.`;
+        const p = `The latest ${t.name} analysis report highlights several critical targets. Regarding benchmarks, it notes that ${t.facts[0]}. Furthermore, the ${t.facts[1]} remains a primary objective for the next decade. Internal auditors suggested that ${t.facts[2]} is the baseline for current operations. Finally, field reports confirmed that ${t.facts[3]} was achieved during the most recent trial phase.`;
         return { id: idx, title: t.name, text: p, facts: t.facts };
     });
 
     const targetDoc = docs[Math.floor(Math.random() * docs.length)];
-    const targetFact = targetDoc.facts[Math.floor(Math.random() * targetDoc.facts.length)];
-    
     let questionText = "";
     let solution = "";
 
     const roll = Math.random();
-    if (roll < 0.5) {
-        questionText = `Is it explicitly stated that ${targetFact}?`;
+    
+    if (roll < 0.33) {
+        // Multi-fact check
+        const f0 = targetDoc.facts[0];
+        const f1 = targetDoc.facts[1];
+        questionText = `Based on the technical reports, does the relevant framework confirm both that ${f0} and that the ${f1}?`;
         solution = "Yes";
+    } else if (roll < 0.66) {
+        // Comparison logic
+        const otherDoc = docs[(targetDoc.id + 1) % docs.length];
+        const myValue = parseFloat(targetDoc.facts[0].match(/\d+/)[0]);
+        const otherValue = parseFloat(otherDoc.facts[0].match(/\d+/)[0]);
+        
+        const isHigher = myValue > otherValue;
+        const isCorrect = Math.random() > 0.5;
+        const targetResult = isCorrect ? (isHigher ? "higher" : "lower") : (isHigher ? "lower" : "higher");
+        
+        questionText = `Comparing different datasets, is the primary benchmark value in the document mentioning "${targetDoc.facts[1]}" ${targetResult} than the value in the document mentioning "${otherDoc.facts[1]}"?`;
+        solution = isCorrect ? "Yes" : "No";
     } else {
-        const wrongDoc = docs.find(d => d.id !== targetDoc.id);
-        questionText = `Is it mentioned anywhere that ${targetFact}?`;
-        solution = "No";
+        // Logical deduction (e.g., doubling a value)
+        const fact = targetDoc.facts[2]; // e.g., "Initial Budget is $2.5B"
+        const valueMatch = fact.match(/[\d.]+/);
+        if (valueMatch) {
+            const val = parseFloat(valueMatch[0]);
+            const doubledVal = val * 2;
+            const isCorrect = Math.random() > 0.5;
+            const displayVal = isCorrect ? doubledVal : doubledVal + 5;
+            
+            questionText = `If the project requirements for the initiative related to ${targetDoc.facts[3]} were to double the current baseline of ${val}, would the total requirement reach ${displayVal}?`;
+            solution = isCorrect ? "Yes" : "No";
+        } else {
+            // Fallback to simple fact check if no numbers found
+            questionText = `Does any analytical report explicitly verify that ${targetDoc.facts[0]}?`;
+            solution = "Yes";
+        }
     }
 
     return { docs, questionText, solution };
