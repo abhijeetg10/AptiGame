@@ -272,6 +272,94 @@
             background: #0f172a;
             transform: scale(1.02);
         }
+
+        /* Progress Sidebar */
+        .test-wrapper {
+            display: flex;
+            height: calc(100vh - 80px);
+            overflow: hidden;
+        }
+
+        .mock-sidebar {
+            width: 280px;
+            background: #f8fafc;
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            font-weight: 800;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s;
+        }
+
+        .sidebar-item.active-step {
+            border-color: var(--primary);
+            background: rgba(201, 0, 118, 0.05);
+            box-shadow: 0 4px 12px rgba(201, 0, 118, 0.1);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #cbd5e1;
+        }
+
+        .status-dot.active {
+            background: var(--primary);
+            box-shadow: 0 0 0 4px rgba(201, 0, 118, 0.1);
+        }
+
+        .status-dot.done {
+            background: #10b981;
+        }
+
+        .item-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #1e293b;
+        }
+
+        .item-status {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        @media (max-width: 900px) {
+            .mock-sidebar {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -297,7 +385,17 @@
         <div class="progress-fill" id="progress-fill"></div>
     </div>
 
-    <iframe id="game-frame" class="game-frame" src=""></iframe>
+
+    <div class="test-wrapper">
+        <iframe id="game-frame" class="game-frame" src=""></iframe>
+        
+        <aside class="mock-sidebar">
+            <div class="sidebar-header">Assessment Progress</div>
+            <div id="mock-sidebar-list" class="sidebar-list">
+                <!-- Injected via JS -->
+            </div>
+        </aside>
+    </div>
 
     <!-- ONBOARDING OVERLAY -->
     <div id="onboarding-overlay" class="mock-overlay">

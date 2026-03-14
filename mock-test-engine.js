@@ -132,6 +132,9 @@ function init() {
     // 3. Proctoring Setup (Disabled as requested)
     // setupProctoring();
 
+    // 4. Initial Sidebar Render
+    renderSidebar();
+
     sessionStorage.setItem('mock_test_active', 'true');
     saveState();
 }
@@ -166,6 +169,7 @@ function setupListeners() {
     window.addEventListener('message', (event) => {
         if(event.data.type === 'MODULE_COMPLETE') {
             handleModuleComplete(event.data.score);
+            renderSidebar(); // Update sidebar on completion
         }
     });
 }
@@ -176,13 +180,15 @@ function resumeAfterRecovery() {
 }
 
 function generateSequence() {
-    const pool = ['motion.html', 'sudoku.html', 'inductive.html', 'grid.html', 'switch.html'];
-    const randoms = [];
-    while(randoms.length < 2) {
-        const pick = pool[Math.floor(Math.random() * pool.length)];
-        if(!randoms.includes(pick)) randoms.push(pick);
-    }
-    currentState.sequence = ['rc.html', 'di.html', 'motion.html', 'sudoku.html', 'inductive.html', 'grid.html', 'switch.html'];
+    const presets = {
+        'atlas': ['motion.html', 'switch.html', 'rc.html', 'di.html'],
+        'capgemini': ['sudoku.html', 'grid.html', 'rc.html', 'di.html'],
+        'tcs': ['motion.html', 'sudoku.html', 'rc.html', 'di.html'],
+        'cognizant': ['inductive.html', 'grid.html', 'rc.html', 'di.html']
+    };
+
+    currentState.sequence = presets[companyId] || ['rc.html', 'di.html', 'motion.html', 'sudoku.html'];
+    currentState.currentModuleIndex = 0;
     saveState();
 }
 
@@ -191,77 +197,11 @@ function saveState() {
 }
 
 function setupProctoring() {
-    // 1. Tab Switch / Window Blur
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden && !currentState.isFinished) {
-            handleStrike("TAB SWITCH DETECTED", "Switching tabs or minimizing the browser is strictly prohibited during the test.");
-        }
-    });
-
-    window.addEventListener('blur', () => {
-        if (!currentState.isFinished) {
-            handleStrike("WINDOW BLURRED", "You clicked outside the test environment. Stay focused on the test window.");
-        }
-    });
-
-    // 2. Console Detection (DevTools)
-    const threshold = 160;
-    setInterval(() => {
-        if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
-            handleStrike("DEV TOOLS DETECTED", "Opening developer tools is prohibited during the examination.");
-        }
-    }, 2000);
-
-    // 3. Interaction Lockdown
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('copy', e => e.preventDefault());
-    document.addEventListener('paste', e => e.preventDefault());
-    document.addEventListener('keydown', e => {
-        // Block Ctrl+C, V, U, S, P
-        if (e.ctrlKey && ['c', 'v', 'u', 's', 'p'].includes(e.key.toLowerCase())) {
-            e.preventDefault();
-            handleStrike("INTERACTION BLOCKED", "Copying, Pasting, and Inspecting components is disabled.");
-        }
-        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase()))) {
-            e.preventDefault();
-            handleStrike("DEV TOOLS BLOCKED", "Developer shortcuts are disabled.");
-        }
-    });
-
-    // 4. Fullscreen Enforcement
-    window.addEventListener('click', () => {
-        if (!document.fullscreenElement && !currentState.isFinished && !currentState.isPaused) {
-            document.documentElement.requestFullscreen().catch(e => console.log(e));
-        }
-    }, { once: false });
-
-    document.addEventListener('fullscreenchange', () => {
-        if (!document.fullscreenElement && !currentState.isFinished && !currentState.isPaused) {
-            handleStrike("FULLSCREEN EXITED", "Testing must be completed in Fullscreen mode.");
-        }
-    });
+    // Disabled as requested
 }
 
 function handleStrike(title, reason) {
-    if (currentState.isPaused || currentState.isFinished) return;
-    
-    currentState.strikes++;
-    currentState.isPaused = true;
-    saveState();
-
-    overlay.style.display = 'flex';
-    alertTitle.innerText = title;
-    alertMsg.innerText = reason;
-    strikeEl.innerText = `${currentState.strikes} / ${MAX_STRIKES}`;
-
-    if (currentState.strikes >= MAX_STRIKES) {
-        alertTitle.innerText = "TEST TERMINATED";
-        alertMsg.innerText = "Multiple violations detected. Your test is being submitted automatically.";
-        overlay.querySelector('.proctor-btn').innerText = "VIEWING SUMMARY...";
-        overlay.querySelector('.proctor-btn').disabled = true;
-        updateFirestoreRecord("terminated"); // Record termination
-        setTimeout(() => finishTest(), 3000);
-    }
+    // Disabled as requested
 }
 
 window.resumeTest = function() {
