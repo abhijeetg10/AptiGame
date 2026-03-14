@@ -119,12 +119,14 @@
                                     <tr>
                                         <th>User</th>
                                         <th>Email</th>
+                                        <th>Today</th>
+                                        <th>Total</th>
                                         <th>Last Login</th>
-                                        <th>ID</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="table-body-users">
-                                    <tr><td colspan="4" style="text-align: center;">Loading users...</td></tr>
+                                    <tr><td colspan="6" style="text-align: center;">Loading users...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -256,7 +258,19 @@
         </main>
     </div>
 
-    <!-- Firebase Auth & Admin Logic -->
+    <!-- Login History Modal -->
+    <div id="login-history-modal" class="modal hidden">
+        <div class="modal-content">
+            <button class="modal-close" id="close-history-modal">&times;</button>
+            <h2 id="history-user-name">Login History</h2>
+            <div id="history-container">
+                <ul id="history-list" class="history-list">
+                    <!-- History items will be injected here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="admin.js"></script>
 </body>
 </html>

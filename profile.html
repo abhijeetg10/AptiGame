@@ -240,11 +240,20 @@
 
         .hidden { display: none !important; }
 
+        @media (max-width: 900px) {
+            .bento-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .item-analysis { grid-column: span 2; }
+            .item-radar { grid-column: span 2; }
+        }
+
         @media (max-width: 768px) {
-            .profile-hero { flex-direction: column; text-align: center; }
+            .profile-hero { flex-direction: column; text-align: center; padding: 2rem; }
             .bento-grid { grid-template-columns: 1fr; }
-            .item-rank, .item-main-stats, .item-analysis { grid-column: span 1; }
+            .item-rank, .item-main-stats, .item-analysis, .item-radar { grid-column: span 1; }
             .item-main-stats { grid-template-columns: 1fr; }
+            .hero-avatar { width: 100px; height: 100px; font-size: 3rem; }
         }
     </style>
 </head>
@@ -415,8 +424,6 @@
                     }
                     userTotals[name].score += d.score || 0;
                     let levels = 18;
-                    if (['sudoku', 'motion', 'switch'].includes(d._sourceCategory)) levels = 10;
-                    if (d._sourceCategory === 'inductive') levels = 12;
                     userTotals[name].totalLevels += levels;
                     
                     if (d.metrics) {
@@ -477,8 +484,6 @@
                     const item = document.createElement('div');
                     item.className = 'game-stat-item';
                     let totalLevels = 18;
-                    if (['sudoku', 'motion', 'switch'].includes(game._sourceCategory)) totalLevels = 10;
-                    if (game._sourceCategory === 'inductive') totalLevels = 12;
 
                     item.innerHTML = `
                         <div class="game-name">${game._sourceCategory.toUpperCase()}</div>

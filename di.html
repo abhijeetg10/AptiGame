@@ -340,6 +340,12 @@
                 <img src="Logo.jpg" alt="AptiGame Logo" class="logo-img">
                 <span>AptiGame</span>
             </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="index.html#challenges">Challenges</a></li>
+                <li><a href="mock-tests.html"><i class="fas fa-trophy"></i> Mock Tests</a></li>
+                <li><a href="index.html#leaderboard">Leaderboard</a></li>
+            </ul>
             <div id="nav-user-profile" style="display: none; align-items: center; gap: 0.75rem;">
                 <div id="nav-user-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem;"></div>
                 <span id="nav-user-name" style="font-weight: 600; font-size: 0.95rem;"></span>
@@ -440,34 +446,6 @@
         </div>
     </div>
 
-    <div id="results-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h2>Module Complete</h2>
-            <div class="score-display">
-                <div class="score-circle">
-                    <span id="score-text">0 / 0</span>
-                </div>
-            </div>
-            <div class="score-stats">
-                <p>Marks Obtained: <span id="final-marks-val" class="text-success" style="color: var(--primary); font-weight: 800; font-size: 1.5rem;">0</span></p>
-                <p>Accuracy: <span id="accuracy-text">0%</span></p>
-            </div>
-            <button id="next-module-btn" class="btn btn-primary btn-large" style="width: 100%;">Continue</button>
-            <a href="index.html" class="btn btn-outline" style="margin-top: 1rem; display: block;">Return Home</a>
-        </div>
-    </div>
-
-    <script type="module" src="auth.js"></script>
-    <script type="module" src="di.js"></script>
-</body>
-</html>
-
-    <!-- Feedback Popups -->
-    <div id="feedback-popup" class="feedback-popup hidden">
-        <div class="feedback-content">
-            <h2 id="feedback-status" style="font-size: 3.5rem; font-weight: 900; text-transform: uppercase;"></h2>
-            <p id="feedback-points" style="font-size: 1.5rem; font-weight: 800;"></p>
-        </div>
     </div>
 
     <!-- Results Modal (Standard) -->
@@ -484,14 +462,13 @@
                 <p>Accuracy: <span id="accuracy-text" style="font-weight: 600;">0%</span></p>
             </div>
 
+            <div id="rating-section" class="hidden"></div>
             <button id="next-module-btn" class="btn btn-primary btn-large" style="width: 100%;">Continue</button>
             <a href="index.html" class="btn btn-outline" style="margin-top: 1rem; display: block; border: 1px solid var(--border-color);">Return Home</a>
         </div>
     </div>
 
-    <!-- Load Auth System -->
     <script type="module" src="auth.js"></script>
     <script type="module" src="di.js"></script>
 </body>
-
 </html>

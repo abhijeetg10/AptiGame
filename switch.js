@@ -1,21 +1,23 @@
 import { db, auth } from "./firebase-config.js";
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-import { signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+import { collection, addDoc, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { initRatingSystem } from "./rating-system.js";
+import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { getCurrentUser } from "./auth.js";
+import { GAME_CONFIG } from "./game-constants.js";
+import { Logger } from "./logger.js";
 
-// --- Game Constants ---
+// --- Constants & Config ---
 const SHAPES_POOL = ['circle', 'square', 'triangle', 'plus', 'star', 'diamond', 'pentagon', 'hexagon'];
-const NUM_MODULES = 5;
-const LEVELS_PER_MODULE = 18;
-const MODULE_TIME = 360; // 6 minutes
+const { TOTAL_MODULES, LEVELS_PER_MODULE, MODULE_TIME_LIMIT } = GAME_CONFIG;
 
 // --- Game State ---
+let highestUnlockedModule = 1;
 let currentModule = 1;
 let currentLevel = 1;
 let score = 0;
 let correctCount = 0;
 let wrongCount = 0;
-let timeLeft = MODULE_TIME;
+let timeLeft = MODULE_TIME_LIMIT;
 let timerInterval = null;
 let isGameActive = false;
 let currentSolution = "";
@@ -60,11 +62,16 @@ function renderModuleSelection() {
         ['#ef4444', '#f87171']  // red
     ];
 
-    for (let i = 1; i <= NUM_MODULES; i++) {
+    for (let i = 1; i <= TOTAL_MODULES; i++) {
         const [c1, c2] = colors[(i - 1) % colors.length];
         const card = document.createElement('div');
         card.className = 'card module-card';
-        card.style.cursor = 'pointer';
+        
+        const isLocked = i > highestUnlockedModule;
+        card.style.cursor = isLocked ? "not-allowed" : "pointer";
+        card.style.opacity = isLocked ? "0.5" : "1";
+        card.title = isLocked ? "Complete previous modules to unlock" : "Click to play";
+
         card.style.textAlign = 'left';
         card.innerHTML = `
             <div class="card-img" style="height: 140px; background: linear-gradient(135deg, ${c1}, ${c2}); display: flex; align-items: center; justify-content: center;">
@@ -75,7 +82,9 @@ function renderModuleSelection() {
                 <p>18 Logic Puzzles</p>
             </div>
         `;
-        card.onclick = () => startModule(i);
+        if (!isLocked) {
+            card.onclick = () => startModule(i);
+        }
         elModuleGrid.appendChild(card);
     }
 }
@@ -86,13 +95,13 @@ window.startModule = function (moduleNum) {
     score = 0;
     correctCount = 0;
     wrongCount = 0;
-    timeLeft = MODULE_TIME;
+    timeLeft = MODULE_TIME_LIMIT;
     
     elModuleSelection.classList.add('hidden');
     elGameHeader.classList.remove('hidden');
     elGameContainer.classList.remove('hidden');
     
-    elModuleDisplay.innerText = `${currentModule} / ${NUM_MODULES}`;
+    elModuleDisplay.innerText = `${currentModule} / ${TOTAL_MODULES}`;
     
     loadLevel();
     if (!isMock) startTimer();
@@ -272,6 +281,9 @@ async function finishModule() {
     isGameActive = false;
     
     const modal = document.getElementById('results-modal');
+    const ratingContainer = document.getElementById('rating-section');
+    if (ratingContainer) initRatingSystem(ratingContainer);
+
     modal.classList.remove('hidden');
     
     document.getElementById('score-text').innerText = `${correctCount} / ${LEVELS_PER_MODULE}`;
@@ -288,12 +300,20 @@ async function finishModule() {
                 metrics: {
                     correctCount: correctCount,
                     totalMarks: score,
-                    timeSpent: MODULE_TIME - timeLeft
+                    timeSpent: MODULE_TIME_LIMIT - timeLeft
                 },
                 timestamp: new Date()
             });
+
+            // Save Module Progression
+            const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1);
+            if (moduleReached > highestUnlockedModule) {
+                await updateDoc(doc(db, "users", user.uid), {
+                    highestModule_switch: moduleReached
+                });
+            }
         } catch (e) {
-            console.error(e);
+            Logger.handleFirestoreError("saveScore_switch", e);
         }
     }
 
@@ -314,8 +334,23 @@ if(btnLogout) {
     });
 }
 
-if (!isMock) init();
-else {
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        window.location.href = 'index.html';
+    } else {
+        // Load User Progress
+        try {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists() && userDoc.data().highestModule_switch) {
+                highestUnlockedModule = userDoc.data().highestModule_switch;
+            }
+        } catch (e) { console.error(e); }
+        if (!isMock) init();
+    }
+});
+
+const isMockLocal = new URLSearchParams(window.location.search).get('mode') === 'mock';
+if (isMockLocal) {
     // Auto-start first module in mock mode
     setTimeout(() => {
         const sel = document.getElementById('module-selection');

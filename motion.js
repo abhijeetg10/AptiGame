@@ -1,7 +1,10 @@
 import { collection, addDoc, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { initRatingSystem } from "./rating-system.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { db, auth } from "./firebase-config.js";
 import { getCurrentUser } from "./auth.js";
+import { GAME_CONFIG } from "./game-constants.js";
+import { Logger } from "./logger.js";
 
 // --- Auth Guard ---
 onAuthStateChanged(auth, (user) => {
@@ -11,16 +14,14 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// --- Configuration ---
-// --- Game State ---
-const LEVELS_PER_MODULE = 15;
-const MODULE_TIME_LIMIT = 360; // 6 mins
+// --- Constants & Config ---
+const { TOTAL_MODULES, LEVELS_PER_MODULE, MODULE_TIME_LIMIT, POINTS_PER_CORRECT } = GAME_CONFIG;
 
 // --- Sound Effects ---
 const sounds = {
-    correct: new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3'),
-    wrong: new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'),
-    complete: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3')
+    correct: new Audio('assets/sounds/correct.mp3'),
+    wrong: new Audio('assets/sounds/wrong.mp3'),
+    complete: new Audio('assets/sounds/complete.mp3')
 };
 
 const CELL_SIZE = 60; // Pixels per grid cell (fixed for calculation)
@@ -40,6 +41,7 @@ let timerInterval;
 let isTransitioning = false;
 let moduleScores = [];
 const isMock = new URLSearchParams(window.location.search).get('mode') === 'mock';
+let isSkip = false;
 
 let gridWidth = 6;
 let gridHeight = 6;
@@ -100,11 +102,18 @@ async function loadUserProgress() {
         }
     }
     
-    // Update UI locks (All unlocked)
+    // Update UI locks
     moduleBtns.forEach(btn => {
-        btn.style.opacity = "1";
-        btn.style.pointerEvents = "auto";
-        btn.title = "Click to play";
+        const modNum = parseInt(btn.getAttribute("data-module"));
+        if (modNum <= highestUnlockedModule) {
+            btn.style.opacity = "1";
+            btn.style.pointerEvents = "auto";
+            btn.title = "Click to play";
+        } else {
+            btn.style.opacity = "0.5";
+            btn.style.pointerEvents = "none";
+            btn.title = "Complete previous modules to unlock";
+        }
     });
 }
 
@@ -669,7 +678,7 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
             btnElement.innerText = "Score Saved!";
         }
     } catch (error) {
-        console.error("Error saving score to Firebase:", error);
+        Logger.handleFirestoreError("saveScore_motion", error);
         if (btnElement) {
             btnElement.innerText = "Save Failed";
             btnElement.disabled = false;
@@ -776,6 +785,9 @@ async function endModule(customTitle) {
         showModuleSelection();
         moduleScores = []; 
     };
+
+    const ratingContainer = document.getElementById('rating-section');
+    if (ratingContainer) initRatingSystem(ratingContainer);
 
     elModal.classList.remove("hidden");
     elModal.style.display = "flex";

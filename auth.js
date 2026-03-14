@@ -1,5 +1,5 @@
 import { signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { setDoc, doc, getDoc, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { auth, provider, db } from "./firebase-config.js";
 
 const loginBtn = document.getElementById("nav-login-btn");
@@ -72,13 +72,38 @@ export const loginWithGoogle = async () => {
 
         // 2. Firebase Database Logging (For the Admin Dashboard)
         try {
-            await setDoc(doc(db, "users", user.uid), {
+            const userDocRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userDocRef);
+            const today = new Date().toLocaleDateString();
+            
+            let loginsToday = 1;
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                const lastLogin = data.lastLogin;
+                let lastLoginDate = "";
+                
+                if (lastLogin) {
+                    // Check if it's a Firestore Timestamp or a Date string
+                    const dateObj = (typeof lastLogin.toDate === 'function') ? lastLogin.toDate() : new Date(lastLogin);
+                    lastLoginDate = dateObj.toLocaleDateString();
+                }
+
+                if (lastLoginDate === today) {
+                    loginsToday = (data.loginsToday || 0) + 1;
+                }
+            }
+
+            await setDoc(userDocRef, {
                 name: user.displayName || "Unknown",
                 email: user.email || "No Email",
                 photoURL: user.photoURL || "",
-                lastLogin: new Date()
-            }, { merge: true }); // merge: true updates lastLogin if they exist, or creates them if new
-            console.log("User synced to Firebase database.");
+                lastLogin: new Date(),
+                loginsToday: loginsToday,
+                totalLogins: increment(1),
+                loginHistory: arrayUnion(new Date().toISOString()),
+                hasRated: false
+            }, { merge: true }); 
+            console.log("User synced to Firebase database with login history.");
         } catch (dbError) {
             console.error("Failed to sync user to Database:", dbError);
         }

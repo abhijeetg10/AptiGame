@@ -1,18 +1,20 @@
-import { collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, addDoc, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { initRatingSystem } from "./rating-system.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { db, auth } from "./firebase-config.js";
+import { GAME_CONFIG } from "./game-constants.js";
+import { Logger } from "./logger.js";
 
-// --- Game Constants ---
-const LEVELS_PER_MODULE = 18;
-const MODULE_TIME = 360; // 6 minutes
-const POINTS_PER_CORRECT = 3;
+// --- Constants & Config ---
+const { TOTAL_MODULES, LEVELS_PER_MODULE, MODULE_TIME_LIMIT, POINTS_PER_CORRECT } = GAME_CONFIG;
 
 // --- State Variables ---
+let highestUnlockedModule = 1;
 let currentModule = 1;
 let currentLevel = 1;
 let score = 0;
 let correctAnswers = 0;
-let timeLeft = MODULE_TIME;
+let timeLeft = MODULE_TIME_LIMIT;
 let timerInterval = null;
 const isMock = new URLSearchParams(window.location.search).get('mode') === 'mock';
 let currentData = null; // Stores data for 6 tabs
@@ -21,8 +23,8 @@ let activeTab = 0;
 let chartInstance = null;
 
 const sounds = {
-    correct: document.getElementById('sound-correct'),
-    wrong: document.getElementById('sound-wrong')
+    correct: new Audio('assets/sounds/correct.mp3'),
+    wrong: new Audio('assets/sounds/wrong.mp3')
 };
 
 // --- DOM Elements ---
@@ -53,8 +55,24 @@ const elBackToModulesBtn = document.getElementById('back-to-modules-btn');
 onAuthStateChanged(auth, (user) => {
     if (!user) {
         window.location.href = 'index.html';
+    } else {
+        loadUserProgress();
     }
 });
+
+// Fetch user progress
+async function loadUserProgress() {
+    const user = auth.currentUser;
+    if (user) {
+        try {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists() && userDoc.data().highestModule_di) {
+                highestUnlockedModule = userDoc.data().highestModule_di;
+            }
+        } catch (e) { console.error(e); }
+    }
+    initModuleGrid();
+}
 
 function initModuleGrid() {
     const modules = [
@@ -69,7 +87,12 @@ function initModuleGrid() {
     modules.forEach(m => {
         const card = document.createElement('div');
         card.className = "card module-card";
-        card.style.cursor = "pointer";
+        
+        const isLocked = m.id > highestUnlockedModule;
+        card.style.cursor = isLocked ? "not-allowed" : "pointer";
+        card.style.opacity = isLocked ? "0.5" : "1";
+        card.title = isLocked ? "Complete previous modules to unlock" : "Click to play";
+
         card.innerHTML = `
             <div class="card-img" style="height: 140px; background: ${m.color}; display: flex; align-items: center; justify-content: center;">
                 <span style="font-size: 4rem; font-weight: 800; color: white; opacity: 0.9;">${m.id}</span>
@@ -79,15 +102,14 @@ function initModuleGrid() {
                 <p>${m.desc}</p>
             </div>
         `;
-        card.onclick = () => startModule(m.id);
+        if (!isLocked) {
+            card.onclick = () => startModule(m.id);
+        }
         elModuleGrid.appendChild(card);
     });
 }
 
-if (!isMock) initModuleGrid();
-else {
-    setTimeout(() => startModule(1), 500);
-}
+// initModuleGrid() will be called from loadUserProgress()
 
 // --- Data Generation Engine ---
 function generateLevelData() {
@@ -268,7 +290,7 @@ window.startModule = (mod) => {
     currentLevel = 1;
     score = 0;
     correctAnswers = 0;
-    timeLeft = MODULE_TIME;
+    timeLeft = MODULE_TIME_LIMIT;
     
     elModuleSelection.classList.add('hidden');
     elResultsModal.classList.add('hidden');
@@ -304,7 +326,11 @@ window.handleAnswer = (ans) => {
     buttons.forEach(btn => btn.style.pointerEvents = 'none');
 
     // Find the clicked button
-    const clickedBtn = Array.from(buttons).find(btn => btn.innerText.toLowerCase().includes(ans.toLowerCase().replace("'", "")));
+    const clickedBtn = Array.from(buttons).find(btn => {
+        const btnText = btn.innerText.toLowerCase().replace(/['’]/g, "");
+        const searchText = ans.toLowerCase().replace(/['’]/g, "");
+        return btnText.includes(searchText);
+    });
 
     if (ans === currentSolution) {
         score += POINTS_PER_CORRECT;
@@ -318,7 +344,11 @@ window.handleAnswer = (ans) => {
         
         // Also highlight the correct one after a short delay
         setTimeout(() => {
-            const correctBtn = Array.from(buttons).find(btn => btn.innerText.toLowerCase().includes(currentSolution.toLowerCase().replace("'", "")));
+            const correctBtn = Array.from(buttons).find(btn => {
+                const btnText = btn.innerText.toLowerCase().replace(/['’]/g, "");
+                const searchText = currentSolution.toLowerCase().replace(/['’]/g, "");
+                return btnText.includes(searchText);
+            });
             if (correctBtn) correctBtn.classList.add('correct');
         }, 300);
 
@@ -349,6 +379,9 @@ function startTimer() {
 
 async function endGame() {
     clearInterval(timerInterval);
+    const ratingContainer = document.getElementById('rating-section');
+    if (ratingContainer) initRatingSystem(ratingContainer);
+
     elResultsModal.classList.remove('hidden');
     elScoreText.innerText = `${correctAnswers} / ${LEVELS_PER_MODULE}`;
     elFinalMarks.innerText = score;
@@ -361,10 +394,19 @@ async function endGame() {
                 name: user.displayName,
                 score: score,
                 totalLevels: LEVELS_PER_MODULE,
-                metrics: { correctAnswers, timeSpent: MODULE_TIME - timeLeft },
+                metrics: { correctAnswers, timeSpent: MODULE_TIME_LIMIT - timeLeft },
                 timestamp: new Date()
             });
-        } catch (e) { console.error(e); }
+            // Save Module Progression
+            const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1);
+            if (moduleReached > highestUnlockedModule) {
+                await updateDoc(doc(db, "users", user.uid), {
+                    highestModule_di: moduleReached
+                });
+            }
+        } catch (e) {
+            Logger.handleFirestoreError("saveScore_di", e);
+        }
     }
 
     elNextModuleBtn.onclick = () => {

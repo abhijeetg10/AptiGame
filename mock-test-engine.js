@@ -1,4 +1,5 @@
-import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, addDoc, serverTimestamp, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { db, auth } from "./firebase-config.js";
 
 // --- CONFIGURATION ---
@@ -291,7 +292,6 @@ async function updateFirestoreRecord(status = "in-progress") {
     if (!currentState.firestoreId) return;
     
     try {
-        const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
         const user = auth.currentUser;
         
         const updateData = {

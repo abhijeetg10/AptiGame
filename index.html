@@ -59,7 +59,7 @@
                 <p>Master the interactive logic challenges used by top MNCs. Stop reading boring prep books and start
                     playing your way to an offer letter.</p>
     
-                <div id="hero-profile-btn-container" class="hidden" style="margin-top: 2rem; margin-bottom: 2rem;">
+                <div id="hero-profile-btn-container" style="margin-top: 2rem; margin-bottom: 2rem;">
                     <a href="profile.html" class="btn btn-primary" style="padding: 1rem 2rem; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.75rem; box-shadow: 0 8px 20px rgba(201, 0, 118, 0.2);">
                         View My Analysis Profile <i class="fas fa-chart-line"></i>
                     </a>
@@ -542,8 +542,8 @@
                 podiumContainer.appendChild(slot);
             });
 
-            // 2. Render List (Ranks 4+)
-            const listData = data.slice(3);
+            // 2. Render List (Ranks 4-10)
+            const listData = data.slice(3, 10);
             const userRankRow = document.getElementById('user-rank-row');
             const userRankGuest = document.getElementById('user-rank-guest');
             const currentUserName = window.activeUserName || null;
@@ -591,13 +591,9 @@
                 userRankGuest.style.display = 'block';
             }
 
-            // 4. Handle "See More" Button logic
+            // 4. Handle "See More" Button logic - Hidden for Top 10 Limit
             const toggleContainer = document.getElementById('see-more-container');
-            if (data.length <= 3) {
-                toggleContainer.style.display = 'none';
-            } else {
-                toggleContainer.style.display = 'block';
-            }
+            if (toggleContainer) toggleContainer.style.display = 'none';
         }
 
         /**
@@ -667,63 +663,6 @@
             }
         });
 
-        // --- Personal Dashboard Logic ---
-        function updatePersonalStats(docs, currentUserName) {
-            const userDocs = docs.filter(d => d.name === currentUserName);
-            if (userDocs.length === 0) return;
-
-            let totalSolved = 0;
-            let totalPossible = 0;
-            let totalTime = 0;
-            let timeCount = 0;
-            let motionMoves = 0;
-            let motionMin = 0;
-
-            userDocs.forEach(d => {
-                let levels = d.totalLevels || 18;
-                if (d._sourceCategory === 'sudoku' || d._sourceCategory === 'motion' || d._sourceCategory === 'switch') levels = d.totalLevels || 10;
-                if (d._sourceCategory === 'inductive') levels = d.totalLevels || 12;
-                totalPossible += levels;
-
-                if (d.metrics) {
-                    totalSolved += (d.metrics.correctLevels || d.metrics.correctAnswers || d.metrics.correctCount || d.score || 0);
-                    
-                    if (d.metrics.timeSpent) {
-                        totalTime += d.metrics.timeSpent;
-                        timeCount += d.score; 
-                    }
-                    if (d.metrics.totalMoves) {
-                        motionMoves += d.metrics.totalMoves;
-                        motionMin += d.metrics.minMoves || 0;
-                    }
-                } else {
-                    totalSolved += d.score || 0;
-                }
-            });
-
-            const accuracy = Math.round((totalSolved / totalPossible) * 100) || 0;
-            const avgSpeed = timeCount > 0 ? Math.round(totalTime / timeCount) : 0;
-            const efficiency = motionMin > 0 ? Math.round((motionMin / motionMoves) * 100) : 0;
-
-            document.getElementById('user-accuracy').innerText = `${accuracy}%`;
-            document.getElementById('user-speed').innerText = `${avgSpeed}s / level`;
-            document.getElementById('user-efficiency').innerText = `${efficiency}%`;
-
-            // Dynamic insights
-            const accNode = document.getElementById('accuracy-insight');
-            if (accuracy > 85) accNode.innerText = "Elite Precision! 🌟";
-            else if (accuracy > 70) accNode.innerText = "Great job, keep it up!";
-            else accNode.innerText = "Focus on accuracy over speed.";
-
-            const speedNode = document.getElementById('speed-insight');
-            if (avgSpeed < 15 && avgSpeed > 0) speedNode.innerText = "Lightning Fast! ⚡";
-            else speedNode.innerText = "Benchmark: 20s/level";
-
-            const effNode = document.getElementById('efficiency-insight');
-            if (efficiency > 80) effNode.innerText = "Master Architect! 📐";
-            else effNode.innerText = "Motion Challenge Stat";
-        }
-
         // 4. Create the Fetch Function
         window.fetchFromFirebase = async function(category) {
             try {
@@ -749,10 +688,7 @@
                     });
                 }
                 
-                window.allDocsRaw = allDocs; // Save for personal stats
-                if (window.activeUserName) {
-                    updatePersonalStats(allDocs, window.activeUserName);
-                }
+                window.allDocsRaw = allDocs; // Save for personal stats (internal use)
 
                 // 1. AGGREGATE BY NAME (Cumulative)
                 const userTotals = {};
@@ -893,7 +829,7 @@
                         email: emailNode.value,
                         type: typeNode.value,
                         message: msgNode.value,
-                        timestamp: new Date()
+                        timestamp: serverTimestamp()
                     });
                     
                     alert("Success! Your feedback has been received. Thank you for helping us improve!");

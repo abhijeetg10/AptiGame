@@ -114,8 +114,11 @@ async function fetchOverviewAndUsers() {
             allUsersData.push({
                 name: data.name || "Unknown",
                 email: data.email || "No Email",
+                loginsToday: data.loginsToday || 0,
+                totalLogins: data.totalLogins || 0,
                 lastLogin: lastLoginStr,
-                id: doc.id
+                id: doc.id,
+                history: data.loginHistory || []
             });
 
             // Build Table Row
@@ -130,8 +133,14 @@ async function fetchOverviewAndUsers() {
                     </div>
                 </td>
                 <td style="color:var(--pluto-text-muted);">${data.email || "No Email"}</td>
+                <td style="text-align:center; font-weight:700; color:var(--pluto-orange);">${data.loginsToday || 0}</td>
+                <td style="text-align:center; font-weight:700;">${data.totalLogins || 0}</td>
                 <td>${lastLoginStr}</td>
-                <td style="font-family:monospace; font-size:0.8rem; color:var(--pluto-text-muted);">${doc.id}</td>
+                <td>
+                    <button class="btn btn-outline show-history-btn" data-id="${doc.id}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                        <i class="fas fa-history"></i> History
+                    </button>
+                </td>
             `;
             tbody.appendChild(tr);
 
@@ -147,17 +156,26 @@ async function fetchOverviewAndUsers() {
         });
 
         if (userCount === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No users registered yet.</td></tr>`;
-            activityHTML = `<p style="text-align:center; color: var(--text-muted); padding: 2rem;">No recent activity.</p>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No users registered yet.</td></tr>`;
+            activityHTML = `<p style="text-align:center; color: var(--pluto-text-muted); padding: 2rem;">No recent activity.</p>`;
+        } else {
+            // Add listeners for history buttons
+            document.querySelectorAll(".show-history-btn").forEach(btn => {
+                btn.onclick = (e) => {
+                    e.preventDefault();
+                    showLoginHistory(btn.getAttribute("data-id"));
+                };
+            });
         }
 
         // Update Stats
         document.getElementById("stat-total-users").innerText = userCount;
-        document.getElementById("recent-activity-list").innerHTML = activityHTML;
+        const recentActivityEl = document.getElementById("recent-activity-list");
+        if (recentActivityEl) recentActivityEl.innerHTML = activityHTML;
         
     } catch (e) {
         console.error("Error fetching users:", e);
-        document.getElementById("table-body-users").innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Error loading users.</td></tr>`;
+        document.getElementById("table-body-users").innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">Error loading users.</td></tr>`;
     }
 }
 
@@ -181,12 +199,6 @@ async function fetchLeaderboardData(gameId) {
             let displayScore = "0";
             if (typeof data.score === "number") {
                 let total = data.totalLevels || 18;
-                if (!data.totalLevels) {
-                    if (gameId === 'sudoku') total = 10;
-                    if (gameId === 'motion') total = 10;
-                    if (gameId === 'inductive') total = 12;
-                    if (gameId === 'grid') total = 18;
-                }
                 displayScore = `${data.score} / ${total}`;
             } else if (typeof data.score === "string") {
                 displayScore = data.score;
@@ -593,3 +605,43 @@ if (btnResetLeaderboards) {
         }
     });
 }
+
+// --- LOGIN HISTORY MODAL ---
+function showLoginHistory(userId) {
+    const user = allUsersData.find(u => u.id === userId);
+    if (!user) return;
+
+    document.getElementById("history-user-name").innerText = `${user.name}'s Login History`;
+    const list = document.getElementById("history-list");
+    list.innerHTML = "";
+
+    if (!user.history || user.history.length === 0) {
+        list.innerHTML = '<li class="history-item">No history recorded yet.</li>';
+    } else {
+        // Show last 50 logins reversed
+        const historyToShow = [...user.history].reverse().slice(0, 50);
+        historyToShow.forEach(iso => {
+            const date = new Date(iso);
+            const item = document.createElement("li");
+            item.className = "history-item";
+            item.innerHTML = `
+                <span>${date.toLocaleDateString()}</span>
+                <span style="color:var(--pluto-text-muted);">${date.toLocaleTimeString()}</span>
+            `;
+            list.appendChild(item);
+        });
+    }
+
+    document.getElementById("login-history-modal").classList.remove("hidden");
+}
+
+document.getElementById("close-history-modal").onclick = () => {
+    document.getElementById("login-history-modal").classList.add("hidden");
+};
+
+window.onclick = (event) => {
+    const modal = document.getElementById("login-history-modal");
+    if (event.target === modal) {
+        modal.classList.add("hidden");
+    }
+};

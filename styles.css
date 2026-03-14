@@ -25,6 +25,10 @@
     box-sizing: border-box;
 }
 
+.hidden {
+    display: none !important;
+}
+
 body {
     font-family: 'Inter', sans-serif;
     color: var(--text-main);
@@ -863,15 +867,15 @@ img {
     color: var(--text-muted);
 }
 
-/* --- Companies Section --- */
-.companies {
+/* --- Leaderboard Section --- */
+.leaderboard {
     padding: 5rem 2rem;
     text-align: center;
     max-width: 1000px;
     margin: 0 auto;
 }
 
-.companies h2 {
+.leaderboard h2 {
     font-size: 1.5rem;
     color: var(--text-muted);
     margin-bottom: 2.5rem;
@@ -1294,16 +1298,14 @@ img {
 @media (max-width: 768px) {
     .nav-links {
         display: none;
-        /* simple mobile menu hiding for now */
     }
 
     .hero h1 {
-        font-size: 2.5rem;
+        font-size: 2.25rem;
     }
 
     .hero-visuals {
         display: none;
-        /* hide complex layout on small screens for simplicity */
     }
 
     .steps {
@@ -1320,6 +1322,42 @@ img {
 
     .benefits-header h2 {
         font-size: 2rem;
+    }
+
+    /* Scaling game components for mobile */
+    .sudoku-grid {
+        --cell-size: 40px !important;
+        gap: 2px !important;
+    }
+
+    .motion-board {
+        --cell-size: 40px !important;
+    }
+
+    .option-btn {
+        width: 50px !important;
+        height: 50px !important;
+    }
+
+    .shape {
+        width: 25px !important;
+        height: 25px !important;
+    }
+
+    .shape-triangle {
+        border-left-width: 12px !important;
+        border-right-width: 12px !important;
+        border-bottom-width: 22px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .sudoku-grid {
+        --cell-size: 30px !important;
+    }
+
+    .motion-board {
+        --cell-size: 30px !important;
     }
 }
 
@@ -1473,13 +1511,14 @@ img {
     gap: 4px;
     margin-bottom: 3rem;
     background-color: var(--border-color);
-    /* The gap forms the inner grid lines on top of the border-color background */
+    /* Dynamic scaling */
+    --cell-size: 60px;
 }
 
 .sudoku-cell {
     background: white;
-    width: 60px;
-    height: 60px;
+    width: var(--cell-size);
+    height: var(--cell-size);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1696,12 +1735,12 @@ img {
     background-color: #e2e8f0;
     border: 2px solid #cbd5e1;
     overflow: hidden;
-    /* Grid background using repeating linear gradients */
+    /* Dynamic scaling */
+    --cell-size: 60px;
     background-image:
         linear-gradient(to right, #cbd5e1 1px, transparent 1px),
         linear-gradient(to bottom, #cbd5e1 1px, transparent 1px);
-    background-size: 60px 60px;
-    /* CELL_SIZE */
+    background-size: var(--cell-size) var(--cell-size);
 }
 
 /* Base class for all entities on the motion board */
