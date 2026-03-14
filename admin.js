@@ -379,7 +379,10 @@ async function fetchRatings() {
             const tr = document.createElement("tr");
             tr.innerHTML = `
                 <td style="white-space: nowrap; color:var(--pluto-text-muted); font-size:0.85rem;">${dateStr}</td>
-                <td><strong>${data.userName || "Guest"}</strong></td>
+                <td>
+                    <strong>${data.userName || "Guest"}</strong>
+                    <div style="font-size: 0.75rem; color: var(--pluto-text-muted); opacity: 0.8;">${data.userEmail || ""}</div>
+                </td>
                 <td>
                     <div style="color: #fbbf24; font-weight: bold;">
                         ${data.rating} <i class="fas fa-star" style="font-size:0.8rem;"></i>
