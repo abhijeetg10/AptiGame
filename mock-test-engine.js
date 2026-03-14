@@ -129,8 +129,8 @@ function init() {
     // 2. Setup Listeners
     setupListeners();
 
-    // 3. Proctoring Setup
-    setupProctoring();
+    // 3. Proctoring Setup (Disabled as requested)
+    // setupProctoring();
 
     sessionStorage.setItem('mock_test_active', 'true');
     saveState();
