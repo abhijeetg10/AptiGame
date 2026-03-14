@@ -246,15 +246,15 @@ function handleAnswer(selectedCode) {
     if (isCorrect) {
         score += 3;
         correctCount++;
-        showFeedback(true);
+        showFeedback(true, currentSolution);
     } else {
         // No negative mark
         wrongCount++;
-        showFeedback(false);
+        showFeedback(false, currentSolution);
     }
 }
 
-function showFeedback(isCorrect) {
+function showFeedback(isCorrect, solution = "") {
     const el = document.getElementById('feedback-popup');
     el.classList.remove('hidden');
     
@@ -264,7 +264,7 @@ function showFeedback(isCorrect) {
         elFeedbackPoints.innerText = '+3 MARKS';
         confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
     } else {
-        elFeedbackStatus.innerText = 'WRONG';
+        elFeedbackStatus.innerHTML = `WRONG<br><span style="font-size: 0.9rem; opacity: 0.8; font-weight: 500;">Correct: ${solution}</span>`;
         el.style.color = '#ef4444';
         elFeedbackPoints.innerText = '';
     }

@@ -346,6 +346,8 @@ window.handleAnswer = (ans) => {
         sounds.wrong.play().catch(() => {});
         if (clickedBtn) clickedBtn.classList.add('incorrect');
         
+        showFeedbackPopup(`WRONG!<br><span style="font-size: 0.9rem; opacity: 0.8; font-weight: 500;">Answer: ${currentSolution}</span>`, "", "#ef4444");
+
         // Also highlight the correct one after a short delay
         setTimeout(() => {
             const correctBtn = Array.from(buttons).find(btn => {
@@ -354,9 +356,7 @@ window.handleAnswer = (ans) => {
                 return btnText.includes(searchText);
             });
             if (correctBtn) correctBtn.classList.add('correct');
-        }, 300);
-
-        showFeedbackPopup("WRONG!", "NO MARKS", "#ef4444");
+        }, 500);
     }
     
     currentLevel++;
