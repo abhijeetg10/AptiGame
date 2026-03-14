@@ -74,16 +74,25 @@ async function syncUserToFirestore(user) {
             }
         }
 
-        await setDoc(userDocRef, {
-            name: user.displayName || "Unknown",
-            email: user.email || "No Email",
-            photoURL: user.photoURL || "",
+        // SMART SYNC: Only overwrite if we actually have data, otherwise keep existing
+        const updateData = {
             lastLogin: new Date(),
-            // Only defaults if new doc
+            photoURL: user.photoURL || "",
             loginsToday: loginsToday,
-            totalLogins: increment(0), // Just ensuring the field exists
+            totalLogins: increment(0),
             hasRated: hasRated
-        }, { merge: true }); 
+        };
+
+        if (user.displayName) updateData.name = user.displayName;
+        if (user.email) updateData.email = user.email;
+
+        // If it's a completely new user and we STILL don't have a name, then we use "Visitor" instead of "Unknown"
+        if (!userSnap.exists() && !updateData.name) {
+            updateData.name = "AptiVerse Player";
+            updateData.email = "Guest Mode";
+        }
+
+        await setDoc(userDocRef, updateData, { merge: true }); 
     } catch (e) {
         console.error("Auto-sync failed:", e);
     }
