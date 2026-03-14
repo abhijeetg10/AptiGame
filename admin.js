@@ -101,8 +101,14 @@ async function fetchAllData() {
 // 1. Users & Overview
 async function fetchOverviewAndUsers() {
     try {
-        const q = query(collection(db, "users"), orderBy("lastLogin", "desc"));
-        const snapshot = await getDocs(q);
+        let snapshot;
+        try {
+            const q = query(collection(db, "users"), orderBy("lastLogin", "desc"));
+            snapshot = await getDocs(q);
+        } catch (indexError) {
+            console.warn("User index missing, falling back to non-ordered fetch:", indexError);
+            snapshot = await getDocs(collection(db, "users"));
+        }
         
         const tbody = document.getElementById("table-body-users");
         tbody.innerHTML = "";
@@ -111,14 +117,33 @@ async function fetchOverviewAndUsers() {
         let userCount = 0;
         let activityHTML = "";
 
+        let docs = [];
         snapshot.forEach(doc => {
             const data = doc.data();
+            data._id = doc.id;
+            docs.push(data);
+        });
+
+        // Client-side sort fallback if index missing
+        docs.sort((a,b) => {
+            const da = a.lastLogin?.toDate ? a.lastLogin.toDate() : new Date(a.lastLogin || 0);
+            const db = b.lastLogin?.toDate ? b.lastLogin.toDate() : new Date(b.lastLogin || 0);
+            return db - da;
+        });
+
+        docs.forEach(data => {
             userCount++;
             
             // Format Date safely
             let lastLoginStr = "Unknown";
-            if(data.lastLogin && data.lastLogin.toDate) {
-                lastLoginStr = data.lastLogin.toDate().toLocaleString();
+            if (data.lastLogin) {
+                if (data.lastLogin.toDate) {
+                    lastLoginStr = data.lastLogin.toDate().toLocaleString();
+                } else if (data.lastLogin instanceof Date) {
+                    lastLoginStr = data.lastLogin.toLocaleString();
+                } else {
+                    lastLoginStr = new Date(data.lastLogin).toLocaleString();
+                }
             }
 
             // Save to global array for CSV export
@@ -126,9 +151,9 @@ async function fetchOverviewAndUsers() {
                 name: data.name || "Unknown",
                 email: data.email || "No Email",
                 loginsToday: data.loginsToday || 0,
-                totalLogins: data.totalLogins || 0,
+                totalLogins: typeof data.totalLogins === 'object' ? 0 : (data.totalLogins || 0),
                 lastLogin: lastLoginStr,
-                id: doc.id,
+                id: data._id,
                 history: data.loginHistory || []
             });
 
@@ -143,12 +168,12 @@ async function fetchOverviewAndUsers() {
                         <strong>${data.name || "Unknown"}</strong>
                     </div>
                 </td>
-                <td style="color:var(--pluto-text-muted);">${data.email || "No Email"}</td>
-                <td style="text-align:center; font-weight:700; color:var(--pluto-orange);">${data.loginsToday || 0}</td>
-                <td style="text-align:center; font-weight:700;">${data.totalLogins || 0}</td>
+                <td style="color:var(--admin-text-muted);">${data.email || "No Email"}</td>
+                <td style="text-align:center; font-weight:700; color:var(--warning);">${data.loginsToday || 0}</td>
+                <td style="text-align:center; font-weight:700;">${typeof data.totalLogins === 'object' ? 1 : (data.totalLogins || 0)}</td>
                 <td>${lastLoginStr}</td>
                 <td>
-                    <button class="btn btn-outline show-history-btn" data-id="${doc.id}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                    <button class="btn btn-outline show-history-btn" data-id="${data._id}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
                         <i class="fas fa-history"></i> History
                     </button>
                 </td>
@@ -158,9 +183,9 @@ async function fetchOverviewAndUsers() {
             // Build Recent Activity list (just grab the 5 most recent logins)
             if(userCount <= 5) {
                 activityHTML += `
-                    <div style="padding: 1rem; display:flex; justify-content: space-between;">
-                        <span><strong>${data.name}</strong> logged into the portal.</span>
-                        <span style="color: var(--pluto-text-muted); font-size: 0.85rem;">${lastLoginStr}</span>
+                    <div style="padding: 1rem; display:flex; justify-content: space-between; border-bottom: 1px solid var(--admin-border); animation: fadeIn 0.3s ease forwards;">
+                        <span><strong>${data.name || "Unknown"}</strong> logged into the portal.</span>
+                        <span style="color: var(--admin-text-muted); font-size: 0.85rem;">${lastLoginStr}</span>
                     </div>
                 `;
             }

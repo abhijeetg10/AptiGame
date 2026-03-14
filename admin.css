@@ -296,8 +296,8 @@ body.admin-body {
 
 .activity-list p { margin: 0; }
 .activity-list > div {
-    color: var(--pluto-text);
-    border-bottom: 1px solid var(--pluto-border) !important;
+    color: var(--admin-text-main);
+    border-bottom: 1px solid var(--admin-border) !important;
 }
 
 @keyframes fadeIn {
