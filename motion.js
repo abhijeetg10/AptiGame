@@ -94,7 +94,7 @@ async function loadUserProgress() {
             if (userSnap.exists()) {
                 const data = userSnap.data();
                 if (data.highestModule_motion) {
-                    highestUnlockedModule = Math.max(5, data.highestModule_motion);
+                    highestUnlockedModule = Math.max(5, data.highestModule_motion || 1);
                 }
             }
         } catch (e) {
