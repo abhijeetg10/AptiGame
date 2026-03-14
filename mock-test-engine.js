@@ -165,6 +165,18 @@ function setupListeners() {
         loadModule(currentState.currentModuleIndex);
     };
 
+    // SKIP SECTION Logic
+    const skipBtn = document.getElementById('skip-section-btn');
+    if (skipBtn) {
+        skipBtn.onclick = () => {
+            if (currentState.isPaused) return; // Don't skip during instructions
+            if (confirm("Skip this section? You will receive 0 marks for this module, but it will let you continue the test.")) {
+                handleModuleComplete(0);
+                renderSidebar();
+            }
+        };
+    }
+
     // Listen for signals from child iframe
     window.addEventListener('message', (event) => {
         if(event.data.type === 'MODULE_COMPLETE') {

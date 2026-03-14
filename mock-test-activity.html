@@ -385,9 +385,14 @@
 
         <div class="timer-box" id="global-timer">24:00</div>
 
-        <button class="exit-btn" onclick="abortTest()">
-            <i class="fas fa-sign-out-alt"></i> ABORT TEST
-        </button>
+        <div style="display: flex; gap: 1rem;">
+            <button class="exit-btn" id="skip-section-btn" style="background: rgba(201, 0, 118, 0.05); color: var(--primary); border-color: rgba(201, 0, 118, 0.2);">
+                <i class="fas fa-forward"></i> SKIP SECTION
+            </button>
+            <button class="exit-btn" onclick="abortTest()">
+                <i class="fas fa-sign-out-alt"></i> ABORT TEST
+            </button>
+        </div>
     </nav>
 
     <div class="progress-bar" style="top: 80px;">
