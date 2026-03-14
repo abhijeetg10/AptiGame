@@ -59,13 +59,19 @@ async function syncUserToFirestore(user) {
         if (userSnap.exists()) {
             firestoreData = userSnap.data();
             hasRated = firestoreData.hasRated || false;
-        if (user.displayName) {
-            updateData.name = user.displayName;
+            loginsToday = firestoreData.loginsToday || 1;
         }
-        
-        if (user.email) {
-            updateData.email = user.email;
-        }
+
+        const updateData = {
+            lastLogin: new Date(),
+            photoURL: user.photoURL || "",
+            loginsToday: loginsToday,
+            totalLogins: increment(0),
+            hasRated: hasRated
+        };
+
+        if (user.displayName) updateData.name = user.displayName;
+        if (user.email) updateData.email = user.email;
 
         await setDoc(userDocRef, updateData, { merge: true }); 
     } catch (e) {
