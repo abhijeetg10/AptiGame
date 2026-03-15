@@ -12,7 +12,7 @@ const ASSETS_TO_CACHE = [
   'grid.html',
   'grid.js',
   'switch.html',
-  'switch.js',
+  'switch-v2.js',
   'sudoku.html',
   'sudoku.js',
   'inductive.html',
