@@ -352,8 +352,13 @@ async function endModule(customTitle) {
     saveScoreToFirebase();
 }
 
+// --- Compatibility Layer for Cached Browsers ---
+window.finishModule = function(title) {
+    console.warn("finishModule called (legacy). Redirecting to endModule.");
+    endModule(title);
+};
+
 function nextModule() {
-    currentModule++;
     currentLevel = 1;
     score = 0;
     correctCount = 0;
