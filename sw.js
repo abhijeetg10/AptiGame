@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aptiverse-v2';
+const CACHE_NAME = 'aptiverse-v3';
 const ASSETS_TO_CACHE = [
   '/',
   'index.html',
@@ -33,9 +33,10 @@ const ASSETS_TO_CACHE = [
 
 // Install Service Worker
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Opened cache');
+      console.log('Opened cache v3');
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
@@ -48,19 +49,20 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
-// Fetch events (Cache-first strategy)
+// Fetch events (Network-first strategy for better debugging)
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
     })
   );
 });
