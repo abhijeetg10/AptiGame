@@ -378,14 +378,22 @@ async function saveScoreToFirebase(btnElement = null, redirectCallback = null) {
             const scoreSnap = await getDoc(scoreRef);
             
             let existingModuleScores = {};
+            let cumulativeCorrect = 0;
             if (scoreSnap.exists()) {
                 const oldData = scoreSnap.data();
                 if (oldData.moduleScores) {
                     existingModuleScores = oldData.moduleScores;
                 }
+                if (oldData.metrics && oldData.metrics.correctCount) {
+                    cumulativeCorrect = oldData.metrics.correctCount;
+                }
             }
 
+            // Only add the new module's correct count if it's the first time or a better score
             if (existingModuleScores[currentModule] === undefined || score > existingModuleScores[currentModule]) {
+                // If we are improving the score for this module, we need to adjust cumulativeCorrect
+                const previousBestCorrect = existingModuleScores[currentModule] ? Math.floor(existingModuleScores[currentModule] / 3) : 0;
+                cumulativeCorrect = (cumulativeCorrect - previousBestCorrect) + correctCount;
                 existingModuleScores[currentModule] = score;
             }
 
@@ -402,8 +410,9 @@ async function saveScoreToFirebase(btnElement = null, redirectCallback = null) {
                 totalLevels: totalPossible,
                 moduleScores: existingModuleScores,
                 metrics: {
-                    correctCount: correctCount,
-                    totalMarks: score,
+                    correctCount: cumulativeCorrect,
+                    totalMarks: totalScore,
+                    lastModuleMarks: score,
                     timeSpent: MODULE_TIME_LIMIT - timeLeft
                 },
                 timestamp: new Date()
@@ -411,7 +420,7 @@ async function saveScoreToFirebase(btnElement = null, redirectCallback = null) {
 
             await setDoc(scoreRef, payload, { merge: true });
 
-            // Progression
+            // Progression & Denormalization
             const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1);
             await setDoc(doc(db, "users", user.uid), {
                 [`highestModule_switch`]: moduleReached,
@@ -425,6 +434,20 @@ async function saveScoreToFirebase(btnElement = null, redirectCallback = null) {
                 btnElement.innerText = "Progress Saved!";
                 btnElement.style.backgroundColor = "#10b981";
             }
+        } else {
+            // Guest Fallback (Standard Collection)
+            await addDoc(collection(db, "leaderboards", "switch", "scores"), {
+                name: "Guest Player",
+                score: score,
+                totalLevels: LEVELS_PER_MODULE,
+                metrics: {
+                    correctCount: correctCount,
+                    totalMarks: score,
+                    timeSpent: MODULE_TIME_LIMIT - timeLeft
+                },
+                timestamp: new Date()
+            });
+            if (btnElement) btnElement.innerText = "Score Saved!";
         }
     } catch (error) {
         console.error("Save failed:", error);
