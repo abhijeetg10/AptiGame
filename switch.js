@@ -1,3 +1,4 @@
+console.log("Switch Logic Loaded - Version 2.0.2");
 import { db, auth } from "./firebase-config.js";
 import { ActivityLogger } from "./activity-logger.js";
 import { collection, addDoc, doc, setDoc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
