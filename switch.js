@@ -1,6 +1,6 @@
 import { db, auth } from "./firebase-config.js";
 import { ActivityLogger } from "./activity-logger.js";
-import { collection, addDoc, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, addDoc, doc, setDoc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { initRatingSystem } from "./rating-system.js";
 import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { getCurrentUser } from "./auth.js";
@@ -293,25 +293,45 @@ function showFeedback(isCorrect, solution = "") {
 }
 
 async function endModule(customTitle) {
-    clearInterval(timerInterval);
+    if (timerInterval) clearInterval(timerInterval);
+    isGameActive = false;
+
     ActivityLogger.log('solve', 'switch');
+
     if (isMock) {
         window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
         return;
     }
-    isGameActive = false;
-    
+
     const modal = document.getElementById('results-modal');
-    const ratingContainer = document.getElementById('rating-section');
-    if (ratingContainer) initRatingSystem(ratingContainer);
-
     modal.classList.remove('hidden');
-    
-    document.getElementById('score-text').innerText = `${correctCount} / ${LEVELS_PER_MODULE}`;
-    document.getElementById('final-marks').innerText = score;
-    document.getElementById('accuracy-text').innerText = `${Math.round((correctCount/LEVELS_PER_MODULE)*100)}%`;
+    modal.style.display = 'flex';
 
-    // Add LinkedIn Share Button
+    if (customTitle) document.getElementById('modal-title').innerText = customTitle;
+
+    document.getElementById('score-text').innerText = `${correctCount} / ${LEVELS_PER_MODULE}`;
+    document.getElementById('correct-count').innerText = correctCount;
+    document.getElementById('wrong-count').innerText = wrongCount;
+    document.getElementById('final-marks').innerText = score;
+
+    const elNextBtn = document.getElementById('next-module-btn');
+    const isGameOver = currentModule >= TOTAL_MODULES || customTitle === "Time's Up!";
+
+    if (isGameOver) {
+        elNextBtn.innerText = "Finish & Exit";
+        elNextBtn.onclick = () => {
+            saveScoreToFirebase(elNextBtn, () => {
+                window.location.href = "index.html";
+            });
+        };
+    } else {
+        elNextBtn.innerText = "Start Next Module";
+        elNextBtn.onclick = () => {
+            saveScoreToFirebase(elNextBtn, nextModule);
+        };
+    }
+
+    // Add LinkedIn Share Button if not exists
     let linkedinBtn = document.getElementById('linkedin-share-btn');
     if (!linkedinBtn) {
         linkedinBtn = document.createElement('button');
@@ -320,95 +340,113 @@ async function endModule(customTitle) {
         linkedinBtn.style.marginTop = '0.5rem';
         linkedinBtn.style.width = '100%';
         linkedinBtn.innerHTML = '<i class="fab fa-linkedin"></i> Share on LinkedIn';
-        linkedinBtn.onclick = () => {
-            const text = `I just completed Switch Challenge Module ${currentModule} on AptiVerse with ${correctCount}/${LEVELS_PER_MODULE} correct! 🚀 #AptitudeReasoning #AptiVerse`;
-            const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
-            window.open(url, '_blank', 'width=600,height=400');
-        };
-        modal.querySelector('.modal-content').appendChild(linkedinBtn);
+        linkedinBtn.onclick = shareOnLinkedIn;
+        elNextBtn.parentNode.insertBefore(linkedinBtn, elNextBtn.nextSibling);
     }
+
+    const ratingContainer = document.getElementById('rating-section');
+    if (ratingContainer) initRatingSystem(ratingContainer);
     
-    const user = await getCurrentUser();
-    if (user) {
-        try {
-            // 1. PRIORITIZE PROGRESSION
-            try {
-                const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1);
-                if (moduleReached > highestUnlockedModule) {
-                    highestUnlockedModule = moduleReached;
-                    await setDoc(doc(db, "users", user.uid), {
-                        highestModule_switch: moduleReached
-                    }, { merge: true });
-                    console.log("Switch progression saved.");
+    // Autosave in background
+    saveScoreToFirebase();
+}
+
+function nextModule() {
+    currentModule++;
+    currentLevel = 1;
+    score = 0;
+    correctCount = 0;
+    wrongCount = 0;
+    timeLeft = MODULE_TIME_LIMIT;
+    
+    document.getElementById('results-modal').classList.add('hidden');
+    document.getElementById('results-modal').style.display = 'none';
+    
+    startModule(currentModule);
+}
+
+async function saveScoreToFirebase(btnElement = null, redirectCallback = null) {
+    if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.innerText = "Saving...";
+    }
+
+    try {
+        const user = await getCurrentUser();
+        if (user) {
+            const scoreRef = doc(db, "leaderboards", "switch", "scores", user.uid);
+            const scoreSnap = await getDoc(scoreRef);
+            
+            let existingModuleScores = {};
+            if (scoreSnap.exists()) {
+                const oldData = scoreSnap.data();
+                if (oldData.moduleScores) {
+                    existingModuleScores = oldData.moduleScores;
                 }
-            } catch (progError) {
-                console.error("Switch progression save failed:", progError);
             }
 
-            // 2. ATTEMPT LEADERBOARD (Non-blocking)
-            try {
-                const scoreRef = doc(db, "leaderboards", "switch", "scores", user.uid);
-                const scoreSnap = await getDoc(scoreRef);
-                
-                let existingModuleScores = {};
-                if (scoreSnap.exists()) {
-                    const oldData = scoreSnap.data();
-                    if (oldData.moduleScores) {
-                        existingModuleScores = oldData.moduleScores;
-                    } else if (typeof oldData.score === "number") {
-                        existingModuleScores["1"] = oldData.score; // Migration
-                    }
-                }
-
-                if (existingModuleScores[currentModule] === undefined || score > existingModuleScores[currentModule]) {
-                    existingModuleScores[currentModule] = score;
-                }
-
-                let totalScore = 0;
-                let totalPossible = 0;
-                for (const mod in existingModuleScores) {
-                    totalScore += existingModuleScores[mod];
-                    totalPossible += LEVELS_PER_MODULE; 
-                }
-
-                await setDoc(scoreRef, {
-                    name: user.displayName || "Guest Player",
-                    score: totalScore,
-                    totalLevels: totalPossible,
-                    moduleScores: existingModuleScores,
-                    metrics: {
-                        correctCount: correctCount,
-                        totalMarks: score,
-                        timeSpent: MODULE_TIME_LIMIT - timeLeft
-                    },
-                    timestamp: new Date()
-                }, { merge: true });
-                console.log("Switch leaderboard updated.");
-                // DENORMALIZATION
-                const userDocRef = doc(db, "users", user.uid);
-                const updateField = `gameScores.${isMock ? 'mock_' : ''}switch`;
-                await setDoc(userDocRef, {
-                    totalScore: increment(score),
-                    modulesCompleted: increment(1),
-                    [updateField]: increment(score),
-                    lastPlayed: new Date()
-                }, { merge: true });
-            } catch (lbError) {
-                console.warn("Switch leaderboard save failed (Permissions?):", lbError);
+            if (existingModuleScores[currentModule] === undefined || score > existingModuleScores[currentModule]) {
+                existingModuleScores[currentModule] = score;
             }
 
-        } catch (e) {
-            Logger.handleFirestoreError("saveScore_switch", e);
+            let totalScore = 0;
+            let totalPossible = 0;
+            for (const mod in existingModuleScores) {
+                totalScore += existingModuleScores[mod];
+                totalPossible += LEVELS_PER_MODULE; 
+            }
+
+            const payload = {
+                name: user.displayName || "Anonymous Player",
+                score: totalScore,
+                totalLevels: totalPossible,
+                moduleScores: existingModuleScores,
+                metrics: {
+                    correctCount: correctCount,
+                    totalMarks: score,
+                    timeSpent: MODULE_TIME_LIMIT - timeLeft
+                },
+                timestamp: new Date()
+            };
+
+            await setDoc(scoreRef, payload, { merge: true });
+
+            // Progression
+            const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1);
+            await setDoc(doc(db, "users", user.uid), {
+                [`highestModule_switch`]: moduleReached,
+                totalScore: increment(score),
+                modulesCompleted: increment(1),
+                [`gameScores.${isMock ? 'mock_' : ''}switch`]: increment(score),
+                lastPlayed: new Date()
+            }, { merge: true });
+
+            if (btnElement) {
+                btnElement.innerText = "Progress Saved!";
+                btnElement.style.backgroundColor = "#10b981";
+            }
+        }
+    } catch (error) {
+        console.error("Save failed:", error);
+        if (btnElement) {
+            btnElement.innerText = "Save Failed";
+            btnElement.disabled = false;
         }
     }
 
-    if (isMock) {
-        window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
+    if (redirectCallback) {
+        setTimeout(redirectCallback, 1000);
     }
 }
 
+function shareOnLinkedIn() {
+    const text = `I just completed Switch Challenge Module ${currentModule} on AptiVerse with ${correctCount}/${LEVELS_PER_MODULE} correct! 🚀 #AptitudeReasoning #AptiVerse`;
+    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank', 'width=600,height=400');
+}
+
 document.getElementById('next-module-btn').onclick = () => {
-    location.reload();
+    // This is handled dynamically in endModule now
 };
 
 const btnLogout = document.getElementById("nav-logout-btn");

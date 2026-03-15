@@ -118,16 +118,19 @@
             <h2 id="modal-title">Module Complete</h2>
             <div class="score-display">
                 <div class="score-circle">
-                    <span id="score-text">0 / 0</span>
+                    <span id="score-text">0 / 18</span>
                 </div>
             </div>
             <div class="score-stats">
-                <p>Marks Obtained: <span id="final-marks" class="text-success">0</span></p>
-                <p>Accuracy: <span id="accuracy-text">0%</span></p>
+                <p>Correct: <span id="correct-count" class="text-success">0</span></p>
+                <p>Wrong: <span id="wrong-count" class="text-error">0</span></p>
+                <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                    <p style="font-size: 1.25rem; font-weight: 700;">Final Marks: <span id="final-marks" style="color: #c90076;">0</span></p>
+                </div>
             </div>
 
             <div id="rating-section" class="hidden"></div>
-            <button id="next-module-btn" class="btn btn-primary btn-large">Continue</button>
+            <button id="next-module-btn" class="btn btn-primary btn-large">Start Next Module</button>
             <a href="index.html" class="btn btn-outline" style="margin-top: 1rem; display: block;">Return Home</a>
         </div>
     </div>
