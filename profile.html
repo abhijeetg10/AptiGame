@@ -265,6 +265,62 @@
             .item-main-stats { grid-template-columns: 1fr; }
             .hero-avatar { width: 100px; height: 100px; font-size: 3rem; }
         }
+        /* Consistency Calendar (GitHub Style) */
+        .consistency-container {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 16px;
+            overflow-x: auto;
+        }
+        .contribution-graph {
+            display: grid;
+            grid-auto-flow: column;
+            grid-template-rows: repeat(7, 12px);
+            grid-auto-columns: 12px;
+            gap: 3px;
+            width: fit-content;
+        }
+        .graph-square {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            background: #ebedf0;
+            cursor: pointer;
+            position: relative;
+        }
+        .graph-square:hover { border: 1px solid #94a3b8; }
+        .graph-square[data-level="1"] { background: #d9f99d; } /* Light */
+        .graph-square[data-level="2"] { background: #84cc16; } /* Mid */
+        .graph-square[data-level="3"] { background: #4d7c0f; } /* High */
+        .graph-square[data-level="4"] { background: #1a2e05; } /* Max */
+
+        .graph-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            display: none;
+            z-index: 10;
+            margin-bottom: 5px;
+        }
+        .graph-square:hover .graph-tooltip { display: block; }
+        
+        .legend {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .legend-box { width: 10px; height: 10px; border-radius: 2px; }
     </style>
 </head>
 <body>
@@ -352,11 +408,25 @@
                 </div>
             </div>
             
-            <!-- Activity Chart Slot (Wide) -->
+            <!-- Consistency Calendar Slot (Wide) -->
             <div class="bento-item" style="grid-column: span 3; padding: 2.5rem;">
-                <span class="stat-label">Consistency Score</span>
-                <div style="height: 200px; width: 100%; margin-top: 1.5rem;">
-                    <canvas id="activityChart"></canvas>
+                <div class="analysis-header" style="margin-bottom: 1rem;">
+                    <h3>Activity Consistency</h3>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">Daily challenge & login activity</div>
+                </div>
+                <div class="consistency-container">
+                    <div id="contribution-graph" class="contribution-graph">
+                        <!-- Squares injected by JS -->
+                    </div>
+                    <div class="legend">
+                        <span>Less</span>
+                        <div class="legend-box" style="background: #ebedf0;"></div>
+                        <div class="legend-box" style="background: #d9f99d;"></div>
+                        <div class="legend-box" style="background: #84cc16;"></div>
+                        <div class="legend-box" style="background: #4d7c0f;"></div>
+                        <div class="legend-box" style="background: #1a2e05;"></div>
+                        <span>More</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -365,7 +435,7 @@
     <!-- Scripts -->
     <script type="module">
         import { db, auth } from "./firebase-config.js";
-        import { collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+        import { collection, getDocs, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
         onAuthStateChanged(auth, async (user) => {
@@ -477,9 +547,9 @@
                 const rank = rankingArray.findIndex(e => e.name === currentUserName) + 1;
                 if (rank > 0) document.getElementById('user-rank').innerText = `#${rank}`;
 
-                // --- CHART INITIALIZATION ---
+                // --- CALENDAR & RADAR ---
                 initRadarChart(userSkillScores);
-                initActivityChart(userData ? userData.score : 0);
+                await initConsistencyCalendar(auth.currentUser.uid);
 
                 // Challenge Wise List
                 const listEl = document.getElementById('game-analysis-list');
@@ -539,37 +609,69 @@
             });
         }
 
-        function initActivityChart(totalScore) {
-            const ctx = document.getElementById('activityChart').getContext('2d');
-            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(201, 0, 118, 0.3)');
-            gradient.addColorStop(1, 'rgba(201, 0, 118, 0)');
+        async function initConsistencyCalendar(uid) {
+            const graph = document.getElementById('contribution-graph');
+            const activityData = {};
 
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [{
-                        label: 'Total Progress',
-                        data: [totalScore*0.7, totalScore*0.8, totalScore*0.85, totalScore*0.9, totalScore*0.95, totalScore, totalScore],
-                        borderColor: '#c90076',
-                        backgroundColor: gradient,
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 3,
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { display: false },
-                        x: { grid: { display: false } }
-                    },
-                    plugins: { legend: { display: false } }
+            try {
+                // 1. Fetch from activity_logs
+                const q = query(collection(db, "activity_logs"), where("uid", "==", uid));
+                const sn = await getDocs(q);
+                sn.forEach(doc => {
+                    const d = doc.data();
+                    const date = d.timestamp?.toDate ? d.timestamp.toDate() : new Date(d.timestamp);
+                    const key = date.toISOString().split('T')[0];
+                    activityData[key] = (activityData[key] || 0) + (d.type === 'solve' ? 2 : 1);
+                });
+
+                // 2. Fetch from mock_results
+                const qMock = query(collection(db, "mock_results"), where("uid", "==", uid));
+                const snMock = await getDocs(qMock);
+                snMock.forEach(doc => {
+                    const d = doc.data();
+                    const date = d.timestamp?.toDate ? d.timestamp.toDate() : new Date(d.timestamp);
+                    const key = date.toISOString().split('T')[0];
+                    activityData[key] = (activityData[key] || 0) + 3; // Mock tests worth more
+                });
+
+                // 3. Render squares for last 365 days
+                const now = new Date();
+                const container = document.createDocumentFragment();
+                
+                // Adjust to start from a Sunday roughly a year ago
+                let startDate = new Date();
+                startDate.setDate(startDate.getDate() - 365);
+                while(startDate.getDay() !== 0) startDate.setDate(startDate.getDate() - 1);
+
+                for (let i = 0; i < 371; i++) { // Approx 53 weeks
+                    const date = new Date(startDate);
+                    date.setDate(startDate.getDate() + i);
+                    const key = date.toISOString().split('T')[0];
+                    const count = activityData[key] || 0;
+                    
+                    const square = document.createElement('div');
+                    square.className = 'graph-square';
+                    
+                    let level = 0;
+                    if (count > 0) level = 1;
+                    if (count > 3) level = 2;
+                    if (count > 6) level = 3;
+                    if (count > 10) level = 4;
+                    
+                    if (level > 0) square.setAttribute('data-level', level);
+                    
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'graph-tooltip';
+                    tooltip.innerText = `${count} activity on ${date.toLocaleDateString()}`;
+                    square.appendChild(tooltip);
+                    
+                    container.appendChild(square);
                 }
-            });
+                graph.appendChild(container);
+
+            } catch (err) {
+                console.warn("Calendar load failed:", err);
+            }
         }
     </script>
 </body>

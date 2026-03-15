@@ -360,11 +360,11 @@
             const companies = ['atlas', 'capgemini', 'tcs', 'cognizant'];
             for (const company of companies) {
                 try {
+                    // Remove orderBy to bypass index requirement, sort on client side instead
                     const q = query(
                         collection(db, "mock_results"),
                         where("companyId", "==", company),
-                        orderBy("totalScore", "desc"),
-                        limit(1) // Just top 1 for the mini-preview
+                        limit(20) // Fetch a small batch to find the top score
                     );
                     const sn = await getDocs(q);
                     const container = document.getElementById(`toppers-${company}`);
@@ -372,15 +372,18 @@
                     if (sn.empty) {
                         container.innerHTML = '<div class="topper-row"><span>Be the first!</span> <span class="topper-score">0</span></div>';
                     } else {
-                        sn.forEach(doc => {
-                            const data = doc.data();
-                            container.innerHTML = `
-                                <div class="topper-row">
-                                    <span>#1 ${data.userName}</span>
-                                    <span class="topper-score">${data.totalScore}</span>
-                                </div>
-                            `;
-                        });
+                        // Client-side sort fallback
+                        const results = [];
+                        sn.forEach(doc => results.push(doc.data()));
+                        results.sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
+                        
+                        const top = results[0];
+                        container.innerHTML = `
+                            <div class="topper-row">
+                                <span>#1 ${top.userName || "Guest"}</span>
+                                <span class="topper-score">${top.totalScore || 0}</span>
+                            </div>
+                        `;
                     }
                 } catch (e) {
                     console.error("Error fetching toppers:", e);

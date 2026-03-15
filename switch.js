@@ -1,4 +1,5 @@
 import { db, auth } from "./firebase-config.js";
+import { ActivityLogger } from "./activity-logger.js";
 import { collection, addDoc, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { initRatingSystem } from "./rating-system.js";
 import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
@@ -11,7 +12,7 @@ const SHAPES_POOL = ['circle', 'square', 'triangle', 'plus', 'star', 'diamond', 
 const { TOTAL_MODULES, LEVELS_PER_MODULE, MODULE_TIME_LIMIT } = GAME_CONFIG;
 
 // --- Game State ---
-let highestUnlockedModule = 5;
+let highestUnlockedModule = 10;
 let currentModule = 1;
 let currentLevel = 1;
 let score = 0;
@@ -108,27 +109,38 @@ window.startModule = function (moduleNum) {
     elModuleDisplay.innerText = `${currentModule} / ${TOTAL_MODULES}`;
     
     loadLevel();
-    if (!isMock) startTimer();
+    if (!isMock) {
+        updateTimerDisplay();
+        startTimer();
+    }
     else if (elTimer) elTimer.style.display = 'none';
 };
 
 function startTimer() {
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
-        timeLeft--;
-        const mins = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-        const secs = (timeLeft % 60).toString().padStart(2, '0');
-        elTimer.innerText = `${mins}:${secs}`;
-        
         if (timeLeft <= 0) {
-            finishModule();
+            timeLeft = 0;
+            clearInterval(timerInterval);
+            endModule();
+            updateTimerDisplay();
+            return;
         }
+        timeLeft--;
+        updateTimerDisplay();
     }, 1000);
+}
+
+function updateTimerDisplay() {
+    const displayTime = Math.max(0, timeLeft);
+    const mins = Math.floor(displayTime / 60).toString().padStart(2, '0');
+    const secs = (displayTime % 60).toString().padStart(2, '0');
+    elTimer.innerText = `${mins}:${secs}`;
 }
 
 function loadLevel() {
     if (currentLevel > LEVELS_PER_MODULE) {
-        finishModule();
+        endModule();
         return;
     }
 
@@ -280,15 +292,15 @@ function showFeedback(isCorrect, solution = "") {
     }, 1200);
 }
 
-async function endModule() {
+async function endModule(customTitle) {
     clearInterval(timerInterval);
-    isGameActive = false;
-    
+    ActivityLogger.log('solve', 'switch');
     if (isMock) {
         window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
         return;
     }
-
+    isGameActive = false;
+    
     const modal = document.getElementById('results-modal');
     const ratingContainer = document.getElementById('rating-section');
     if (ratingContainer) initRatingSystem(ratingContainer);
@@ -298,6 +310,23 @@ async function endModule() {
     document.getElementById('score-text').innerText = `${correctCount} / ${LEVELS_PER_MODULE}`;
     document.getElementById('final-marks').innerText = score;
     document.getElementById('accuracy-text').innerText = `${Math.round((correctCount/LEVELS_PER_MODULE)*100)}%`;
+
+    // Add LinkedIn Share Button
+    let linkedinBtn = document.getElementById('linkedin-share-btn');
+    if (!linkedinBtn) {
+        linkedinBtn = document.createElement('button');
+        linkedinBtn.id = 'linkedin-share-btn';
+        linkedinBtn.className = 'btn btn-outline';
+        linkedinBtn.style.marginTop = '0.5rem';
+        linkedinBtn.style.width = '100%';
+        linkedinBtn.innerHTML = '<i class="fab fa-linkedin"></i> Share on LinkedIn';
+        linkedinBtn.onclick = () => {
+            const text = `I just completed Switch Challenge Module ${currentModule} on AptiVerse with ${correctCount}/${LEVELS_PER_MODULE} correct! 🚀 #AptitudeReasoning #AptiVerse`;
+            const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank', 'width=600,height=400');
+        };
+        modal.querySelector('.modal-content').appendChild(linkedinBtn);
+    }
     
     const user = await getCurrentUser();
     if (user) {
@@ -388,8 +417,8 @@ onAuthStateChanged(auth, async (user) => {
         // Load User Progress
         try {
             const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (userDoc.exists() && userDoc.data().highestModule_switch) {
-                highestUnlockedModule = userDoc.data().highestModule_switch;
+            if (userDoc.exists()) {
+                    highestUnlockedModule = 10; // Forced unlock
             }
         } catch (e) { console.error(e); }
         if (!isMock) init();

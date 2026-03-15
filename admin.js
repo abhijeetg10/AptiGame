@@ -208,6 +208,15 @@ async function fetchOverviewAndUsers() {
         // Update Stats
         document.getElementById('panel-title').innerText = 'AptiVerse Overview';
         document.getElementById("stat-total-users").innerText = userCount;
+        
+        // Calculate Active Sessions (Logins in last 24h)
+        const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const activeSessions = docs.filter(u => {
+            const lastLogin = u.lastLogin?.toDate ? u.lastLogin.toDate() : new Date(u.lastLogin || 0);
+            return lastLogin >= dayAgo;
+        }).length;
+        document.getElementById("stat-active-sessions").innerText = activeSessions;
+
         const recentActivityEl = document.getElementById("recent-activity-list");
         if (recentActivityEl) recentActivityEl.innerHTML = activityHTML;
         
@@ -512,6 +521,9 @@ async function fetchMockResults() {
                 status: status
             });
         });
+
+        const totalMockEl = document.getElementById("stat-total-mock");
+        if (totalMockEl) totalMockEl.innerText = count;
 
         if (count === 0) {
             tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem; color:var(--text-muted);">No mock tests recorded yet.</td></tr>`;

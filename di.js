@@ -1,4 +1,5 @@
-import { collection, addDoc, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { ActivityLogger } from "./activity-logger.js";
+import { collection, getDocs, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { initRatingSystem } from "./rating-system.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { db, auth } from "./firebase-config.js";
@@ -9,7 +10,7 @@ import { Logger } from "./logger.js";
 const { TOTAL_MODULES, LEVELS_PER_MODULE, MODULE_TIME_LIMIT, POINTS_PER_CORRECT } = GAME_CONFIG;
 
 // --- State Variables ---
-let highestUnlockedModule = 5;
+let highestUnlockedModule = 10;
 let currentModule = 1;
 let currentLevel = 1;
 let score = 0;
@@ -69,13 +70,11 @@ async function loadUserProgress() {
             const userSnap = await getDoc(userDocRef);
             if (userSnap.exists()) {
                 const data = userSnap.data();
-                if (data.highestModule_di) {
-                    highestUnlockedModule = Math.max(5, data.highestModule_di);
-                }
             }
         } catch (e) {
             console.error("Error loading progress:", e);
         }
+        highestUnlockedModule = 10; // Forced unlock
     }
     
     if (isMock) {
@@ -93,7 +92,12 @@ function initModuleGrid() {
         { id: 2, name: "Module 2", desc: "Trend Analysis", color: "linear-gradient(135deg, #10b981, #34d399)" },
         { id: 3, name: "Module 3", desc: "Comparative Logic", color: "linear-gradient(135deg, #f59e0b, #fbbf24)" },
         { id: 4, name: "Module 4", desc: "Advanced Synthesis", color: "linear-gradient(135deg, #8b5cf6, #a78bfa)" },
-        { id: 5, name: "Module 5", desc: "Elite Interpretation", color: "linear-gradient(135deg, #ef4444, #f87171)" }
+        { id: 5, name: "Module 5", desc: "Elite Interpretation", color: "linear-gradient(135deg, #ef4444, #f87171)" },
+        { id: 6, name: "Module 6", desc: "Statistical Mastery", color: "linear-gradient(135deg, #c90076, #ff4b2b)" },
+        { id: 7, name: "Module 7", desc: "Predictive Analysis", color: "linear-gradient(135deg, #2563eb, #3b82f6)" },
+        { id: 8, name: "Module 8", desc: "Data Correlation", color: "linear-gradient(135deg, #059669, #10b981)" },
+        { id: 9, name: "Module 9", desc: "Pattern Visualization", color: "linear-gradient(135deg, #d97706, #f59e0b)" },
+        { id: 10, name: "Module 10", desc: "AptiVerse DI Titan", color: "linear-gradient(135deg, #4f46e5, #6366f1)" }
     ];
 
     elModuleGrid.innerHTML = '';
@@ -401,16 +405,28 @@ window.handleAnswer = (ans) => {
 function startTimer() {
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
+        if (timeLeft <= 0) {
+            timeLeft = 0;
+            clearInterval(timerInterval);
+            endGame();
+            updateTimerDisplay();
+            return;
+        }
         timeLeft--;
-        const mins = Math.floor(timeLeft / 60);
-        const secs = timeLeft % 60;
-        elTimer.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        if (timeLeft <= 0) endGame();
+        updateTimerDisplay();
     }, 1000);
+}
+
+function updateTimerDisplay() {
+    const displayTime = Math.max(0, timeLeft);
+    const mins = Math.floor(displayTime / 60);
+    const secs = displayTime % 60;
+    elTimer.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
 async function endGame() {
     clearInterval(timerInterval);
+    ActivityLogger.log('solve', 'di');
     if (isMock) {
         window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
         return;
@@ -422,6 +438,23 @@ async function endGame() {
     elScoreText.innerText = `${correctAnswers} / ${LEVELS_PER_MODULE}`;
     elFinalMarks.innerText = score;
     elAccuracyText.innerText = `${Math.round((correctAnswers / LEVELS_PER_MODULE) * 100)}%`;
+
+    // Add LinkedIn Share Button
+    let linkedinBtn = document.getElementById('linkedin-share-btn');
+    if (!linkedinBtn) {
+        linkedinBtn = document.createElement('button');
+        linkedinBtn.id = 'linkedin-share-btn';
+        linkedinBtn.className = 'btn btn-outline';
+        linkedinBtn.style.marginTop = '0.5rem';
+        linkedinBtn.style.width = '100%';
+        linkedinBtn.innerHTML = '<i class="fab fa-linkedin"></i> Share on LinkedIn';
+        linkedinBtn.onclick = () => {
+            const text = `I just completed DI Challenge Module ${currentModule} on AptiVerse with ${correctAnswers}/${LEVELS_PER_MODULE} correct! 🚀 #AptitudeReasoning #AptiVerse`;
+            const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank', 'width=600,height=400');
+        };
+        elResultsModal.querySelector('.modal-content').appendChild(linkedinBtn);
+    }
     const user = auth.currentUser;
     if (user) {
         // 1. PRIORITIZE PROGRESSION
@@ -479,7 +512,7 @@ async function endGame() {
     }
 
     elNextModuleBtn.onclick = () => {
-        if (currentModule < 5) startModule(currentModule + 1);
+        if (currentModule < TOTAL_MODULES) startModule(currentModule + 1);
         else window.location.href = 'index.html';
     };
 

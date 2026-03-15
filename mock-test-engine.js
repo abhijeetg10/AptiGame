@@ -382,5 +382,38 @@ function handleTestTimeout() {
     finishTest();
 }
 
+// --- SIDEBAR RENDERING ---
+function renderSidebar() {
+    const list = document.getElementById('mock-sidebar-list');
+    if (!list) return;
+    
+    list.innerHTML = "";
+    currentState.sequence.forEach((module, index) => {
+        const info = GAME_INFO[module] || { title: module };
+        const item = document.createElement('div');
+        item.className = `sidebar-item ${index === currentState.currentModuleIndex ? 'active-step' : ''}`;
+        
+        let statusClass = "";
+        let statusText = "Upcoming";
+        
+        if (index < currentState.currentModuleIndex) {
+            statusClass = "done";
+            statusText = "Completed";
+        } else if (index === currentState.currentModuleIndex) {
+            statusClass = "active";
+            statusText = "In Progress";
+        }
+        
+        item.innerHTML = `
+            <div class="status-dot ${statusClass}"></div>
+            <div class="item-info">
+                <span class="item-name">${info.title}</span>
+                <span class="item-status">${statusText}</span>
+            </div>
+        `;
+        list.appendChild(item);
+    });
+}
+
 // Start
 init();

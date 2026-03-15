@@ -151,7 +151,7 @@ body.admin-body {
     font-family: 'Space Grotesk', sans-serif;
     margin: 0;
     font-size: 1.5rem;
-    color: #212529;
+    color: var(--admin-text-main);
 }
 
 .admin-content { padding: 2.5rem; }

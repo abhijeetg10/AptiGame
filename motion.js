@@ -2,6 +2,7 @@ import { collection, addDoc, doc, setDoc, getDoc, updateDoc } from "https://www.
 import { initRatingSystem } from "./rating-system.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { db, auth } from "./firebase-config.js";
+import { ActivityLogger } from "./activity-logger.js";
 import { getCurrentUser } from "./auth.js";
 import { GAME_CONFIG } from "./game-constants.js";
 import { Logger } from "./logger.js";
@@ -27,7 +28,7 @@ const sounds = {
 const CELL_SIZE = 60; // Pixels per grid cell (fixed for calculation)
 
 // --- State ---
-let highestUnlockedModule = 5;
+let highestUnlockedModule = 10;
 let currentModule = 1;
 let currentLevel = 1;
 let correctAnswers = 0;
@@ -94,7 +95,7 @@ async function loadUserProgress() {
             if (userSnap.exists()) {
                 const data = userSnap.data();
                 if (data.highestModule_motion) {
-                    highestUnlockedModule = Math.max(5, data.highestModule_motion || 1);
+                    highestUnlockedModule = 10; // Forced unlock for all users as per request
                 }
             }
         } catch (e) {
@@ -598,19 +599,23 @@ function startTimer() {
     updateTimerDisplay();
 
     timerInterval = setInterval(() => {
-        timeRemaining--;
-        updateTimerDisplay();
-
         if (timeRemaining <= 0) {
+            timeRemaining = 0;
             clearInterval(timerInterval);
             endModule("Time's Up!");
+            updateTimerDisplay();
+            return;
         }
+        timeRemaining--;
+        totalTimeSpent++;
+        updateTimerDisplay();
     }, 1000);
 }
 
 function updateTimerDisplay() {
-    let m = Math.floor(timeRemaining / 60);
-    let s = timeRemaining % 60;
+    const displayTime = Math.max(0, timeRemaining);
+    let m = Math.floor(displayTime / 60);
+    let s = displayTime % 60;
     elTimer.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 
     if (timeRemaining < 60) {
@@ -641,9 +646,9 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
             try {
                 const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1);
                 if (moduleReached > highestUnlockedModule) {
-                    highestUnlockedModule = moduleReached;
+                    highestUnlockedModule = 10;
                     await setDoc(doc(db, "users", activeUser.uid), {
-                        highestModule_motion: highestUnlockedModule
+                        highestModule_motion: 10
                     }, { merge: true });
                 }
                 progressSaved = true;
@@ -739,6 +744,7 @@ async function endModule(customTitle) {
         return;
     }
     sounds.complete.play().catch(e => console.log("Audio play blocked"));
+    ActivityLogger.log('solve', 'motion');
 
     // Confetti celebration
     if (typeof confetti === 'function') {

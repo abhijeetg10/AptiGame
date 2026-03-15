@@ -2,6 +2,7 @@ import { collection, addDoc, doc, setDoc, getDoc, updateDoc } from "https://www.
 import { initRatingSystem } from "./rating-system.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { db, auth } from "./firebase-config.js";
+import { ActivityLogger } from "./activity-logger.js";
 import { getCurrentUser } from "./auth.js";
 import { GAME_CONFIG } from "./game-constants.js";
 import { Logger } from "./logger.js";
@@ -26,7 +27,7 @@ const sounds = {
 const INITIAL_TIME = 6 * 60; // 6 minutes in seconds
 
 // --- State ---
-let highestUnlockedModule = 5;
+let highestUnlockedModule = 10;
 let currentModule = 1;
 let currentLevel = 1;
 let score = 0;
@@ -91,9 +92,7 @@ async function loadUserProgress() {
             const userSnap = await getDoc(userDocRef);
             if (userSnap.exists()) {
                 const data = userSnap.data();
-                if (data.highestModule_inductive) {
-                    highestUnlockedModule = Math.max(5, data.highestModule_inductive);
-                }
+                    highestUnlockedModule = 10;
             }
         } catch (e) {
             console.error("Error loading user progress:", e);
@@ -511,20 +510,23 @@ function startTimer() {
     updateTimerDisplay();
 
     timerInterval = setInterval(() => {
+        if (timeRemaining <= 0) {
+            timeRemaining = 0;
+            clearInterval(timerInterval);
+            endModule("Time's Up!");
+            updateTimerDisplay();
+            return;
+        }
         timeRemaining--;
         totalTimeSpent++;
         updateTimerDisplay();
-
-        if (timeRemaining <= 0) {
-            clearInterval(timerInterval);
-            endModule("Time's Up!");
-        }
     }, 1000);
 }
 
 function updateTimerDisplay() {
-    let m = Math.floor(timeRemaining / 60);
-    let s = timeRemaining % 60;
+    const displayTime = Math.max(0, timeRemaining);
+    let m = Math.floor(displayTime / 60);
+    let s = displayTime % 60;
     elTimer.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 
     if (timeRemaining < 60) {
@@ -650,6 +652,7 @@ async function endModule(customTitle) {
         return;
     }
     sounds.complete.play().catch(e => console.log("Audio play blocked"));
+    ActivityLogger.log('solve', 'inductive');
 
     // Confetti celebration
     if (typeof confetti === 'function') {
