@@ -384,6 +384,15 @@ async function endModule(customTitle) {
                     timestamp: new Date()
                 }, { merge: true });
                 console.log("Switch leaderboard updated.");
+                // DENORMALIZATION
+                const userDocRef = doc(db, "users", user.uid);
+                const updateField = `gameScores.${isMock ? 'mock_' : ''}switch`;
+                await setDoc(userDocRef, {
+                    totalScore: increment(score),
+                    modulesCompleted: increment(1),
+                    [updateField]: increment(score),
+                    lastPlayed: new Date()
+                }, { merge: true });
             } catch (lbError) {
                 console.warn("Switch leaderboard save failed (Permissions?):", lbError);
             }

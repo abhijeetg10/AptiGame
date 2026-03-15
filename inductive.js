@@ -604,6 +604,15 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
                     },
                     timestamp: new Date()
                 }, { merge: true });
+                // DENORMALIZATION
+                const userDocRef = doc(db, "users", user.uid);
+                const updateField = `gameScores.${isMock ? 'mock_' : ''}inductive`;
+                await setDoc(userDocRef, {
+                    totalScore: increment(correctAnswers),
+                    modulesCompleted: increment(1),
+                    [updateField]: increment(correctAnswers),
+                    lastPlayed: new Date()
+                }, { merge: true });
             } catch (lbError) {
                 console.warn("Inductive leaderboard save failed (Permissions?):", lbError);
             }

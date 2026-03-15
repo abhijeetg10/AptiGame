@@ -73,7 +73,23 @@ async function syncUserToFirestore(user) {
         if (user.displayName) updateData.name = user.displayName;
         if (user.email) updateData.email = user.email;
 
-        // ONLY update if we actually have a name or email to avoid "Unknown" records
+        // Initialize score fields for new users if they don't exist
+        const defaultScores = {
+            totalScore: 0,
+            modulesCompleted: 0,
+            avgAccuracy: 0,
+            gameScores: {}
+        };
+
+        if (!userSnap.exists()) {
+            Object.assign(updateData, defaultScores);
+            // Increment Global Total Users
+            await setDoc(doc(db, "system_stats", "global"), { totalUsers: increment(1) }, { merge: true });
+        }
+
+        // Increment Global Active Sessions
+        await setDoc(doc(db, "system_stats", "global"), { activeSessions24h: increment(1) }, { merge: true });
+
         if (updateData.name || updateData.email) {
             await setDoc(userDocRef, updateData, { merge: true }); 
         }

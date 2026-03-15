@@ -13,10 +13,21 @@ const firebaseConfig = {
     measurementId: "G-C9PZ77HM98"
 };
 
+import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const analytics = getAnalytics(app);
 const provider = new GoogleAuthProvider();
+
+// Enable Offline Persistence
+enableIndexedDbPersistence(db).catch((err) => {
+    if (err.code == 'failed-precondition') {
+        console.warn("Persistence failed: Multiple tabs open");
+    } else if (err.code == 'unimplemented') {
+        console.warn("Persistence not supported by browser");
+    }
+});
 
 export { db, auth, provider, analytics };

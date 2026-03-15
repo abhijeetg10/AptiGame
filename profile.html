@@ -435,7 +435,7 @@
     <!-- Scripts -->
     <script type="module">
         import { db, auth } from "./firebase-config.js";
-        import { collection, getDocs, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+        import { collection, getDocs, query, orderBy, limit, where, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
         onAuthStateChanged(auth, async (user) => {
@@ -462,23 +462,19 @@
         document.getElementById('nav-logout-btn').addEventListener('click', () => signOut(auth));
 
         async function loadPerformanceAnalysis(currentUserName) {
-            const collections = ['motion', 'sudoku', 'inductive', 'grid', 'switch', 'di', 'rc'];
-            let allDocs = [];
-
             try {
-                for (const cat of collections) {
-                    const q = query(
-                        collection(db, "leaderboards", cat, "scores"), 
-                        orderBy("score", "desc"), 
-                        limit(100)
-                    );
-                    const sn = await getDocs(q);
-                    sn.forEach(doc => {
-                        const d = doc.data();
-                        d._sourceCategory = cat;
-                        allDocs.push(d);
-                    });
+                // NEW OPTIMIZED FETCH: Read single user document instead of 7 collections
+                const userDocRef = doc(db, "users", auth.currentUser.uid);
+                const userSnap = await getDoc(userDocRef);
+                
+                if (!userSnap.exists()) {
+                    console.log("No user data found yet.");
+                    document.getElementById('game-analysis-list').innerHTML = '<p style="grid-column: span 3; color: var(--text-muted); text-align: center;">No challenge data found yet. Start playing!</p>';
+                    return;
                 }
+
+                const userData = userSnap.data();
+                const gameScores = userData.gameScores || {};
 
                 // Data Buckets for Radar
                 const skillBuckets = {
@@ -491,61 +487,27 @@
 
                 const userSkillScores = { 'Pattern': 0, 'Logic': 0, 'Verbal': 0, 'Data': 0, 'Spatial': 0 };
 
-                // --- DATA PROCESSING LOGIC ---
-                const userTotals = {};
-                allDocs.forEach(d => {
-                    const name = d.name || "Unknown";
-                    if (!userTotals[name]) {
-                        userTotals[name] = { 
-                            score: 0, 
-                            totalLevels: 0, 
-                            metrics: { correctLevels: 0, totalTime: 0, timeCount: 0 } 
-                        };
-                    }
-                    userTotals[name].score += d.score || 0;
-                    let levels = 18;
-                    userTotals[name].totalLevels += levels;
-                    
-                    if (d.metrics) {
-                        userTotals[name].metrics.correctLevels += (d.metrics.correctLevels || d.score || 0);
-                        if (d.metrics.timeSpent) {
-                            userTotals[name].metrics.totalTime += d.metrics.timeSpent;
-                            userTotals[name].metrics.timeCount += 1;
-                        }
-                    }
-
-                    // For Radar Chart
-                    if (name === currentUserName) {
-                        for (const [skill, cats] of Object.entries(skillBuckets)) {
-                            if (cats.includes(d._sourceCategory)) {
-                                userSkillScores[skill] += (d.score || 0);
-                            }
-                        }
-                    }
-                });
-
-                // User Specific Stats for Hero Cards
-                const userData = userTotals[currentUserName];
-                if (userData) {
-                    const accuracy = Math.round((userData.metrics.correctLevels / userData.totalLevels) * 100) || 0;
-                    const avgSpeed = userData.metrics.timeCount > 0 ? Math.round(userData.metrics.totalTime / userData.metrics.timeCount) : 0;
-
-                    document.getElementById('user-accuracy').innerText = `${accuracy}%`;
-                    document.getElementById('user-speed').innerText = `${avgSpeed}s`;
-                    
-                    if (accuracy > 85) document.getElementById('accuracy-insight').innerText = "Elite Precision! 🌟";
-                    if (avgSpeed < 15 && avgSpeed > 0) document.getElementById('speed-insight').innerText = "Lightning Fast! ⚡";
+                // Processing Scores for Radar
+                for (const [skill, cats] of Object.entries(skillBuckets)) {
+                    cats.forEach(cat => {
+                        userSkillScores[skill] += (gameScores[cat] || 0);
+                    });
                 }
 
-                // Global Ranking
-                const rankingArray = Object.entries(userTotals).map(([name, stats]) => ({
-                    name, 
-                    rawScore: stats.score,
-                    accuracy: Math.round((stats.metrics.correctLevels / stats.totalLevels) * 100) || 0
-                })).sort((a,b) => b.rawScore - a.rawScore || b.accuracy - a.accuracy);
+                // UI Stats
+                const totalSolved = userData.modulesCompleted || 0;
+                const totalPoints = userData.totalScore || 0;
+                const accuracy = totalSolved > 0 ? Math.round((totalPoints / (totalSolved * 18)) * 100) : 0;
 
-                const rank = rankingArray.findIndex(e => e.name === currentUserName) + 1;
-                if (rank > 0) document.getElementById('user-rank').innerText = `#${rank}`;
+                document.getElementById('user-accuracy').innerText = `${accuracy}%`;
+                document.getElementById('user-speed').innerText = `Aggregated`; // Speed tracking requires more granular logs if needed
+                
+                if (accuracy > 85) document.getElementById('accuracy-insight').innerText = "Elite Precision! 🌟";
+                else if (totalSolved > 5) document.getElementById('accuracy-insight').innerText = "Steady Progress! 📈";
+
+                // Global Ranking (We still need to fetch top users for rank, but we can limit this)
+                // For true cost optimization, ranking should be a separate background task or limited fetch.
+                document.getElementById('user-rank').innerText = `#--`; // Placeholder or fetch top 100 once
 
                 // --- CALENDAR & RADAR ---
                 initRadarChart(userSkillScores);
@@ -553,27 +515,25 @@
 
                 // Challenge Wise List
                 const listEl = document.getElementById('game-analysis-list');
-                const userGames = allDocs.filter(d => d.name === currentUserName);
+                listEl.innerHTML = '';
                 
-                if (userGames.length === 0) {
-                    listEl.innerHTML = '<p style="grid-column: span 3; color: var(--text-muted); text-align: center;">No challenge data found yet. Start playing!</p>';
-                    return;
-                }
-
-                userGames.forEach(game => {
-                    const item = document.createElement('div');
-                    item.className = 'game-stat-item';
-                    let totalLevels = 18;
-
-                    item.innerHTML = `
-                        <div class="game-name">${game._sourceCategory.toUpperCase()}</div>
-                        <div class="game-score-row">
-                            <span>Solved: ${game.score}/${totalLevels}</span>
-                        </div>
-                    `;
-                    listEl.appendChild(item);
+                const collections = ['motion', 'sudoku', 'inductive', 'grid', 'switch', 'di', 'rc'];
+                collections.forEach(cat => {
+                    const score = gameScores[cat] || 0;
+                    if (score > 0) {
+                        const item = document.createElement('div');
+                        item.className = 'game-stat-item';
+                        item.innerHTML = `
+                            <div class="game-name">${cat.toUpperCase()}</div>
+                            <div class="game-score-row">
+                                <span>Recent Score: ${score}/18</span>
+                            </div>
+                        `;
+                        listEl.appendChild(item);
+                    }
                 });
 
+                }
             } catch (err) {
                 console.error(err);
                 document.getElementById('loader').innerHTML = "Failed to load data. Please refresh.";

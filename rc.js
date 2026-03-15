@@ -410,6 +410,15 @@ async function endGame() {
                 timestamp: new Date()
             }, { merge: true });
             console.log("RC leaderboard updated.");
+            // DENORMALIZATION
+            const userDocRef = doc(db, "users", user.uid);
+            const updateField = `gameScores.${isMock ? 'mock_' : ''}rc`;
+            await setDoc(userDocRef, {
+                totalScore: increment(score),
+                modulesCompleted: increment(1),
+                [updateField]: increment(score),
+                lastPlayed: new Date()
+            }, { merge: true });
         } catch (lbError) {
             console.warn("RC leaderboard save failed (Permissions?):", lbError);
         }

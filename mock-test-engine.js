@@ -342,6 +342,10 @@ async function initTracking() {
     try {
         const docRef = await addDoc(collection(db, "mock_results"), resultData);
         currentState.firestoreId = docRef.id;
+        
+        // INCREMENT GLOBAL MOCK TEST COUNT
+        await setDoc(doc(db, "system_stats", "global"), { totalMockTests: increment(1) }, { merge: true });
+        
         saveState();
         console.log("Tracking initialized:", currentState.firestoreId);
     } catch (e) {

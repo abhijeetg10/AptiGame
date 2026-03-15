@@ -451,6 +451,16 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
                     },
                     timestamp: new Date()
                 }, { merge: true });
+
+                // DENORMALIZATION: Update User's main document to reduce Profile Reads
+                const userDocRef = doc(db, "users", user.uid);
+                const updateField = `gameScores.${isMock ? 'mock_' : ''}sudoku`;
+                await setDoc(userDocRef, {
+                    totalScore: increment(correctAnswers),
+                    modulesCompleted: increment(1),
+                    [updateField]: increment(correctAnswers),
+                    lastPlayed: new Date()
+                }, { merge: true });
             } catch (lbError) {
                 console.warn("Leaderboard save failed (Permissions?):", lbError);
             }

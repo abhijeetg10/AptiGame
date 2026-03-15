@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy, limit, deleteDoc, doc, where, Timestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, getDocs, query, orderBy, limit, deleteDoc, doc, where, Timestamp, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { db, auth } from "./firebase-config.js";
 
@@ -101,34 +101,43 @@ async function fetchAllData() {
 // 1. Users & Overview
 async function fetchOverviewAndUsers() {
     try {
+        const tbody = document.getElementById("table-body-users");
+        tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Loading statistics...</td></tr>";
+
+        // OPTIMIZED STATS FETCH: 1 Read instead of counting thousands of docs
+        try {
+            const statsDoc = await getDoc(doc(db, "system_stats", "global"));
+            if (statsDoc.exists()) {
+                const stats = statsDoc.data();
+                document.getElementById("stat-total-users").innerText = stats.totalUsers || 0;
+                document.getElementById("stat-total-mock-tests").innerText = stats.totalMockTests || 0;
+                document.getElementById("stat-active-sessions").innerText = stats.activeSessions24h || 0;
+            }
+        } catch (statsErr) {
+            console.warn("Global stats fetch failed:", statsErr);
+        }
+
+        // Fetch Recent Users ONLY (Limit 50) to minimize reads
         let snapshot;
         try {
-            const q = query(collection(db, "users"), orderBy("lastLogin", "desc"));
+            const q = query(collection(db, "users"), orderBy("lastLogin", "desc"), limit(50));
             snapshot = await getDocs(q);
         } catch (indexError) {
-            console.warn("User index missing, falling back to non-ordered fetch:", indexError);
-            snapshot = await getDocs(collection(db, "users"));
+            console.warn("User index missing, falling back to limited fetch:", indexError);
+            snapshot = await getDocs(query(collection(db, "users"), limit(50)));
         }
         
-        const tbody = document.getElementById("table-body-users");
         tbody.innerHTML = "";
-        allUsersData = []; // Reset stored users data
+        allUsersData = []; 
         
         let userCount = 0;
         let activityHTML = "";
 
         let docs = [];
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            data._id = doc.id;
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            data._id = docSnap.id;
             docs.push(data);
-        });
-
-        // Client-side sort fallback if index missing
-        docs.sort((a,b) => {
-            const da = a.lastLogin?.toDate ? a.lastLogin.toDate() : new Date(a.lastLogin || 0);
-            const db = b.lastLogin?.toDate ? b.lastLogin.toDate() : new Date(b.lastLogin || 0);
-            return db - da;
         });
 
         docs.forEach(data => {

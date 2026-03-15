@@ -646,6 +646,15 @@ async function saveScoreToFirebase(btnElement, redirectCallback) {
                     },
                     timestamp: new Date()
                 }, { merge: true });
+                // DENORMALIZATION: Update User's main document to reduce Profile Reads
+                const userDocRef = doc(db, "users", user.uid);
+                const updateField = `gameScores.${isMock ? 'mock_' : ''}grid`;
+                await setDoc(userDocRef, {
+                    totalScore: increment(score),
+                    modulesCompleted: increment(1),
+                    [updateField]: increment(score),
+                    lastPlayed: new Date()
+                }, { merge: true });
             } catch (lbError) {
                 console.warn("Grid leaderboard save failed (Permissions?):", lbError);
             }
