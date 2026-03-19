@@ -379,20 +379,12 @@ async function fetchLeaderboardData(gameId) {
 
         // Render Top 3 Cards
         if (topThreeData.length > 0) {
-            // Sort to ensure 2nd, 1st, 3rd visually if we want that podium look, or just 1,2,3
-            // Screenshot shows 2, 1, 3.
-            const podiumOrder = [
-                topThreeData.find(d => d.rank === 2),
-                topThreeData.find(d => d.rank === 1),
-                topThreeData.find(d => d.rank === 3)
-            ].filter(d => d);
-
             let top3HTML = "";
-            podiumOrder.forEach(player => {
+            topThreeData.forEach(player => {
                 top3HTML += `
                     <div class="top-rank-card rank-${player.rank}">
-                        <div class="rank-badge">${player.rank}</div>
-                        <div class="avatar-circle-leaderboard">${player.initial}</div>
+                        <div class="rank-badge-premium badge-${player.rank}">${player.rank}</div>
+                        <div class="avatar-circle-premium">${player.initial}</div>
                         <h4>${player.name}</h4>
                         <div class="points">${player.score}</div>
                     </div>
