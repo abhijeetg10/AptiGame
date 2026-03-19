@@ -90,7 +90,8 @@ async function fetchAllData() {
     console.log("Fetching all admin data...");
     await Promise.all([
         fetchOverviewAndUsers(),
-        fetchLeaderboardData("grid"), // Default load
+        // 2. Initial Leaderboard load (Default to Overall)
+        fetchLeaderboardData("overall"), // Default load
         fetchFeedback(),
         fetchRatings(),
         fetchMockResults(),
@@ -110,8 +111,7 @@ async function fetchOverviewAndUsers() {
             if (statsDoc.exists()) {
                 const stats = statsDoc.data();
                 document.getElementById("stat-total-users").innerText = stats.totalUsers || 0;
-                document.getElementById("stat-total-mock-tests").innerText = stats.totalMockTests || 0;
-                document.getElementById("stat-active-sessions").innerText = stats.activeSessions24h || 0;
+                document.getElementById("stat-total-mock").innerText = stats.totalMockTests || 0;
             }
         } catch (statsErr) {
             console.warn("Global stats fetch failed:", statsErr);
@@ -216,7 +216,6 @@ async function fetchOverviewAndUsers() {
 
         // Update Stats
         document.getElementById('panel-title').innerText = 'AptiVerse Overview';
-        document.getElementById("stat-total-users").innerText = userCount;
         
         // Calculate Active Sessions (Logins in last 24h)
         const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -241,7 +240,13 @@ async function fetchLeaderboardData(gameId) {
         const tbody = document.getElementById("table-body-leaderboards");
         tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Loading scores...</td></tr>";
 
-        const q = query(collection(db, "leaderboards", gameId, "scores"), orderBy("score", "desc"), limit(50));
+        let q;
+        if (gameId === 'overall') {
+            q = query(collection(db, "users"), orderBy("totalScore", "desc"), limit(50));
+        } else {
+            q = query(collection(db, "leaderboards", gameId, "scores"), orderBy("score", "desc"), limit(50));
+        }
+        
         const snapshot = await getDocs(q);
         
         tbody.innerHTML = "";
@@ -253,15 +258,21 @@ async function fetchLeaderboardData(gameId) {
             
             // Format score based on our new numeric logic vs old string logic
             let displayScore = "0";
-            if (typeof data.score === "number") {
-                let total = data.totalLevels || 18;
-                displayScore = `${data.score} / ${total}`;
-            } else if (typeof data.score === "string") {
-                displayScore = data.score;
+            if (gameId === 'overall') {
+                displayScore = data.totalScore || 0;
+            } else {
+                if (typeof data.score === "number") {
+                    let total = data.totalLevels || 18;
+                    displayScore = `${data.score} / ${total}`;
+                } else if (typeof data.score === "string") {
+                    displayScore = data.score;
+                }
             }
 
-            let dateStr = "Unknown";
-            if(data.timestamp && data.timestamp.toDate) {
+            let dateStr = "N/A";
+            if(gameId === 'overall') {
+                dateStr = data.lastLogin?.toDate ? data.lastLogin.toDate().toLocaleDateString() : "Active";
+            } else if(data.timestamp && data.timestamp.toDate) {
                 dateStr = data.timestamp.toDate().toLocaleDateString();
             }
 
@@ -322,8 +333,16 @@ async function fetchFeedback() {
         });
 
         let count = 0;
+        let totalRating = 0;
+        let ratedCount = 0;
+
         docs.forEach(data => {
             count++;
+            if (data.rating) {
+                totalRating += data.rating;
+                ratedCount++;
+            }
+
             let dateStr = "Unknown";
             if (data.timestamp) {
                 if (data.timestamp.toDate) {
@@ -351,6 +370,11 @@ async function fetchFeedback() {
                         ${data.type || "other"}
                     </span>
                 </td>
+                <td>
+                    <div style="color: #fbbf24; font-size: 0.85rem;">
+                        ${data.rating ? "★".repeat(data.rating).padEnd(5, "☆") : "N/A"}
+                    </div>
+                </td>
                 <td style="max-width: 300px;">${data.message || "(No message provided)"}</td>
             `;
             tbody.appendChild(tr);
@@ -360,16 +384,18 @@ async function fetchFeedback() {
                 sender: data.name || "Anonymous",
                 email: data.email || "No email",
                 category: data.type || "other",
+                rating: data.rating || "N/A",
                 message: data.message || ""
             });
         });
 
         if (count === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem; color:var(--pluto-text-muted);">No feedback received yet.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem; color:var(--pluto-text-muted);">No feedback received yet.</td></tr>`;
         }
 
         // Update Stats
-        document.getElementById("stat-total-feedback").innerText = count;
+        const avgRating = ratedCount > 0 ? (totalRating / ratedCount).toFixed(1) : "--";
+        document.getElementById("stat-total-feedback").innerHTML = `${count} <span style="font-size: 0.8rem; opacity: 0.7; font-weight: 500;">(Avg: ${avgRating} ★)</span>`;
 
     } catch (e) {
         console.error("Error fetching feedback:", e);
@@ -532,7 +558,8 @@ async function fetchMockResults() {
         });
 
         const totalMockEl = document.getElementById("stat-total-mock");
-        if (totalMockEl) totalMockEl.innerText = count;
+        // We let the global stats from fetchOverviewAndUsers persist unless we want to update it here
+        // if (totalMockEl) totalMockEl.innerText = count; 
 
         if (count === 0) {
             tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem; color:var(--text-muted);">No mock tests recorded yet.</td></tr>`;

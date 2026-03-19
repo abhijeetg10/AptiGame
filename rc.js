@@ -129,16 +129,64 @@ function initModuleGrid() {
 // --- Data Generation ---
 function generateRCData() {
     const topics = [
-        { name: "Global Climate Policy", facts: ["Carbon tax is 5%", "Target year is 2050", "Initial Budget is $2.5B", "Current Renewables share 40%"] },
-        { name: "Advanced Robotics AI", facts: ["Version 4.2 released", "Sensor range is 25m", "Standard Processing speed 2GHz", "Emergency Battery life 12h"] },
-        { name: "Urban Planning 2030", facts: ["Green space min 30%", "Planned Bike lanes 500km", "City Traffic limit 40kph", "Projected Population cap 2M"] },
-        { name: "Maritime Logistics", facts: ["Port capacity 1.5M TEU", "Dredging depth 18m", "Vessel length limit 400m", "Standard Wait time 48h"] },
-        { name: "Deep Sea Exploration", facts: ["Pressure 1100 atm", "Max Oxygen duration 8h", "Max recorded depth 11km", "New Species found 450"] },
-        { name: "Semiconductor Markets", facts: ["Average Yield rate 94%", "Nano-size 3nm", "Fabrication cost $5.8B", "Production Lead time 16 weeks"] }
+        { 
+            name: "Global Climate Policy", 
+            facts: [
+                "the current carbon tax is set at 5%", 
+                "the net-zero target year is 2050", 
+                "the initial budget for green projects is $2.5 billion", 
+                "the share of renewable energy has reached 40%"
+            ] 
+        },
+        { 
+            name: "Advanced Robotics AI", 
+            facts: [
+                "the latest software version is 4.2", 
+                "the external sensor range is 25 meters", 
+                "the processor operates at a speed of 2GHz", 
+                "the emergency battery lasts for 12 hours"
+            ] 
+        },
+        { 
+            name: "Urban Planning 2030", 
+            facts: [
+                "the minimum required green space is 30%", 
+                "the city plans to build 500km of bike lanes", 
+                "the inner city traffic speed is limited to 40kph", 
+                "the total population capacity is capped at 2 million"
+            ] 
+        },
+        { 
+            name: "Maritime Logistics", 
+            facts: [
+                "the port capacity is 1.5 million TEU", 
+                "the main dredging depth is 18 meters", 
+                "the maximum vessel length is 400 meters", 
+                "the standard wait time for docking is 48 hours"
+            ] 
+        },
+        { 
+            name: "Deep Sea Exploration", 
+            facts: [
+                "the water pressure reaches 1100 atmospheres", 
+                "the maximum oxygen duration is 8 hours", 
+                "the maximum recorded depth is 11 kilometers", 
+                "over 450 new species have been identified"
+            ] 
+        },
+        { 
+            name: "Semiconductor Markets", 
+            facts: [
+                "the average manufacturing yield rate is 94%", 
+                "the new chip size is 3nm", 
+                "the total fabrication cost is $5.8 billion", 
+                "the average production lead time is 16 weeks"
+            ] 
+        }
     ];
 
     const docs = topics.map((t, idx) => {
-        const p = `The latest ${t.name} analysis report highlights several critical targets. Regarding benchmarks, it notes that ${t.facts[0]}. Furthermore, the ${t.facts[1]} remains a primary objective for the next decade. Internal auditors suggested that ${t.facts[2]} is the baseline for current operations. Finally, field reports confirmed that ${t.facts[3]} was achieved during the most recent trial phase.`;
+        const p = `The ${t.name} report provides several key metrics for the upcoming fiscal cycle. It states that ${t.facts[0]}. Additionally, the document confirms that ${t.facts[1]}. Specialists also noted that ${t.facts[2]}, which serves as a baseline for future growth. Finally, the report indicates that ${t.facts[3]}.`;
         return { id: idx, title: t.name, text: p, facts: t.facts };
     });
 
@@ -148,27 +196,30 @@ function generateRCData() {
 
     const roll = Math.random();
     
-    if (roll < 0.33) {
-        // Multi-fact check
-        const f0 = targetDoc.facts[0];
-        const f1 = targetDoc.facts[1];
-        questionText = `Based on the technical reports, does the relevant framework confirm both that ${f0} and that the ${f1}?`;
+    if (roll < 0.4) {
+        // Direct Fact Verification
+        const fIdx = Math.floor(Math.random() * 4);
+        const fact = targetDoc.facts[fIdx];
+        const isCorrect = Math.random() > 0.3;
+        
+        if (isCorrect) {
+            questionText = `According to the report on <strong>${targetDoc.title}</strong>, is it true that ${fact}?`;
+            solution = "Yes";
+        } else {
+            // Modify the fact slightly to make it false
+            let falseFact = fact.replace(/\d+/, (m) => parseInt(m) + 10);
+            questionText = `Does the <strong>${targetDoc.title}</strong> report explicitly state that ${falseFact}?`;
+            solution = "No";
+        }
+    } else if (roll < 0.7) {
+        // Multi-fact combination (Easier)
+        const f1 = targetDoc.facts[0];
+        const f2 = targetDoc.facts[1];
+        questionText = `In the context of <strong>${targetDoc.title}</strong>, does the document confirm both that ${f1} and that ${f2}?`;
         solution = "Yes";
-    } else if (roll < 0.66) {
-        // Comparison logic
-        const otherDoc = docs[(targetDoc.id + 1) % docs.length];
-        const myValue = parseFloat(targetDoc.facts[0].match(/\d+/)[0]);
-        const otherValue = parseFloat(otherDoc.facts[0].match(/\d+/)[0]);
-        
-        const isHigher = myValue > otherValue;
-        const isCorrect = Math.random() > 0.5;
-        const targetResult = isCorrect ? (isHigher ? "higher" : "lower") : (isHigher ? "lower" : "higher");
-        
-        questionText = `Comparing different datasets, is the primary benchmark value in the document mentioning "${targetDoc.facts[1]}" ${targetResult} than the value in the document mentioning "${otherDoc.facts[1]}"?`;
-        solution = isCorrect ? "Yes" : "No";
     } else {
-        // Logical deduction (e.g., doubling a value)
-        const fact = targetDoc.facts[2]; // e.g., "Initial Budget is $2.5B"
+        // Simple Logical Deduction (Math)
+        const fact = targetDoc.facts[0]; // e.g., "the current carbon tax is set at 5%"
         const valueMatch = fact.match(/[\d.]+/);
         if (valueMatch) {
             const val = parseFloat(valueMatch[0]);
@@ -176,11 +227,10 @@ function generateRCData() {
             const isCorrect = Math.random() > 0.5;
             const displayVal = isCorrect ? doubledVal : doubledVal + 5;
             
-            questionText = `If the project requirements for the initiative related to ${targetDoc.facts[3]} were to double the current baseline of ${val}, would the total requirement reach ${displayVal}?`;
+            questionText = `If the value mentioned in the <strong>${targetDoc.title}</strong> report regarding ${fact.split(' is ')[0]} were to double, would the new total be ${displayVal}${fact.includes('%') ? '%' : ''}?`;
             solution = isCorrect ? "Yes" : "No";
         } else {
-            // Fallback to simple fact check if no numbers found
-            questionText = `Does any analytical report explicitly verify that ${targetDoc.facts[0]}?`;
+            questionText = `Does any document verify that ${targetDoc.facts[0]}?`;
             solution = "Yes";
         }
     }

@@ -134,29 +134,29 @@ function generateLevelData() {
     const companies = ['A', 'B', 'C', 'D', 'E'];
     const years = [2021, 2022];
     
-    // Core data titles (Generic but descriptive)
+    // Core data titles (Improved for clarity)
     const titles = [
-        "Annual Production & Export Summary",
-        "Quarterly Manufacturing Yields",
-        "International Logistics Report",
-        "Unit Distribution Metrics",
-        "Global Resource Allocation",
-        "Industrial Output Analysis"
+        "Annual Output & Export Distribution",
+        "Quarterly Manufacturing Statistics",
+        "International Shipping & Logistics",
+        "Regional Unit Metrics",
+        "Global Resource Management",
+        "Industrial Productivity Analysis"
     ];
 
     const tabs = [];
 
     for (let i = 0; i < 6; i++) {
         const type = i < 3 ? 'table' : 'chart';
-        const headers = ['Company', 'Production 2021', '% Exported 2021', 'Production 2022', '% Exported 2022'];
+        const headers = ['Company', 'Units 2021', '% Exported (21)', 'Units 2022', '% Exported (22)'];
         
         const rows = companies.map(comp => {
             const row = { label: comp };
             // Production in thousands (100 to 200)
-            row['Production 2021'] = Math.floor(Math.random() * 11) * 10 + 100;
-            row['% Exported 2021'] = Math.floor(Math.random() * 7) * 5 + 15; // 15% to 45%
-            row['Production 2022'] = row['Production 2021'] + (Math.floor(Math.random() * 5) * 10 + 10); // Growth
-            row['% Exported 2022'] = row['% Exported 2021'] + (Math.floor(Math.random() * 3) * 5); // Growth in %
+            row['Units 2021'] = Math.floor(Math.random() * 10) * 20 + 100; // 100, 120, 140...
+            row['% Exported (21)'] = Math.floor(Math.random() * 5) * 10 + 10; // 10%, 20%, 30%...
+            row['Units 2022'] = row['Units 2021'] + 20; // Fixed growth for easier tracking
+            row['% Exported (22)'] = row['% Exported (21)'] + 10; // Fixed growth for easier tracking
             return row;
         });
 
@@ -180,66 +180,49 @@ function generateLevelData() {
 
     const roll = Math.random();
     
-    if (roll < 0.25) {
-        // Q1 style: Absolute units exported
+    if (roll < 0.3) {
+        // Direct Value Retrieval (Easier)
         const companyIdx = Math.floor(Math.random() * companies.length);
         const row = selectedTab.rows[companyIdx];
         const year = 2022;
-        const prod = row[`Production ${year}`];
-        const expPct = row[`% Exported ${year}`];
-        const actualExports = (prod * expPct / 100) * 1000;
+        const val = row[`Units ${year}`];
         
-        const isCorrect = Math.random() > 0.5;
-        const displayVal = isCorrect ? actualExports : actualExports + (Math.random() > 0.5 ? 5000 : -5000);
+        const isCorrect = Math.random() > 0.4;
+        const displayVal = isCorrect ? val : val + 15;
         
-        questionText = `Is the total number of units exported by Company ${row.label} in ${year} exactly ${displayVal.toLocaleString()}?`;
+        questionText = `According to the <strong>${selectedTab.title}</strong>, did Company ${row.label} produce exactly ${displayVal} units in ${year}?`;
         solution = isCorrect ? "Yes" : "No";
-    } else if (roll < 0.50) {
-        // Q2 style: Difference in exports
+    } else if (roll < 0.6) {
+        // Percentage Check (Moderate)
         const companyIdx = Math.floor(Math.random() * companies.length);
         const row = selectedTab.rows[companyIdx];
-        const exp21 = (row['Production 2021'] * row['% Exported 2021'] / 100) * 1000;
-        const exp22 = (row['Production 2022'] * row['% Exported 2022'] / 100) * 1000;
-        const diff = Math.abs(exp22 - exp21);
+        const pct = row['% Exported (22)'];
         
-        const isCorrect = Math.random() > 0.5;
-        const displayVal = isCorrect ? diff : diff + 3000;
+        const isCorrect = Math.random() > 0.4;
+        const displayPct = isCorrect ? pct : pct + 5;
         
-        questionText = `Is the difference in units exported for Company ${row.label} between 2021 and 2022 approx ${displayVal.toLocaleString()}?`;
+        questionText = `Does the data in <strong>${selectedTab.title}</strong> confirm that Company ${row.label} exported ${displayPct}% of its units in 2022?`;
         solution = isCorrect ? "Yes" : "No";
-    } else if (roll < 0.75) {
-        // Q3 style: Maximum increase
-        let maxInc = -1;
-        let bestComp = "";
-        selectedTab.rows.forEach(r => {
-            const e21 = (r['Production 2021'] * r['% Exported 2021'] / 100);
-            const e22 = (r['Production 2022'] * r['% Exported 2022'] / 100);
-            const inc = e22 - e21;
-            if (inc > maxInc) {
-                maxInc = inc;
-                bestComp = r.label;
-            }
-        });
+    } else if (roll < 0.85) {
+        // Comparison (Simple)
+        const c1 = selectedTab.rows[0];
+        const c2 = selectedTab.rows[1];
+        const isHigher = c1['Units 2022'] > c2['Units 2022'];
         
         const isCorrect = Math.random() > 0.5;
-        const targetComp = isCorrect ? bestComp : companies.find(c => c !== bestComp);
+        const targetResult = isCorrect ? (isHigher ? "more" : "fewer") : (isHigher ? "fewer" : "more");
         
-        questionText = `Based on the latest reports, did Company ${targetComp} show the maximum increase in exported units from 2021 to 2022?`;
+        questionText = `In the <strong>${selectedTab.title}</strong> report, did Company ${c1.label} produce ${targetResult} units than Company ${c2.label} in 2022?`;
         solution = isCorrect ? "Yes" : "No";
     } else {
-        // Q5 style: Total Percentage exported in 2022
-        let totalProd = 0;
-        let totalExp = 0;
-        selectedTab.rows.forEach(r => {
-            totalProd += r['Production 2022'];
-            totalExp += (r['Production 2022'] * r['% Exported 2022'] / 100);
-        });
-        const totalPct = Math.round((totalExp / totalProd) * 100);
+        // Total Sum (Moderate)
+        let total22 = 0;
+        selectedTab.rows.forEach(r => total22 += r['Units 2022']);
         
         const isCorrect = Math.random() > 0.5;
-        const displayPct = isCorrect ? totalPct : totalPct + 5;
+        const displaySum = isCorrect ? total22 : total22 + 50;
         
-        questionText = `Does the analysis confirm that approx ${displayPct}% of the total production across all entities was exported in 2022?`;
+        questionText = `Is the total combined production for all companies in 2022 equal to ${displaySum} units?`;
         solution = isCorrect ? "Yes" : "No";
     }
 

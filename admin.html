@@ -80,13 +80,6 @@
                             </div>
                         </div>
                         <div class="stat-card">
-                            <i class="fas fa-gamepad stat-icon text-accent"></i>
-                            <div class="stat-info">
-                                <h3>Total Games Played</h3>
-                                <div id="stat-total-games" class="stat-value">--</div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
                             <i class="fas fa-comment-dots stat-icon text-success"></i>
                             <div class="stat-info">
                                 <h3>Total Support Requests</h3>
@@ -105,13 +98,6 @@
                             <div class="stat-info">
                                 <h3>Total Mock Tests</h3>
                                 <div id="stat-total-mock" class="stat-value">--</div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <i class="fas fa-history stat-icon" style="color: #34d399;"></i>
-                            <div class="stat-info">
-                                <h3>Active Sessions</h3>
-                                <div id="stat-active-sessions" class="stat-value">--</div>
                             </div>
                         </div>
                     </div>
@@ -163,6 +149,7 @@
                 <section id="panel-leaderboards" class="admin-panel">
                     <div class="leaderboard-controls" style="display: flex; justify-content: space-between; align-items: center;">
                         <select id="leaderboard-filter" class="admin-select">
+                            <option value="overall">Overall Leaderboard</option>
                             <option value="grid">Grid Challenge</option>
                             <option value="switch">Switch Challenge</option>
                             <option value="sudoku">Sudoku Pattern</option>
@@ -242,6 +229,7 @@
                                         <th>Date</th>
                                         <th>Sender</th>
                                         <th>Category</th>
+                                        <th>Rating</th>
                                         <th>Message</th>
                                     </tr>
                                 </thead>

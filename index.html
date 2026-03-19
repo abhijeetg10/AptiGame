@@ -456,6 +456,17 @@
                         </select>
                     </div>
 
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="message">Rate your experience</label>
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5"><i class="fas fa-star"></i></label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4"><i class="fas fa-star"></i></label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3"><i class="fas fa-star"></i></label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2"><i class="fas fa-star"></i></label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1"><i class="fas fa-star"></i></label>
+                        </div>
+                    </div>
+
                     <div class="form-group" style="margin-bottom: 2rem;">
                         <label for="message">Your Message</label>
                         <textarea id="message" placeholder="Describe your experience or the issue you found..." required></textarea>
@@ -657,7 +668,7 @@
 
     <!-- Firebase SDK & Logic -->
     <script type="module">
-        import { collection, getDocs, query, orderBy, limit, addDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+        import { collection, getDocs, query, orderBy, limit, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
         import { db, auth } from "./firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
         import { getCurrentUser } from "./auth.js";
@@ -826,8 +837,10 @@
                 const typeNode = document.getElementById("type");
                 const msgNode = document.getElementById("message");
                 
-                if (!nameNode.value || !emailNode.value || !typeNode.value || !msgNode.value) {
-                    alert("Please fill out all fields.");
+                const ratingNode = document.querySelector('input[name="rating"]:checked');
+                
+                if (!nameNode.value || !emailNode.value || !typeNode.value || !msgNode.value || !ratingNode) {
+                    alert("Please fill out all fields and provide a rating.");
                     return;
                 }
 
@@ -841,6 +854,7 @@
                         email: emailNode.value,
                         type: typeNode.value,
                         message: msgNode.value,
+                        rating: parseInt(ratingNode.value),
                         timestamp: serverTimestamp()
                     });
                     
