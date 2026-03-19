@@ -262,14 +262,68 @@ async function fetchLeaderboardData(gameId) {
             topThreeEl.style.display = "none";
         }
 
-        let q;
-        if (gameId === 'overall') {
-            q = query(collection(db, "users"), orderBy("totalScore", "desc"), limit(50));
-        } else {
-            q = query(collection(db, "leaderboards", gameId, "scores"), orderBy("score", "desc"), limit(50));
-        }
+        let snapshotData = [];
         
-        const snapshot = await getDocs(q);
+        if (gameId === 'overall') {
+            const collectionsToFetch = ['motion', 'sudoku', 'inductive', 'grid', 'switch', 'di', 'rc'];
+            const allDocs = [];
+            
+            // FETCH FROM ALL 7 COLLECTIONS
+            for (const cat of collectionsToFetch) {
+                try {
+                    const q = query(
+                        collection(db, "leaderboards", cat, "scores"), 
+                        orderBy("score", "desc"), 
+                        limit(100)
+                    );
+                    const sn = await getDocs(q);
+                    sn.forEach(doc => {
+                        allDocs.push({ ...doc.data(), _cat: cat });
+                    });
+                } catch (err) {
+                    console.warn(`Failed to fetch ${cat} for overall leaderboard:`, err);
+                }
+            }
+
+            // AGGREGATE BY NAME
+            const userTotals = {};
+            allDocs.forEach(d => {
+                const name = d.name || "Unknown";
+                if (!userTotals[name]) {
+                    userTotals[name] = { score: 0, latestDate: new Date(0) };
+                }
+                userTotals[name].score += d.score || 0;
+                
+                // Track latest date
+                if (d.timestamp?.toDate) {
+                    const dDate = d.timestamp.toDate();
+                    if (dDate > userTotals[name].latestDate) userTotals[name].latestDate = dDate;
+                }
+            });
+
+            // Convert back to sorted array
+            snapshotData = Object.entries(userTotals).map(([name, data]) => ({
+                name,
+                score: data.score,
+                dateStr: data.latestDate > new Date(0) ? data.latestDate.toLocaleDateString() : "Active"
+            }));
+            
+            snapshotData.sort((a, b) => b.score - a.score);
+            snapshotData = snapshotData.slice(0, 50); // Top 50
+
+        } else {
+            const q = query(collection(db, "leaderboards", gameId, "scores"), orderBy("score", "desc"), limit(50));
+            const sn = await getDocs(q);
+            sn.forEach(doc => {
+                const d = doc.data();
+                snapshotData.push({
+                    name: d.name || "Unknown",
+                    score: d.score,
+                    totalLevels: d.totalLevels || 18,
+                    dateStr: d.timestamp?.toDate ? d.timestamp.toDate().toLocaleDateString() : "N/A"
+                });
+            });
+        }
         
         tbody.innerHTML = "";
         allLeaderboardData = [];
@@ -278,29 +332,21 @@ async function fetchLeaderboardData(gameId) {
         let topThreeData = [];
         let tableRowsHTML = "";
 
-        snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            
+        snapshotData.forEach(data => {
             // Score display logic
             let displayScore = "0";
             if (gameId === 'overall') {
-                // Total cumulative points from all games
-                displayScore = data.totalScore || 0;
+                displayScore = data.score;
             } else {
                 if (typeof data.score === "number") {
                     let total = data.totalLevels || 18;
                     displayScore = `${data.score} / ${total}`;
-                } else if (typeof data.score === "string") {
+                } else {
                     displayScore = data.score;
                 }
             }
 
-            let dateStr = "N/A";
-            if(gameId === 'overall') {
-                dateStr = data.lastLogin?.toDate ? data.lastLogin.toDate().toLocaleDateString() : "Active";
-            } else if(data.timestamp && data.timestamp.toDate) {
-                dateStr = data.timestamp.toDate().toLocaleDateString();
-            }
+            let dateStr = data.dateStr || "N/A";
 
             if (rank <= 3) {
                 topThreeData.push({
