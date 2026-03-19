@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy, limit, deleteDoc, doc, where, Timestamp, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, getDocs, query, orderBy, limit, deleteDoc, doc, where, Timestamp, writeBatch, getDoc, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { db, auth } from "./firebase-config.js";
 
@@ -112,9 +112,26 @@ async function fetchOverviewAndUsers() {
                 const stats = statsDoc.data();
                 document.getElementById("stat-total-users").innerText = stats.totalUsers || 0;
                 document.getElementById("stat-total-mock").innerText = stats.totalMockTests || 0;
+            } else {
+                // FALLBACK: If global stats doc doesn't exist, get real counts (1 read per collection)
+                const userCountSnap = await getCountFromServer(collection(db, "users"));
+                document.getElementById("stat-total-users").innerText = userCountSnap.data().count;
+
+                const mockCountSnap = await getCountFromServer(collection(db, "mock_results"));
+                document.getElementById("stat-total-mock").innerText = mockCountSnap.data().count;
             }
         } catch (statsErr) {
-            console.warn("Global stats fetch failed:", statsErr);
+            console.warn("Global stats fetch failed, trying direct counts:", statsErr);
+            // Even if statsDoc fails, we try direct counts
+            try {
+                const userCountSnap = await getCountFromServer(collection(db, "users"));
+                document.getElementById("stat-total-users").innerText = userCountSnap.data().count;
+
+                const mockCountSnap = await getCountFromServer(collection(db, "mock_results"));
+                document.getElementById("stat-total-mock").innerText = mockCountSnap.data().count;
+            } catch (fallbackErr) {
+                console.error("Direct counts also failed:", fallbackErr);
+            }
         }
 
         // Fetch Recent Users ONLY (Limit 50) to minimize reads
@@ -223,7 +240,6 @@ async function fetchOverviewAndUsers() {
             const lastLogin = u.lastLogin?.toDate ? u.lastLogin.toDate() : new Date(u.lastLogin || 0);
             return lastLogin >= dayAgo;
         }).length;
-        document.getElementById("stat-active-sessions").innerText = activeSessions;
 
         const recentActivityEl = document.getElementById("recent-activity-list");
         if (recentActivityEl) recentActivityEl.innerHTML = activityHTML;
@@ -394,8 +410,11 @@ async function fetchFeedback() {
         }
 
         // Update Stats
-        const avgRating = ratedCount > 0 ? (totalRating / ratedCount).toFixed(1) : "--";
-        document.getElementById("stat-total-feedback").innerHTML = `${count} <span style="font-size: 0.8rem; opacity: 0.7; font-weight: 500;">(Avg: ${avgRating} ★)</span>`;
+        const avgRating = ratedCount > 0 ? (totalRating / ratedCount).toFixed(1) : "0.0";
+        const feedbackStatEl = document.getElementById("stat-total-feedback");
+        if (feedbackStatEl) {
+            feedbackStatEl.innerHTML = `${count} <span style="font-size: 0.8rem; opacity: 0.7; font-weight: 500;">(Avg: ${avgRating} ★)</span>`;
+        }
 
     } catch (e) {
         console.error("Error fetching feedback:", e);
