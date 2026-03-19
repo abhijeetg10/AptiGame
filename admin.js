@@ -254,7 +254,13 @@ async function fetchOverviewAndUsers() {
 async function fetchLeaderboardData(gameId) {
     try {
         const tbody = document.getElementById("table-body-leaderboards");
-        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Loading scores...</td></tr>";
+        const topThreeEl = document.getElementById("top-three-leaderboard");
+        tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Loading scores...</td></tr>";
+        
+        if (topThreeEl) {
+            topThreeEl.innerHTML = "";
+            topThreeEl.style.display = "none";
+        }
 
         let q;
         if (gameId === 'overall') {
@@ -269,20 +275,39 @@ async function fetchLeaderboardData(gameId) {
         allLeaderboardData = [];
         let rank = 1;
         
-        snapshot.forEach(doc => {
-            const data = doc.data();
+        let topThreeData = [];
+        let tableRowsHTML = "";
+
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
             
             // Format score based on our new numeric logic vs old string logic
             let displayScore = "0";
+            let accuracy = "N/A";
+            
             if (gameId === 'overall') {
                 displayScore = data.totalScore || 0;
+                const totalSolved = data.modulesCompleted || 0;
+                const totalPoints = data.totalScore || 0;
+                accuracy = totalSolved > 0 ? Math.round((totalPoints / (totalSolved * 18)) * 100) + "%" : "0%";
+                
+                // For overall leaderboard display in cards, show "Points / Modules"
+                displayScore = `${totalPoints} / ${totalSolved}`;
             } else {
+                let sVal = 0, tVal = 18;
                 if (typeof data.score === "number") {
-                    let total = data.totalLevels || 18;
-                    displayScore = `${data.score} / ${total}`;
+                    sVal = data.score;
+                    tVal = data.totalLevels || 18;
+                    displayScore = `${sVal} / ${tVal}`;
                 } else if (typeof data.score === "string") {
                     displayScore = data.score;
+                    const pts = data.score.split("/");
+                    if(pts.length === 2) { 
+                        sVal = parseInt(pts[0]); 
+                        tVal = parseInt(pts[1]); 
+                    }
                 }
+                if(tVal > 0) accuracy = Math.round((sVal / tVal) * 100) + "%";
             }
 
             let dateStr = "N/A";
@@ -292,19 +317,31 @@ async function fetchLeaderboardData(gameId) {
                 dateStr = data.timestamp.toDate().toLocaleDateString();
             }
 
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td><span style="background:var(--pluto-border); padding:0.25rem 0.75rem; border-radius:12px; font-weight:bold; color:var(--pluto-text);">#${rank}</span></td>
-                <td><strong>${data.name || "Unknown"}</strong></td>
-                <td style="color:var(--pluto-blue); font-weight:bold;">${displayScore}</td>
-                <td style="color:var(--pluto-text-muted);">${dateStr}</td>
-            `;
-            tbody.appendChild(tr);
+            if (gameId === 'overall' && rank <= 3) {
+                topThreeData.push({
+                    rank,
+                    name: data.name || "Unknown",
+                    score: displayScore,
+                    accuracy: accuracy,
+                    initial: (data.name || "?").charAt(0).toUpperCase()
+                });
+            } else {
+                tableRowsHTML += `
+                    <tr>
+                        <td><span style="background:var(--pluto-border); padding:0.25rem 0.75rem; border-radius:12px; font-weight:bold; color:var(--pluto-text);">#${rank}</span></td>
+                        <td><strong>${data.name || "Unknown"}</strong></td>
+                        <td style="color:var(--pluto-blue); font-weight:bold;">${displayScore}</td>
+                        <td style="color:var(--warning); font-weight:bold;">${accuracy}</td>
+                        <td style="color:var(--pluto-text-muted);">${dateStr}</td>
+                    </tr>
+                `;
+            }
 
             allLeaderboardData.push({
                 rank: rank,
                 name: data.name || "Unknown",
                 score: displayScore,
+                accuracy: accuracy,
                 date: dateStr,
                 game: gameId
             });
@@ -312,13 +349,41 @@ async function fetchLeaderboardData(gameId) {
             rank++;
         });
 
+        // Render Top 3 Cards
+        if (topThreeData.length > 0) {
+            // Sort to ensure 2nd, 1st, 3rd visually if we want that podium look, or just 1,2,3
+            // Screenshot shows 2, 1, 3.
+            const podiumOrder = [
+                topThreeData.find(d => d.rank === 2),
+                topThreeData.find(d => d.rank === 1),
+                topThreeData.find(d => d.rank === 3)
+            ].filter(d => d);
+
+            let top3HTML = "";
+            podiumOrder.forEach(player => {
+                top3HTML += `
+                    <div class="top-rank-card rank-${player.rank}">
+                        <div class="rank-badge">${player.rank}</div>
+                        <div class="avatar-circle-leaderboard">${player.initial}</div>
+                        <h4>${player.name}</h4>
+                        <div class="points">${player.score}</div>
+                        <div class="accuracy">Accuracy: ${player.accuracy}</div>
+                    </div>
+                `;
+            });
+            topThreeEl.innerHTML = top3HTML;
+            topThreeEl.style.display = "flex";
+        }
+
+        tbody.innerHTML = tableRowsHTML || `<tr><td colspan="5" style="text-align:center; padding: 2rem; color:var(--pluto-text-muted);">No more scores to display.</td></tr>`;
+
         if (rank === 1) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem; color:var(--pluto-text-muted);">No scores recorded for this game yet.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem; color:var(--pluto-text-muted);">No scores recorded for this game yet.</td></tr>`;
         }
         
     } catch(e) {
         console.error("Error fetching leaderboard:", e);
-         document.getElementById("table-body-leaderboards").innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--pluto-red);">Requires Firebase Index. Check console.</td></tr>`;
+         document.getElementById("table-body-leaderboards").innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--pluto-red);">Requires Firebase Index. Check console.</td></tr>`;
     }
 }
 
