@@ -21,7 +21,10 @@
             });
         }
     </script>
-    <script type="module" src="analytics.js"></script>
+    <script type="module" src="db-shim.js?v=5"></script>
+    <script type="module" src="auth.js?v=5"></script>
+    <script type="module" src="analytics.js?v=5"></script>
+    <script type="module" src="mock-test-engine.js?v=5"></script>
     <style>
         .page-header {
             padding: 8rem 2rem 4rem;
@@ -342,9 +345,7 @@
 
     <!-- Scripts -->
     <script type="module">
-        import { collection, getDocs, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-        import { db, auth } from "./firebase-config.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+        import { collection, getDocs, query, orderBy, limit, doc, getDoc, auth, onAuthStateChanged, db } from "./db-shim.js";
 
         // Global function for the buttons
         window.startMock = function (companyId) {

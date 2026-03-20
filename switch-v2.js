@@ -1,9 +1,7 @@
 console.log("Switch Logic Loaded - Version 2.0.2");
-import { db, auth } from "./firebase-config.js";
+import { collection, addDoc, doc, setDoc, getDoc, updateDoc, onAuthStateChanged, db, auth } from "./db-shim.js";
 import { ActivityLogger } from "./activity-logger.js";
-import { collection, addDoc, doc, setDoc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { initRatingSystem } from "./rating-system.js";
-import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { getCurrentUser } from "./auth.js";
 import { GAME_CONFIG } from "./game-constants.js";
 import { Logger } from "./logger.js";
@@ -321,14 +319,14 @@ async function endModule(customTitle) {
     if (isGameOver) {
         elNextBtn.innerText = "Finish & Exit";
         elNextBtn.onclick = () => {
-            saveScoreToFirebase(elNextBtn, () => {
+            saveScoreToAgy(elNextBtn, () => {
                 window.location.href = "index.html";
             });
         };
     } else {
         elNextBtn.innerText = "Start Next Module";
         elNextBtn.onclick = () => {
-            saveScoreToFirebase(elNextBtn, nextModule);
+            saveScoreToAgy(elNextBtn, nextModule);
         };
     }
 
@@ -349,7 +347,7 @@ async function endModule(customTitle) {
     if (ratingContainer) initRatingSystem(ratingContainer);
     
     // Autosave in background
-    saveScoreToFirebase();
+    saveScoreToAgy();
 }
 
 // --- Compatibility Layer for Cached Browsers ---
@@ -371,7 +369,7 @@ function nextModule() {
     startModule(currentModule);
 }
 
-async function saveScoreToFirebase(btnElement = null, redirectCallback = null) {
+async function saveScoreToAgy(btnElement = null, redirectCallback = null) {
     if (btnElement) {
         btnElement.disabled = true;
         btnElement.innerText = "Saving...";
@@ -467,6 +465,8 @@ async function saveScoreToFirebase(btnElement = null, redirectCallback = null) {
         setTimeout(redirectCallback, 1000);
     }
 }
+
+
 
 function shareOnLinkedIn() {
     const text = `I just completed Switch Challenge Module ${currentModule} on AptiVerse with ${correctCount}/${LEVELS_PER_MODULE} correct! 🚀 #AptitudeReasoning #AptiVerse`;

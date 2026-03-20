@@ -1,5 +1,4 @@
-import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-import { db, auth } from "./firebase-config.js";
+import { collection, addDoc, serverTimestamp, db, auth } from "./db-shim.js";
 
 /**
  * Activity Logger - Tracks user engagement for the Consistency Calendar

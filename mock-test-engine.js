@@ -1,4 +1,4 @@
-import { collection, addDoc, serverTimestamp, doc, setDoc, onAuthStateChanged, db, auth, increment } from "./firebase-config.js";
+import { collection, addDoc, doc, getDoc, setDoc, updateDoc, serverTimestamp, db, auth, onAuthStateChanged, increment, Timestamp } from "./db-shim.js";
 
 // --- CONFIGURATION ---
 const TOTAL_MOCK_TIME = 24 * 60; // 24 minutes in seconds

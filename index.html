@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="manifest" href="manifest.json">
-    <script type="module" src="analytics.js"></script>
+    <script type="module" src="analytics.js?v=5"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -61,7 +61,7 @@
     </nav>
     
     <!-- Load Auth System -->
-    <script type="module" src="auth.js"></script>
+    <script type="module" src="auth.js?v=5"></script>
 
     <!-- Hero Section -->
     <header class="hero">
@@ -653,24 +653,20 @@
                     
                     listContainer.innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-muted);">Loading...</p>';
                     podiumContainer.innerHTML = '';
-                    
-                    if (window.fetchFromFirebase) {
-                        window.fetchFromFirebase(category).then(data => window.renderLeaderboard(category, data));
-                    } else {
-                        window.renderLeaderboard(category, []); 
-                    }
+                    // trigger AgyDB fetches
+                if (window.fetchRemaining) {
+                    window.fetchRemaining(category).then(data => window.renderLeaderboard(category, data));
+                }
                 });
             });
             
-            // Note: The initial render is now handled in the Firebase script block below.
+            // Note: The initial render is now handled in the AgyDB script block below.
         }
     </script>
 
-    <!-- Firebase SDK & Logic -->
+    <!-- AgyDB Logic -->
     <script type="module">
-        import { collection, getDocs, query, orderBy, limit, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-        import { db, auth } from "./firebase-config.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+        import { collection, getDocs, query, orderBy, limit, addDoc, serverTimestamp, db, auth, onAuthStateChanged } from "./db-shim.js";
         import { getCurrentUser } from "./auth.js";
 
         // Create a global helper for the renderer to check the active user name
@@ -687,7 +683,7 @@
         });
 
         // 4. Create the Fetch Function
-        window.fetchFromFirebase = async function(category) {
+        window.fetchFromAgy = async function(category) {
             try {
                 let collectionsToFetch = [];
                 if (category === 'all') {
@@ -818,7 +814,7 @@
         };
         
         // 5. Trigger Initial Data Load
-        window.fetchFromFirebase('all').then(data => {
+        window.fetchFromAgy('all').then(data => {
             if(window.renderLeaderboard) {
                 window.renderLeaderboard('all', data);
             }

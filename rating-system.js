@@ -1,5 +1,4 @@
-import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-import { db, auth } from "./firebase-config.js";
+import { collection, addDoc, serverTimestamp, db } from "./db-shim.js";
 
 const RATING_HTML = `
 <div class="rating-wrapper" style="display: flex; justify-content: center; align-items: center; width: 100%; min-height: 100%; padding: 1rem 0;">

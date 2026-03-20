@@ -1,10 +1,11 @@
-const CACHE_NAME = 'aptiverse-v3';
+const CACHE_NAME = 'aptiverse-v5-force-purge';
 const ASSETS_TO_CACHE = [
   '/',
   'index.html',
   'styles.css',
   'auth.js',
   'analytics.js',
+  'db-shim.js',
   'firebase-config.js',
   'game-constants.js',
   'rating-system.js',
@@ -36,7 +37,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Opened cache v3');
+      console.log('Opened cache v5 (Total Refresh)');
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );

@@ -1,8 +1,6 @@
 import { ActivityLogger } from "./activity-logger.js";
-import { collection, addDoc, doc, setDoc, getDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { collection, addDoc, doc, getDoc, setDoc, onAuthStateChanged, db, auth } from "./db-shim.js";
 import { initRatingSystem } from "./rating-system.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { db, auth } from "./firebase-config.js";
 import { GAME_CONFIG } from "./game-constants.js";
 import { Logger } from "./logger.js";
 

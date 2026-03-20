@@ -1,7 +1,4 @@
-import { collection, addDoc, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-import { initRatingSystem } from "./rating-system.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { db, auth } from "./firebase-config.js";
+import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc, db, auth, onAuthStateChanged } from "./db-shim.js";
 import { ActivityLogger } from "./activity-logger.js";
 import { getCurrentUser } from "./auth.js";
 import { GAME_CONFIG } from "./game-constants.js";
@@ -578,7 +575,7 @@ function updateTimerDisplay() {
     }
 }
 
-async function saveScoreToFirebase(btnElement, redirectCallback) {
+async function saveScoreToAgy(btnElement, redirectCallback) {
     if (moduleScores.length === 0 && !btnElement) { // Only skip if no scores and not explicitly saving from a button
         if (redirectCallback) redirectCallback();
         return;
@@ -737,14 +734,14 @@ async function endModule(customTitle) {
     }
 
     moduleScores.push(correctAnswers);
-    saveScoreToFirebase(null, null); // Autosave in background
+    saveScoreToAgy(null, null); // Autosave in background
 
     const isGameOver = currentModule >= TOTAL_MODULES || customTitle === "Time's Up!";
 
     if (isGameOver) {
         elNextBtn.innerText = "Finish & Exit";
         elNextBtn.onclick = () => {
-            saveScoreToFirebase(elNextBtn, () => {
+            saveScoreToAgy(elNextBtn, () => {
                 window.location.href = "index.html";
             });
         };

@@ -1,0 +1,230 @@
+/**
+ * AgyDB - Antigravity Database (Local-First Shim) persistence.
+ */
+
+// --- UTILS ---
+const storage = {
+    get: (key) => JSON.parse(localStorage.getItem(key) || '[]'),
+    set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
+    getDoc: (key) => JSON.parse(localStorage.getItem(key) || '{}'),
+    setDoc: (key, val) => localStorage.setItem(key, JSON.stringify(val))
+};
+
+// --- AUTH EMULATION ---
+class AuthMock {
+    constructor() {
+        this.currentUser = JSON.parse(localStorage.getItem('agy_auth_user') || 'null');
+        this.listeners = [];
+    }
+
+    onAuthStateChanged(callback) {
+        this.listeners.push(callback);
+        // Initial trigger
+        setTimeout(() => callback(this.currentUser), 0);
+        return () => {
+            this.listeners = this.listeners.filter(l => l !== callback);
+        };
+    }
+
+    async signOut() {
+        this.currentUser = null;
+        localStorage.removeItem('agy_auth_user');
+        this.notify();
+    }
+
+    // Custom helper for local login
+    async signInLocal(user) {
+        this.currentUser = {
+            uid: user.uid || 'local-admin',
+            email: user.email || 'local@aptiverse.in',
+            displayName: user.displayName || 'Local User',
+            photoURL: null,
+            ...user
+        };
+        localStorage.setItem('agy_auth_user', JSON.stringify(this.currentUser));
+        this.notify();
+    }
+
+    notify() {
+        this.listeners.forEach(l => l(this.currentUser));
+    }
+}
+
+export const auth = new AuthMock();
+
+// --- FIRESTORE EMULATION ---
+export const db = { type: 'agy-local' };
+
+export const Timestamp = {
+    now: () => new Date(),
+    fromDate: (date) => date,
+    fromMillis: (ms) => new Date(ms)
+};
+
+// Mocking serverTimestamp as a current Date
+export function serverTimestamp() {
+    return new Date().toISOString();
+}
+
+// Mocking increment
+export function increment(n) {
+    return { __type: 'increment', value: n };
+}
+
+export class Query {
+    constructor(path, filters = []) {
+        this.path = path; // array of path segments
+        this.filters = filters;
+        this.sortField = null;
+        this.sortDir = 'asc';
+        this.limitCount = Infinity;
+    }
+}
+
+export function collection(db, ...path) {
+    return new Query(path);
+}
+
+export function doc(db, ...path) {
+    return { path };
+}
+
+export function query(q, ...operators) {
+    const newQuery = new Query(q.path, [...q.filters]);
+    operators.forEach(op => {
+        if (op.type === 'orderBy') {
+            newQuery.sortField = op.field;
+            newQuery.sortDir = op.dir;
+        } else if (op.type === 'limit') {
+            newQuery.limitCount = op.count;
+        } else if (op.type === 'where') {
+            newQuery.filters.push(op);
+        }
+    });
+    return newQuery;
+}
+
+export function where(field, op, value) {
+    return { type: 'where', field, op, value };
+}
+
+export function orderBy(field, dir = 'asc') {
+    return { type: 'orderBy', field, dir };
+}
+
+export function limit(count) {
+    return { type: 'limit', count };
+}
+
+// --- DATA OPERATIONS ---
+
+function getCollectionKey(path) {
+    return `agy_col_${path.join('_')}`;
+}
+
+export async function getDocs(q) {
+    const key = getCollectionKey(q.path);
+    let data = storage.get(key);
+
+    // Filter
+    q.filters.forEach(f => {
+        if (f.op === '==') data = data.filter(d => d[f.field] === f.value);
+    });
+
+    // Sort
+    if (q.sortField) {
+        data.sort((a, b) => {
+            const valA = a[q.sortField];
+            const valB = b[q.sortField];
+            if (q.sortDir === 'desc') return valB > valA ? 1 : -1;
+            return valA > valB ? 1 : -1;
+        });
+    }
+
+    // Limit
+    data = data.slice(0, q.limitCount);
+
+    return {
+        forEach: (callback) => data.forEach(d => callback({ id: d._id || d.id, data: () => d })),
+        docs: data.map(d => ({ id: d._id || d.id, data: () => d })),
+        empty: data.length === 0,
+        size: data.length
+    };
+}
+
+export async function getDoc(dRef) {
+    const segments = dRef.path;
+    if (segments.length % 2 === 0) {
+        // Points to a document
+        const collectionKey = getCollectionKey(segments.slice(0, -1));
+        const id = segments[segments.length - 1];
+        const items = storage.get(collectionKey);
+        const item = items.find(i => (i._id || i.id) === id);
+        return {
+            exists: () => !!item,
+            data: () => item
+        };
+    }
+    // Handle single document paths like system_stats/global
+    const docKey = `agy_doc_${segments.join('_')}`;
+    const data = storage.getDoc(docKey);
+    return {
+        exists: () => Object.keys(data).length > 0,
+        data: () => data
+    };
+}
+
+export async function setDoc(dRef, data, options = {}) {
+    const segments = dRef.path;
+    const docKey = `agy_doc_${segments.join('_')}`;
+    let existing = storage.getDoc(docKey);
+    
+    let finalData = options.merge ? { ...existing, ...data } : data;
+    
+    // Handle increments
+    Object.keys(finalData).forEach(k => {
+        if (finalData[k] && finalData[k].__type === 'increment') {
+            finalData[k] = (Number(existing[k]) || 0) + finalData[k].value;
+        }
+    });
+
+    storage.setDoc(docKey, finalData);
+}
+
+export async function addDoc(cRef, data) {
+    const key = getCollectionKey(cRef.path);
+    const items = storage.get(key);
+    const newItem = { 
+        ...data, 
+        id: Math.random().toString(36).substr(2, 9),
+        _id: Math.random().toString(36).substr(2, 9),
+        timestamp: new Date().toISOString()
+    };
+    items.push(newItem);
+    storage.set(key, items);
+    return { id: newItem.id };
+}
+
+export async function updateDoc(dRef, data) {
+    return setDoc(dRef, data, { merge: true });
+}
+
+export async function deleteDoc(dRef) {
+    const segments = dRef.path;
+    const collectionKey = getCollectionKey(segments.slice(0, -1));
+    const id = segments[segments.length - 1];
+    let items = storage.get(collectionKey);
+    items = items.filter(i => (i._id || i.id) !== id);
+    storage.set(collectionKey, items);
+}
+
+// --- INITIALIZATION ---
+// Create or update default local user to match admin expectation
+const existingAgyUser = JSON.parse(localStorage.getItem('agy_auth_user') || 'null');
+if (!existingAgyUser || existingAgyUser.uid === 'local-admin') {
+    auth.signInLocal({
+        uid: 'local-admin',
+        displayName: 'AptiVerse Administrator',
+        email: 'argaikwad24@gmail.com'
+    });
+}

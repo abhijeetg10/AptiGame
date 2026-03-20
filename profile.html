@@ -17,7 +17,9 @@
         }
     </script>
 </head>
-    <script type="module" src="analytics.js"></script>
+    <script type="module" src="db-shim.js?v=5"></script>
+    <script type="module" src="auth.js?v=5"></script>
+    <script type="module" src="analytics.js?v=5"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -434,9 +436,7 @@
 
     <!-- Scripts -->
     <script type="module">
-        import { db, auth } from "./firebase-config.js";
-        import { collection, getDocs, query, orderBy, limit, where, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+        import { collection, getDocs, doc, getDoc, query, where, orderBy, limit, auth, onAuthStateChanged, db } from "./db-shim.js";
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -532,8 +532,6 @@
                         listEl.appendChild(item);
                     }
                 });
-
-                }
             } catch (err) {
                 console.error(err);
                 document.getElementById('loader').innerHTML = "Failed to load data. Please refresh.";

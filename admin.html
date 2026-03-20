@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="admin.css">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="manifest" href="manifest.json">
-    <script type="module" src="analytics.js"></script>
+    <script type="module" src="analytics.js?v=5"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
@@ -44,7 +44,6 @@
                 <button class="nav-btn active" data-target="panel-overview"><i class="fas fa-chart-line"></i> Overview</button>
                 <button class="nav-btn" data-target="panel-users"><i class="fas fa-users"></i> Users</button>
                 <button class="nav-btn" data-target="panel-leaderboards"><i class="fas fa-medal"></i> Master Leaderboards</button>
-                <button class="nav-btn" data-target="panel-full-leaderboard"><i class="fas fa-table"></i> Full Leaderboard</button>
                 <button class="nav-btn" data-target="panel-ratings"><i class="fas fa-star"></i> Ratings</button>
                 <button class="nav-btn" data-target="panel-traffic"><i class="fas fa-chart-area"></i> Traffic</button>
                 <button class="nav-btn" data-target="panel-feedback"><i class="fas fa-comments"></i> Support Feedback</button>
@@ -189,42 +188,6 @@
                     </div>
                 </section>
 
-                <!-- PANEL: FULL LEADERBOARD (AGGREGATED) -->
-                <section id="panel-full-leaderboard" class="admin-panel">
-                    <div class="card data-table-card">
-                        <div class="table-header" style="justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-                            <h2>Comprehensive Student Performance</h2>
-                            <button id="download-full-csv" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                                <i class="fas fa-download"></i> Download Full CSV
-                            </button>
-                        </div>
-                        <div class="table-container" style="overflow-x: auto;">
-                            <table class="admin-table" id="full-leaderboard-table">
-                                <thead>
-                                    <tr id="full-leaderboard-header">
-                                        <th>Student</th>
-                                        <th>Grid</th>
-                                        <th>Switch</th>
-                                        <th>Sudoku</th>
-                                        <th>Inductive</th>
-                                        <th>Motion</th>
-                                        <th>DI</th>
-                                        <th>RC</th>
-                                        <th>Mock 1</th>
-                                        <th>Mock 2</th>
-                                        <th>Mock 3</th>
-                                        <th>Mock 4</th>
-                                        <th>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="table-body-full-leaderboard">
-                                    <tr><td colspan="13" style="text-align: center;">Aggregating all student data...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-
                 <!-- PANEL: RATINGS -->
                 <section id="panel-ratings" class="admin-panel">
                     <div class="card data-table-card">
@@ -363,6 +326,6 @@
         </div>
     </div>
 
-    <script type="module" src="admin.js"></script>
+    <script type="module" src="admin.js?v=5"></script>
 </body>
 </html>

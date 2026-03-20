@@ -1,6 +1,4 @@
-import { signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { setDoc, doc, getDoc, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-import { auth, provider, db } from "./firebase-config.js";
+import { onAuthStateChanged, signOut, setDoc, doc, getDoc, increment, auth, db, provider } from "./db-shim.js";
 
 const loginBtn = document.getElementById("nav-login-btn");
 const userProfile = document.getElementById("nav-user-profile");
@@ -126,7 +124,7 @@ export const loginWithGoogle = async () => {
         });
         console.log("User login tracked via Webhook.");
 
-        // 2. Firebase Database Logging (For the Admin Dashboard)
+        // AgyDB Local Auth Check Logging (For the Admin Dashboard)
         try {
             const userDocRef = doc(db, "users", user.uid);
             await setDoc(userDocRef, {
