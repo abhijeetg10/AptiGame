@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aptiverse-v5-force-purge';
+const CACHE_NAME = 'aptiverse-v6-force-purge';
 const ASSETS_TO_CACHE = [
   '/',
   'index.html',
