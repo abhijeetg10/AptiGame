@@ -345,7 +345,7 @@
 
     <!-- Scripts -->
     <script type="module">
-        import { collection, getDocs, query, orderBy, limit, doc, getDoc, auth, onAuthStateChanged, db } from "./db-shim.js";
+        import { collection, getDocs, query, orderBy, limit, doc, getDoc, auth, onAuthStateChanged, db, where } from "./db-shim.js";
 
         // Global function for the buttons
         window.startMock = function (companyId) {
@@ -401,7 +401,7 @@
             }
         });
     </script>
-    <script type="module" src="auth.js"></script>
+
 </body>
 
 </html>
