@@ -1,4 +1,4 @@
-import { onAuthStateChanged, signOut, setDoc, doc, getDoc, increment, auth, db, provider, signInWithPopup } from "./db-shim.js";
+import { onAuthStateChanged, signOut, setDoc, doc, getDoc, increment, auth, db, provider, signInWithPopup, arrayUnion } from "./db-shim.js";
 
 const loginBtn = document.getElementById("nav-login-btn");
 const userProfile = document.getElementById("nav-user-profile");
@@ -111,7 +111,7 @@ export const loginWithGoogle = async () => {
             email: user.email || "No Email",
             score: 0,
             challenge: "Login",
-            time: new Date().toLocaleTimeString()
+            time: new Date().toLocaleString()
         };
 
         await fetch(GOOGLE_SCRIPT_URL, {

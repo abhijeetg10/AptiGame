@@ -46,6 +46,11 @@ export function increment(n) {
     return { __type: 'increment', value: n };
 }
 
+// Mocking arrayUnion
+export function arrayUnion(...elements) {
+    return { __type: 'arrayUnion', elements };
+}
+
 export class Query {
     constructor(path, filters = []) {
         this.path = path; // array of path segments
@@ -169,10 +174,13 @@ export async function setDoc(dRef, data, options = {}) {
     
     let finalData = options.merge ? { ...existing, ...data } : data;
     
-    // Handle increments
+    // Handle increments and arrayUnions
     Object.keys(finalData).forEach(k => {
         if (finalData[k] && finalData[k].__type === 'increment') {
             finalData[k] = (Number(existing[k]) || 0) + finalData[k].value;
+        } else if (finalData[k] && finalData[k].__type === 'arrayUnion') {
+            const currentArr = Array.isArray(existing[k]) ? existing[k] : [];
+            finalData[k] = [...new Set([...currentArr, ...finalData[k].elements])];
         }
     });
 

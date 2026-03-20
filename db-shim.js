@@ -27,6 +27,7 @@ export const getCountFromServer = agy.getCountFromServer;
 export const Timestamp = agy.Timestamp;
 export const serverTimestamp = agy.serverTimestamp;
 export const increment = agy.increment;
+export const arrayUnion = agy.arrayUnion;
 
 // Auth Functions
 export const onAuthStateChanged = agy.onAuthStateChanged;

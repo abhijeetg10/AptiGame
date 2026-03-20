@@ -696,8 +696,7 @@
                 for (const cat of collectionsToFetch) {
                     const q = query(
                         collection(db, "leaderboards", cat, "scores"), 
-                        orderBy("score", "desc"), 
-                        limit(100)
+                        orderBy("score", "desc")
                     );
                     const sn = await getDocs(q);
                     sn.forEach(doc => {

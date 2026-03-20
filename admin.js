@@ -135,11 +135,11 @@ async function fetchOverviewAndUsers() {
         // Fetch Recent Users ONLY (Limit 50) to minimize reads
         let snapshot;
         try {
-            const q = query(collection(db, "users"), orderBy("lastLogin", "desc"), limit(50));
+            const q = query(collection(db, "users"), orderBy("lastLogin", "desc"));
             snapshot = await getDocs(q);
         } catch (indexError) {
             console.warn("User index missing, falling back to limited fetch:", indexError);
-            snapshot = await getDocs(query(collection(db, "users"), limit(50)));
+            snapshot = await getDocs(query(collection(db, "users")));
         }
         
         tbody.innerHTML = "";
@@ -271,8 +271,7 @@ async function fetchLeaderboardData(gameId) {
                 try {
                     const q = query(
                         collection(db, "leaderboards", cat, "scores"), 
-                        orderBy("score", "desc"), 
-                        limit(100)
+                        orderBy("score", "desc")
                     );
                     const sn = await getDocs(q);
                     sn.forEach(doc => {
@@ -303,11 +302,11 @@ async function fetchLeaderboardData(gameId) {
             snapshotData = Object.entries(userTotals).map(([name, data]) => ({
                 name,
                 score: data.score,
-                dateStr: data.latestDate > new Date(0) ? data.latestDate.toLocaleDateString() : "Active"
+                dateStr: data.latestDate > new Date(0) ? data.latestDate.toLocaleString() : "Active"
             }));
             
             snapshotData.sort((a, b) => b.score - a.score);
-            snapshotData = snapshotData.slice(0, 50); // Top 50
+            // Limit removed as per user request
 
         } else {
             const q = query(collection(db, "leaderboards", gameId, "scores"), orderBy("score", "desc"));
@@ -318,7 +317,7 @@ async function fetchLeaderboardData(gameId) {
                     name: d.name || "Unknown",
                     score: d.score,
                     totalLevels: d.totalLevels || 18,
-                    dateStr: d.timestamp?.toDate ? d.timestamp.toDate().toLocaleDateString() : "N/A"
+                    dateStr: d.timestamp?.toDate ? d.timestamp.toDate().toLocaleString() : "N/A"
                 });
             });
         }
