@@ -1,4 +1,4 @@
-import { onAuthStateChanged, signOut, setDoc, doc, getDoc, increment, auth, db, provider } from "./db-shim.js";
+import { onAuthStateChanged, signOut, setDoc, doc, getDoc, increment, auth, db, provider, signInWithPopup } from "./db-shim.js";
 
 const loginBtn = document.getElementById("nav-login-btn");
 const userProfile = document.getElementById("nav-user-profile");

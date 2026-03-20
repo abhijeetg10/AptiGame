@@ -1,8 +1,25 @@
-/**
- * AgyDB - Antigravity Database (Local-First Shim) persistence.
- */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
-// --- UTILS ---
+// --- FIREBASE AUTH CONFIG ---
+const firebaseConfig = {
+    apiKey: "AIzaSyAeEyap9MQ3eINdVhY3GGhdideIaSQ7M_Q",
+    authDomain: "aptigame.firebaseapp.com",
+    projectId: "aptigame",
+    storageBucket: "aptigame.firebasestorage.app",
+    messagingSenderId: "201198068351",
+    appId: "1:201198068351:web:13a0b2c6aaacc21632154a",
+    measurementId: "G-C9PZ77HM98"
+};
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const provider = new GoogleAuthProvider();
+
+// Re-export Auth Functions
+export { signInWithPopup, signOut, onAuthStateChanged };
+
+// --- UTILS (AGYDB STORAGE) ---
 const storage = {
     get: (key) => JSON.parse(localStorage.getItem(key) || '[]'),
     set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
@@ -10,49 +27,7 @@ const storage = {
     setDoc: (key, val) => localStorage.setItem(key, JSON.stringify(val))
 };
 
-// --- AUTH EMULATION ---
-class AuthMock {
-    constructor() {
-        this.currentUser = JSON.parse(localStorage.getItem('agy_auth_user') || 'null');
-        this.listeners = [];
-    }
-
-    onAuthStateChanged(callback) {
-        this.listeners.push(callback);
-        // Initial trigger
-        setTimeout(() => callback(this.currentUser), 0);
-        return () => {
-            this.listeners = this.listeners.filter(l => l !== callback);
-        };
-    }
-
-    async signOut() {
-        this.currentUser = null;
-        localStorage.removeItem('agy_auth_user');
-        this.notify();
-    }
-
-    // Custom helper for local login
-    async signInLocal(user) {
-        this.currentUser = {
-            uid: user.uid || 'local-admin',
-            email: user.email || 'local@aptiverse.in',
-            displayName: user.displayName || 'Local User',
-            photoURL: null,
-            ...user
-        };
-        localStorage.setItem('agy_auth_user', JSON.stringify(this.currentUser));
-        this.notify();
-    }
-
-    notify() {
-        this.listeners.forEach(l => l(this.currentUser));
-    }
-}
-
-export const auth = new AuthMock();
-
-// --- FIRESTORE EMULATION ---
+// --- FIRESTORE EMULATION (AGYDB) ---
 export const db = { type: 'agy-local' };
 
 export const Timestamp = {
@@ -218,13 +193,4 @@ export async function deleteDoc(dRef) {
     storage.set(collectionKey, items);
 }
 
-// --- INITIALIZATION ---
-// Create or update default local user to match admin expectation
-const existingAgyUser = JSON.parse(localStorage.getItem('agy_auth_user') || 'null');
-if (!existingAgyUser || existingAgyUser.uid === 'local-admin') {
-    auth.signInLocal({
-        uid: 'local-admin',
-        displayName: 'AptiVerse Administrator',
-        email: 'argaikwad24@gmail.com'
-    });
-}
+// No local init needed anymore as we use real Firebase Auth.

@@ -30,6 +30,7 @@ export const increment = agy.increment;
 // Auth Functions
 export const onAuthStateChanged = agy.onAuthStateChanged;
 export const signOut = agy.signOut;
+export const signInWithPopup = agy.signInWithPopup;
 
 // Initialization
 console.log("AptiVerse: Data layer switched to AgyDB.");
