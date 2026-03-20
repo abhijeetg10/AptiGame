@@ -1,0 +1,44 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // -------------------------------------------------------------------------
+    // MASTER ADMIN BYPASS (CRITICAL FOR SYNC)
+    // -------------------------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if request.auth.token.email == "argaikwad24@gmail.com";
+    }
+
+    // -------------------------------------------------------------------------
+    // COLLECTION-SPECIFIC RULES (FOR OTHER USERS)
+    // -------------------------------------------------------------------------
+    
+    // Users can read/write their own profiles
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Publicly readable leaderboards
+    match /leaderboards/{gameId}/scores/{scoreId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+    }
+
+    // Analytics and Traffic (Only authenticated users can log)
+    match /traffic/{docId} {
+      allow create: if request.auth != null;
+    }
+    
+    // Mock Results (Only owner can read/write)
+    match /mock_results/{resId} {
+      allow read, write: if request.auth != null && request.auth.token.email == resource.data.email;
+    }
+
+    // System Stats
+    match /system_stats/global {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email == "argaikwad24@gmail.com";
+    }
+  }
+}
