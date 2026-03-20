@@ -61,13 +61,7 @@
         <!-- MAIN CONTENT AREA -->
         <main class="admin-main">
             <header class="admin-header">
-                <div style="display: flex; align-items: center; gap: 1.5rem;">
-                    <h1 id="panel-title" style="margin: 0;">Overview</h1>
-                    <div id="sync-banner" style="background: rgba(255, 193, 7, 0.1); border: 1px dashed #ffc107; padding: 0.5rem 1rem; border-radius: 8px; display: flex; align-items: center; gap: 1rem;">
-                        <span id="sync-status" style="font-size: 0.85rem; color: #856404; font-weight: 600;">⚠️ Legacy Data Missing?</span>
-                        <button onclick="syncAllFromFirebase()" style="background: #ffc107; color: #000; border: none; padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: 0.2s;">Restore from Firebase</button>
-                    </div>
-                </div>
+                <h1 id="panel-title">Overview</h1>
                 <div class="header-actions">
                     <button id="refresh-data-btn" class="btn btn-outline"><i class="fas fa-sync-alt"></i> Refresh Data</button>
                 </div>
@@ -333,6 +327,5 @@
     </div>
 
     <script type="module" src="admin.js?v=6"></script>
-    <script type="module" src="sync-recovery.js?v=6"></script>
 </body>
 </html>
