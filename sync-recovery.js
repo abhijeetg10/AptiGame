@@ -45,8 +45,12 @@ window.syncAllFromFirebase = async () => {
         }
 
         // 3. Special Case: System Stats Global Doc
-        // (AgyDB uses agy_doc_system_stats_global for single documents)
-        // This is a bit advanced, but for now we'll assume standard collections are enough.
+        statusEl.innerText = `Syncing System Stats...`;
+        const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js");
+        const docSnap = await getDoc(doc(db, "system_stats", "global"));
+        if (docSnap.exists()) {
+            localStorage.setItem(`agy_doc_system_stats_global`, JSON.stringify(docSnap.data()));
+        }
 
         statusEl.innerText = "Sync SUCCESSFUL! All data restored. The page will reload now.";
         setTimeout(() => location.reload(), 2000);
