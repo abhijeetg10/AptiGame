@@ -15,7 +15,15 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 window.syncAllFromFirebase = async () => {
-    if (!confirm("This will pull all data from the live Firebase database and save it to your local AgyDB. It will overwrite any newer local progress. Proceed?")) return;
+    const { getAuth } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js");
+    const auth = getAuth(app);
+    
+    if (!auth.currentUser) {
+        alert("You must be logged in to restore data. Please refresh and login again.");
+        return;
+    }
+
+    if (!confirm(`Restore data for ${auth.currentUser.email}? This will pull all data from Firebase and overwrite local AgyDB.`)) return;
 
     const statusEl = document.getElementById('sync-status') || { set innerText(v) { console.log(v); } };
     statusEl.innerText = "Starting Sync... Please wait.";
