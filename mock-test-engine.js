@@ -1,6 +1,4 @@
-import { collection, addDoc, serverTimestamp, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { db, auth } from "./firebase-config.js";
+import { collection, addDoc, serverTimestamp, doc, setDoc, onAuthStateChanged, db, auth, increment } from "./firebase-config.js";
 
 // --- CONFIGURATION ---
 const TOTAL_MOCK_TIME = 24 * 60; // 24 minutes in seconds
@@ -20,7 +18,8 @@ let currentState = {
     startTime: Date.now(),
     strikes: 0,
     isFinished: false,
-    isPaused: false
+    isPaused: false,
+    feedbackRating: 0
 };
 
 const companyNames = {
@@ -140,6 +139,14 @@ function init() {
 }
 
 function setupListeners() {
+    // Proctoring: Tab-Switch Detection
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden' && currentState.isStarted && !currentState.isFinished) {
+            console.warn("Tab switch detected. Terminating test.");
+            terminateTest("terminated (tab-switch)");
+        }
+    });
+
     // Start Assessment
     startAssessmentBtn.onclick = async () => {
         try {
@@ -176,6 +183,36 @@ function setupListeners() {
             }
         };
     }
+
+    // Star Rating Interaction
+    const stars = document.querySelectorAll('#star-rating i');
+    stars.forEach(star => {
+        star.onclick = () => {
+            const rating = parseInt(star.getAttribute('data-rating'));
+            currentState.feedbackRating = rating;
+            stars.forEach(s => {
+                const sRating = parseInt(s.getAttribute('data-rating'));
+                s.style.color = sRating <= rating ? '#fbbf24' : '#cbd5e1';
+            });
+        };
+    });
+
+    // Feedback Submission
+    document.getElementById('submit-feedback-btn').onclick = async () => {
+        const feedbackText = document.getElementById('mock-feedback-text').value;
+        await updateFirestoreRecord("completed", feedbackText, currentState.feedbackRating);
+        sessionStorage.removeItem('mock_test_active');
+        sessionStorage.removeItem('mock_test_state');
+        if (document.fullscreenElement) document.exitFullscreen();
+        window.location.href = 'mock-tests.html';
+    };
+
+    document.getElementById('skip-feedback-btn').onclick = () => {
+        sessionStorage.removeItem('mock_test_active');
+        sessionStorage.removeItem('mock_test_state');
+        if (document.fullscreenElement) document.exitFullscreen();
+        window.location.href = 'mock-tests.html';
+    };
 
     // Listen for signals from child iframe
     window.addEventListener('message', (event) => {
@@ -255,6 +292,11 @@ function startTimer() {
         } else {
             timerEl.classList.remove('warning');
         }
+
+        // Periodic Auto-Save (Every 30 seconds)
+        if (currentState.timeLeft > 0 && currentState.timeLeft % 30 === 0) {
+            updateFirestoreRecord("in-progress");
+        }
     }, 1000);
 }
 
@@ -309,8 +351,30 @@ async function finishTest() {
     if (progress) progress.style.width = '100%';
     
     try {
-        await updateFirestoreRecord("completed");
-        alert(`Test Completed!\nTotal Score: ${currentState.cumulativeScore}\nViolations: ${currentState.strikes}`);
+        await updateFirestoreRecord("completed"); // Initial complete status
+        
+        // Show Feedback Overlay instead of alert
+        const finalScoreEl = document.getElementById('final-score-display');
+        if (finalScoreEl) finalScoreEl.innerText = `Final Score: ${currentState.cumulativeScore}`;
+        
+        const feedbackOverlay = document.getElementById('feedback-overlay');
+        if (feedbackOverlay) feedbackOverlay.style.display = 'flex';
+        
+    } catch (e) {
+        console.error("Error saving mock results:", e);
+        window.location.href = 'mock-tests.html';
+    }
+}
+
+async function terminateTest(status = "aborted") {
+    if (currentState.isFinished) return;
+    currentState.isFinished = true;
+    saveState();
+
+    try {
+        await updateFirestoreRecord(status);
+        alert(`Assessment Terminated: ${status === "terminated (tab-switch)" ? "Tab switching is not allowed." : "Test aborted."}\nYour progress has been saved.`);
+        
         sessionStorage.removeItem('mock_test_active');
         sessionStorage.removeItem('mock_test_state');
         
@@ -320,7 +384,7 @@ async function finishTest() {
         
         window.location.href = 'mock-tests.html';
     } catch (e) {
-        console.error("Error saving mock results:", e);
+        console.error("Error terminating test:", e);
         window.location.href = 'mock-tests.html';
     }
 }
@@ -353,7 +417,7 @@ async function initTracking() {
     }
 }
 
-async function updateFirestoreRecord(status = "in-progress") {
+async function updateFirestoreRecord(status = "in-progress", feedback = "", rating = 0) {
     if (!currentState.firestoreId) return;
     
     try {
@@ -363,12 +427,16 @@ async function updateFirestoreRecord(status = "in-progress") {
             companyId: currentState.companyId,
             userName: user ? user.displayName : (currentState.userName || "Guest"),
             userId: user ? user.uid : (currentState.userId || "guest"),
+            userEmail: user ? user.email : (currentState.userEmail || ""),
             totalScore: currentState.cumulativeScore,
             timeLeft: currentState.timeLeft,
             strikes: currentState.strikes,
             status: status,
             lastUpdate: serverTimestamp()
         };
+
+        if (feedback) updateData.feedback = feedback;
+        if (rating) updateData.rating = rating;
         
         // Use setDoc with merge to update the existing document
         await setDoc(doc(db, "mock_results", currentState.firestoreId), updateData, { merge: true });
@@ -378,8 +446,9 @@ async function updateFirestoreRecord(status = "in-progress") {
     }
 }
 
-// Global exposure for the abort button
+// Global exposure for external buttons
 window.updateMockStatus = updateFirestoreRecord;
+window.terminateMockTest = terminateTest;
 
 function handleTestTimeout() {
     alert("TIME UP! Submitting your current progress.");

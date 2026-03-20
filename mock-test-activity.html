@@ -488,21 +488,43 @@
         </div>
     </div>
 
+    <!-- FEEDBACK OVERLAY -->
+    <div id="feedback-overlay" class="mock-overlay" style="display: none;">
+        <div class="overlay-card" style="max-width: 500px;">
+            <div style="font-size: 3rem; color: #10b981; margin-bottom: 1rem;"><i class="fas fa-check-circle"></i></div>
+            <h2 style="font-size: 2rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">Test Completed!</h2>
+            <p id="final-score-display" style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 1.5rem;">Score: 0</p>
+            
+            <div style="text-align: left; margin-bottom: 2rem;">
+                <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; color: #1e293b;">How was your experience?</label>
+                <div id="star-rating" style="display: flex; gap: 0.5rem; font-size: 2rem; color: #cbd5e1; cursor: pointer; margin-bottom: 1.5rem;">
+                    <i class="fas fa-star" data-rating="1"></i>
+                    <i class="fas fa-star" data-rating="2"></i>
+                    <i class="fas fa-star" data-rating="3"></i>
+                    <i class="fas fa-star" data-rating="4"></i>
+                    <i class="fas fa-star" data-rating="5"></i>
+                </div>
+                
+                <label style="display: block; font-weight: 700; margin-bottom: 0.5rem; color: #1e293b;">Any comments or suggestions?</label>
+                <textarea id="mock-feedback-text" placeholder="Tell us how we can improve..." style="width: 100%; height: 100px; padding: 1rem; border-radius: 12px; border: 1px solid #e2e8f0; font-family: inherit; resize: none;"></textarea>
+            </div>
+
+            <button id="submit-feedback-btn" class="begin-btn">SUBMIT & EXIT</button>
+            <button id="skip-feedback-btn" style="background: none; border: none; color: #64748b; margin-top: 1rem; cursor: pointer; text-decoration: underline;">Skip feedback</button>
+        </div>
+    </div>
+
     <script type="module" src="mock-test-engine.js"></script>
     <script>
         async function abortTest() {
             if(confirm("Are you sure? You will lose all progress in this mock test.")) {
-                try {
-                    // Try to update status to aborted via the engine's exposed function
-                    if (window.updateMockStatus) {
-                        await window.updateMockStatus("aborted");
-                    }
-                } catch (e) {
-                    console.error("Error updating abort status:", e);
+                if (window.terminateMockTest) {
+                    await window.terminateMockTest("aborted");
+                } else {
+                    sessionStorage.removeItem('mock_test_active');
+                    sessionStorage.removeItem('mock_test_state');
+                    window.location.href = 'index.html';
                 }
-                sessionStorage.removeItem('mock_test_active');
-                sessionStorage.removeItem('mock_test_state');
-                window.location.href = 'index.html';
             }
         }
     </script>

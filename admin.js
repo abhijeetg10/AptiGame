@@ -1,6 +1,7 @@
-import { collection, getDocs, query, orderBy, limit, deleteDoc, doc, where, Timestamp, writeBatch, getDoc, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { db, auth } from "./firebase-config.js";
+import { 
+    collection, getDocs, query, orderBy, limit, doc, where, Timestamp, getDoc, 
+    onAuthStateChanged, signOut, db, auth 
+} from "./firebase-config.js";
 
 // --- SECURITY PROTOCOL ---
 // Replace this exactly with the user's provided email.
@@ -10,6 +11,7 @@ let allLeaderboardData = [];
 let allFeedbackData = [];
 let allRatingsData = [];
 let allMockResultsData = [];
+let allFullLeaderboardData = []; // New global for aggregation
 let trafficChart = null;
 
 const elOverlay = document.getElementById("auth-overlay");
@@ -95,6 +97,7 @@ async function fetchAllData() {
         fetchFeedback(),
         fetchRatings(),
         fetchMockResults(),
+        fetchFullLeaderboardData(), // Load full leaderboard
         fetchTrafficData("24h") // Default load traffic
     ]);
 }
@@ -635,6 +638,9 @@ async function fetchMockResults() {
             if (status === "in-progress") statusColor = "#f59e0b"; // orange
             if (status === "aborted" || status === "terminated") statusColor = "#ef4444"; // red
 
+            const feedback = data.feedback || data.comment || "";
+            const rating = data.rating || "";
+
             const tr = document.createElement("tr");
             tr.innerHTML = `
                 <td style="white-space: nowrap; color:var(--pluto-text-muted); font-size:0.85rem;">${dateStr}</td>
@@ -647,6 +653,10 @@ async function fetchMockResults() {
                         ${status}
                     </span>
                 </td>
+                <td style="max-width: 200px;">
+                    ${rating ? `<div style="color:#fbbf24; font-size:0.75rem;">${"★".repeat(rating)}</div>` : ""}
+                    <div style="font-size:0.8rem; color:var(--admin-text-muted);">${feedback || "No feedback"}</div>
+                </td>
             `;
             tbody.appendChild(tr);
 
@@ -656,7 +666,9 @@ async function fetchMockResults() {
                 company: data.companyId,
                 score: data.totalScore,
                 timeRemaining: data.timeLeft,
-                status: status
+                status: status,
+                rating: rating,
+                feedback: feedback
             });
         });
 
@@ -1082,3 +1094,167 @@ function renderTrafficChart(labels, visitCounts, uniqueCounts) {
         }
     });
 }
+
+/**
+ * 6. FULL LEADERBOARD (AGGREGATED)
+ * Fetches data from users, all 7 game collections, and mock_results to build a master table.
+ */
+async function fetchFullLeaderboardData() {
+    try {
+        const tbody = document.getElementById("table-body-full-leaderboard");
+        if (!tbody) return;
+        tbody.innerHTML = "<tr><td colspan='13' style='text-align:center;'>Aggregating all student data...</td></tr>";
+
+        // 1. Fetch All Users
+        const usersSnap = await getDocs(collection(db, "users"));
+        const users = {};
+        usersSnap.forEach(doc => {
+            const data = doc.data();
+            const email = data.email || "No Email";
+            users[email] = {
+                name: data.name || "Unknown",
+                email: email,
+                scores: {
+                    grid: 0, switch: 0, sudoku: 0, inductive: 0, motion: 0, di: 0, rc: 0,
+                    mock1: 0, mock2: 0, mock3: 0, mock4: 0
+                },
+                solved: {
+                    grid: false, switch: false, sudoku: false, inductive: false, motion: false, di: false, rc: false,
+                    mock1: false, mock2: false, mock3: false, mock4: false
+                },
+                total: 0
+            };
+        });
+
+        // 2. Fetch Game Scores
+        const games = ['grid', 'switch', 'sudoku', 'inductive', 'motion', 'di', 'rc'];
+        for (const game of games) {
+            try {
+                const snap = await getDocs(collection(db, "leaderboards", game, "scores"));
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    let user;
+                    if (data.email) {
+                        user = users[data.email];
+                    } else {
+                        user = Object.values(users).find(u => u.name === data.name);
+                    }
+
+                    if (user) {
+                        user.scores[game] = Math.max(user.scores[game], data.score || 0);
+                        user.solved[game] = true;
+                    }
+                });
+            } catch (err) {
+                console.warn(`Failed to fetch ${game} scores:`, err);
+            }
+        }
+
+        // 3. Fetch Mock Results
+        const mockSnap = await getDocs(collection(db, "mock_results"));
+        const mockMapping = { 'atlas': 'mock1', 'capgemini': 'mock2', 'tcs': 'mock3', 'cognizant': 'mock4' };
+        
+        mockSnap.forEach(doc => {
+            const data = doc.data();
+            let user;
+            if (data.userEmail) {
+                user = users[data.userEmail];
+            } else {
+                user = Object.values(users).find(u => u.name === data.userName);
+            }
+
+            if (user) {
+                const mockKey = mockMapping[data.companyId];
+                if (mockKey) {
+                    user.scores[mockKey] = Math.max(user.scores[mockKey], data.totalScore || 0);
+                    user.solved[mockKey] = true;
+                }
+            }
+        });
+
+        // 4. Render Table
+        tbody.innerHTML = "";
+        allFullLeaderboardData = [];
+
+        Object.values(users).forEach(user => {
+            user.total = Object.values(user.scores).reduce((a, b) => a + b, 0);
+            
+            const tr = document.createElement("tr");
+            
+            const renderCell = (gameKey) => {
+                const solved = user.solved[gameKey];
+                const score = user.scores[gameKey];
+                if (!solved) return `<td style="color:var(--admin-text-muted); opacity:0.5; font-size:0.7rem;">Not Solved</td>`;
+                return `<td style="font-weight:700; color:var(--success); font-size:0.9rem;">${score}</td>`;
+            };
+
+            tr.innerHTML = `
+                <td>
+                    <strong>${user.name}</strong><br>
+                    <span style="font-size:0.7rem; color:var(--admin-text-muted);">${user.email}</span>
+                </td>
+                ${renderCell('grid')}
+                ${renderCell('switch')}
+                ${renderCell('sudoku')}
+                ${renderCell('inductive')}
+                ${renderCell('motion')}
+                ${renderCell('di')}
+                ${renderCell('rc')}
+                ${renderCell('mock1')}
+                ${renderCell('mock2')}
+                ${renderCell('mock3')}
+                ${renderCell('mock4')}
+                <td style="font-weight:800; color:var(--admin-accent); font-size:1rem;">${user.total}</td>
+            `;
+            tbody.appendChild(tr);
+            allFullLeaderboardData.push(user);
+        });
+
+        if (Object.keys(users).length === 0) {
+            tbody.innerHTML = "<tr><td colspan='13' style='text-align:center;'>No users found.</td></tr>";
+        }
+
+    } catch (e) {
+        console.error("Error fetching full leaderboard:", e);
+        document.getElementById("table-body-full-leaderboard").innerHTML = "<tr><td colspan='13' style='text-align:center; color:red;'>Error aggregating data. Check console.</td></tr>";
+    }
+}
+
+// 7. CSV Export for Full Leaderboard
+document.getElementById("download-full-csv")?.addEventListener("click", () => {
+    if (allFullLeaderboardData.length === 0) {
+        alert("No full leaderboard data available to download.");
+        return;
+    }
+
+    let csvContent = "Name,Email,Grid,Switch,Sudoku,Inductive,Motion,DI,RC,Mock1,Mock2,Mock3,Mock4,Total\n";
+    allFullLeaderboardData.forEach(u => {
+        const row = [
+            `"${u.name && u.name.replace ? u.name.replace(/"/g, '""') : u.name}"`,
+            `"${u.email && u.email.replace ? u.email.replace(/"/g, '""') : u.email}"`,
+            u.scores.grid,
+            u.scores.switch,
+            u.scores.sudoku,
+            u.scores.inductive,
+            u.scores.motion,
+            u.scores.di,
+            u.scores.rc,
+            u.scores.mock1,
+            u.scores.mock2,
+            u.scores.mock3,
+            u.scores.mock4,
+            u.total
+        ];
+        csvContent += row.join(",") + "\n";
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "aptiverse_full_leaderboard.csv");
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
