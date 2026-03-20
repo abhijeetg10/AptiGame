@@ -23,6 +23,7 @@ export const setDoc = agy.setDoc;
 export const updateDoc = agy.updateDoc;
 export const deleteDoc = agy.deleteDoc;
 export const addDoc = agy.addDoc;
+export const getCountFromServer = agy.getCountFromServer;
 export const Timestamp = agy.Timestamp;
 export const serverTimestamp = agy.serverTimestamp;
 export const increment = agy.increment;

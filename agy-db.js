@@ -91,6 +91,19 @@ export function limit(count) {
     return { type: 'limit', count };
 }
 
+export async function getCountFromServer(q) {
+    const key = getCollectionKey(q.path);
+    const data = storage.get(key);
+    // Apply filters if any
+    let filtered = data;
+    q.filters.forEach(f => {
+        if (f.op === '==') filtered = filtered.filter(d => d[f.field] === f.value);
+    });
+    return {
+        data: () => ({ count: filtered.length })
+    };
+}
+
 // --- DATA OPERATIONS ---
 
 function getCollectionKey(path) {
