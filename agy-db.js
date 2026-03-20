@@ -19,11 +19,36 @@ export const provider = new GoogleAuthProvider();
 // Re-export Auth Functions
 export { signInWithPopup, signOut, onAuthStateChanged };
 
-// --- UTILS (AGYDB STORAGE) ---
+// --- DECODER (RESTORING TIMESTAMPS) ---
+function decodeFirebaseData(obj) {
+    if (!obj || typeof obj !== 'object') return obj;
+    
+    // If it looks like a Firebase Timestamp object {seconds, nanoseconds}
+    if (obj.hasOwnProperty('seconds') && obj.hasOwnProperty('nanoseconds') && Object.keys(obj).length === 2) {
+        return {
+            seconds: obj.seconds,
+            nanoseconds: obj.nanoseconds,
+            toDate: () => new Date(obj.seconds * 1000),
+            toLocaleString: () => new Date(obj.seconds * 1000).toLocaleString()
+        };
+    }
+
+    // Recursively process arrays and objects
+    if (Array.isArray(obj)) {
+        return obj.map(decodeFirebaseData);
+    }
+    
+    const decoded = {};
+    for (const key in obj) {
+        decoded[key] = decodeFirebaseData(obj[key]);
+    }
+    return decoded;
+}
+
 const storage = {
-    get: (key) => JSON.parse(localStorage.getItem(key) || '[]'),
+    get: (key) => decodeFirebaseData(JSON.parse(localStorage.getItem(key) || '[]')),
     set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
-    getDoc: (key) => JSON.parse(localStorage.getItem(key) || '{}'),
+    getDoc: (key) => decodeFirebaseData(JSON.parse(localStorage.getItem(key) || '{}')),
     setDoc: (key, val) => localStorage.setItem(key, JSON.stringify(val))
 };
 
