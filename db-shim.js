@@ -42,8 +42,14 @@ const storage = {
 // --- WRAPPER LOGIC ---
 
 function getPath(obj) {
+    if (!obj) return '';
     if (typeof obj === 'string') return obj;
-    if (obj.path) return Array.isArray(obj.path) ? obj.path.join('/') : obj.path;
+    // Handle Collection/Doc References
+    if (obj.path) return typeof obj.path === 'string' ? obj.path : obj.path.join('/');
+    // Handle Query objects (they contain the collection/path in internal properties or we can extract from converter)
+    if (obj._query && obj._query.path) return obj._query.path.canonicalString();
+    // Fallback search for common paths
+    if (obj.type === 'collection') return obj.path;
     return '';
 }
 
@@ -63,10 +69,14 @@ export const getDoc = async (docRef) => {
     const path = getPath(docRef);
     try {
         const snap = await fbsGetDoc(docRef);
-        if (snap.exists()) storage.setDoc(path, snap.data());
+        if (snap.exists()) {
+            console.log(`[DB] Fetched doc from server: ${path}`);
+            storage.setDoc(path, snap.data());
+        }
         return snap;
     } catch (e) {
         if (e.code === 'resource-exhausted' || e.code === 'unavailable') {
+            console.warn(`[DB] QUOTA/OFFLINE: Using local cache for ${path}`);
             const data = storage.getDoc(path);
             return { exists: () => Object.keys(data).length > 0, data: () => data, id: docRef.id, _fromCache: true };
         }
@@ -80,10 +90,14 @@ export const getDocs = async (q) => {
         const snap = await fbsGetDocs(q);
         const items = [];
         snap.forEach(d => items.push({ ...d.data(), id: d.id }));
-        if (colPath) storage.set(`agy_col_${colPath}`, items);
+        if (colPath) {
+            console.log(`[DB] Syncing ${snap.size} items to cache for: ${colPath}`);
+            storage.set(`agy_col_${colPath}`, items);
+        }
         return snap;
     } catch (e) {
         if (e.code === 'resource-exhausted' || e.code === 'unavailable') {
+            console.warn(`[DB] QUOTA/OFFLINE: Using cached results for query: ${colPath}`);
             const cached = storage.get(`agy_col_${colPath}`);
             return {
                 forEach: (cb) => cached.forEach(item => cb({ data: () => item, id: item.id })),

@@ -89,10 +89,12 @@ async function syncUserToFirestore(user) {
         await setDoc(doc(db, "system_stats", "global"), { activeSessions24h: increment(1) }, { merge: true });
 
         if (updateData.name || updateData.email) {
+            console.log(`[AUTH] Syncing user data for: ${user.email} (UID: ${user.uid})`);
             await setDoc(userDocRef, updateData, { merge: true }); 
+            console.log(`[AUTH] User sync successful.`);
         }
     } catch (e) {
-        console.error("Auto-sync failed:", e);
+        console.error("[AUTH] Auto-sync failed:", e);
     }
 }
 
