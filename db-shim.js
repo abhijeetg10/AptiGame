@@ -114,7 +114,14 @@ export const getDocs = async (q) => {
 export const setDoc = async (docRef, data, options = {}) => {
     const path = getPath(docRef);
     storage.setDoc(path, data);
-    return await fbsSetDoc(docRef, data, options);
+    try {
+        const res = await fbsSetDoc(docRef, data, options);
+        console.log(`[DB] Successfully wrote to server: ${path}`);
+        return res;
+    } catch (e) {
+        console.error(`[DB] Write failed for ${path}:`, e.message);
+        throw e;
+    }
 };
 
 export const updateDoc = async (docRef, data) => {
