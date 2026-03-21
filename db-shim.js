@@ -122,6 +122,33 @@ export const setDoc = async (docRef, data, options = {}) => {
     }
 };
 
+export const updateDoc = async (docRef, data) => {
+    return await setDoc(docRef, data, { merge: true });
+};
+
+export const deleteDoc = async (docRef) => {
+    const path = docRef.path;
+    const colName = path.split('/')[0];
+    const docId = docRef.id;
+
+    // Local Update
+    localStorage.removeItem(`agy_doc_${path.replace(/\//g, '_')}`);
+
+    try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                collection: colName,
+                id: docId,
+                _DELETE: true // Signal deletion even if script doesn't handle it yet
+            })
+        });
+    } catch (e) {
+        console.error("Sheets Delete Failed", e);
+    }
+};
+
 export const addDoc = async (colRef, data) => {
     const colName = colRef.path;
     const payload = {
