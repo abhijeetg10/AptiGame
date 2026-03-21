@@ -6,9 +6,9 @@ const userAvatar = document.getElementById("nav-user-avatar");
 const userName = document.getElementById("nav-user-name");
 const logoutBtn = document.getElementById("nav-logout-btn");
 
-// NEW GOOGLE SCRIPT URL
+// OLD GOOGLE SCRIPT URL (REVERTED)
 const GOOGLE_SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbxdpD7vNosv001RBIkVP7cJVZH6J0ICnu0ycCNO6UWlRCo3BrxJKjplg011dS2uECI6fQ/exec";
+"https://script.google.com/macros/s/AKfycbwz5YPrzW7dxg3qnF6toMVIBahoWWoUk6mKeZtaZ-vfoh49NAdbLiyfQAXIDVuZ7ggVKQ/exec";
 
 
 // Detect login state

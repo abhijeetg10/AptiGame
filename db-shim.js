@@ -1,15 +1,21 @@
 /**
  * db-shim.js
  * 
- * GOOGLE SHEETS BACKEND (Firestore Replacement).
- * Centralized, Free, and No Read Limits.
+ * HYBRID QUOTA-RESILIENT DATA LAYER (Firebase + AgyDB Cache).
+ * Restored to Centralized Firebase as primary.
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+import { 
+    getFirestore, collection as fbsCollection, getDocs as fbsGetDocs, query as fbsQuery, 
+    orderBy as fbsOrderBy, limit as fbsLimit, doc as fbsDoc, where as fbsWhere, 
+    getDoc as fbsGetDoc, setDoc as fbsSetDoc, updateDoc as fbsUpdateDoc, 
+    deleteDoc as fbsDeleteDoc, addDoc as fbsAddDoc, getCountFromServer as fbsGetCount, 
+    Timestamp, serverTimestamp as fbsServerTimestamp, increment as fbsIncrement, arrayUnion as fbsArrayUnion 
+} from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { 
     getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
-// --- FIREBASE CONFIG (For Auth Only) ---
 const firebaseConfig = {
     apiKey: "AIzaSyAeEyap9MQ3eINdVhY3GGhdideIaSQ7M_Q",
     authDomain: "aptigame.firebaseapp.com",
@@ -21,14 +27,11 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
 
-// --- GOOGLE SHEETS BACKEND CONFIG ---
-// Paste your new Web App URL here!
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxdpD7vNosv001RBIkVP7cJVZH6J0ICnu0ycCNO6UWlRCo3BrxJKjplg011dS2uECI6fQ/exec";
-
-// --- LOCAL STORAGE CACHE ---
+// --- HELPER: LOCAL STORAGE CACHE ---
 const storage = {
     get: (key) => JSON.parse(localStorage.getItem(key) || '[]'),
     set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
@@ -36,161 +39,95 @@ const storage = {
     setDoc: (key, val) => localStorage.setItem(`agy_doc_${key.replace(/\//g, '_')}`, JSON.stringify(val))
 };
 
-// --- MOCK FIRESTORE INTERFACE (SYNCED TO SHEETS) ---
+// --- WRAPPER LOGIC ---
 
-export const db = { type: 'google-sheets-hybrid' };
+function getPath(obj) {
+    if (typeof obj === 'string') return obj;
+    if (obj.path) return Array.isArray(obj.path) ? obj.path.join('/') : obj.path;
+    return '';
+}
 
-export const collection = (db, ...path) => ({ path: path.join('/') });
-export const doc = (db, ...path) => ({ path: path.join('/'), id: path[path.length-1] });
-export const query = (q, ...args) => q; // Logic handled in fetch
-export const orderBy = (field, dir) => ({ type: 'orderBy', field, dir });
-export const limit = (n) => ({ type: 'limit', n });
-export const where = (f, op, v) => ({ type: 'where', f, op, v });
+export const collection = fbsCollection;
+export const doc = fbsDoc;
+export const query = fbsQuery;
+export const orderBy = fbsOrderBy;
+export const limit = fbsLimit;
+export const where = fbsWhere;
+export const Timestamp = Timestamp;
+export const serverTimestamp = fbsServerTimestamp;
+export const increment = fbsIncrement;
+export const arrayUnion = fbsArrayUnion;
 
 export const getDoc = async (docRef) => {
-    const path = docRef.path;
+    const path = getPath(docRef);
     try {
-        // We fetch the collection and find the doc (Sheets strategy)
-        const colName = path.split('/')[0];
-        const res = await fetch(`${GOOGLE_SCRIPT_URL}?collection=${colName}`);
-        const data = await res.json();
-        const docId = docRef.id;
-        const record = data.find(i => (i.id == docId || i._id == docId || i.uid == docId));
-        
-        if (record) {
-            storage.setDoc(path, record);
-            return { exists: () => true, data: () => record, id: docId };
-        }
-        return { exists: () => false };
+        const snap = await fbsGetDoc(docRef);
+        if (snap.exists()) storage.setDoc(path, snap.data());
+        return snap;
     } catch (e) {
-        console.warn("Sheets fetch failed, using cache for", path);
-        const cached = storage.getDoc(path);
-        return { exists: () => Object.keys(cached).length > 0, data: () => cached, id: docRef.id, _fromCache: true };
+        if (e.code === 'resource-exhausted' || e.code === 'unavailable') {
+            const data = storage.getDoc(path);
+            return { exists: () => Object.keys(data).length > 0, data: () => data, id: docRef.id, _fromCache: true };
+        }
+        throw e;
     }
 };
 
 export const getDocs = async (q) => {
-    const colName = q.path.split('/')[0];
+    const colPath = getPath(q);
     try {
-        const res = await fetch(`${GOOGLE_SCRIPT_URL}?collection=${colName}`);
-        const data = await res.json();
-        storage.set(`agy_col_${colName}`, data);
-        
-        return {
-            forEach: (cb) => data.forEach(item => cb({ data: () => item, id: item.id || item._id || item.uid })),
-            docs: data.map(item => ({ data: () => item, id: item.id || item._id || item.uid })),
-            size: data.length,
-            empty: data.length === 0
-        };
+        const snap = await fbsGetDocs(q);
+        const items = [];
+        snap.forEach(d => items.push({ ...d.data(), id: d.id }));
+        if (colPath) storage.set(`agy_col_${colPath}`, items);
+        return snap;
     } catch (e) {
-        console.warn("Sheets fetch failed for collection", colName);
-        const cached = storage.get(`agy_col_${colName}`);
-        return {
-            forEach: (cb) => cached.forEach(item => cb({ data: () => item, id: item.id || item._id || item.uid })),
-            docs: cached.map(item => ({ data: () => item, id: item.id || item._id || item.uid })),
-            size: cached.length,
-            empty: cached.length === 0,
-            _fromCache: true
-        };
+        if (e.code === 'resource-exhausted' || e.code === 'unavailable') {
+            const cached = storage.get(`agy_col_${colPath}`);
+            return {
+                forEach: (cb) => cached.forEach(item => cb({ data: () => item, id: item.id })),
+                docs: cached.map(item => ({ data: () => item, id: item.id })),
+                size: cached.length,
+                empty: cached.length === 0,
+                _fromCache: true
+            };
+        }
+        throw e;
     }
 };
 
 export const setDoc = async (docRef, data, options = {}) => {
-    const path = docRef.path;
-    const colName = path.split('/')[0];
-    const docId = docRef.id || data.id || data.uid;
-
-    const payload = {
-        collection: colName,
-        id: docId,
-        ...data
-    };
-
-    // Immediate Local Update
+    const path = getPath(docRef);
     storage.setDoc(path, data);
-
-    try {
-        await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors', // Apps Script requires no-cors normally for simple POST
-            body: JSON.stringify(payload)
-        });
-        return { status: "submitted" };
-    } catch (e) {
-        console.error("Sheets Save Failed", e);
-        return null;
-    }
+    return await fbsSetDoc(docRef, data, options);
 };
 
 export const updateDoc = async (docRef, data) => {
-    return await setDoc(docRef, data, { merge: true });
+    return await fbsUpdateDoc(docRef, data);
 };
 
 export const deleteDoc = async (docRef) => {
-    const path = docRef.path;
-    const colName = path.split('/')[0];
-    const docId = docRef.id;
-
-    // Local Update
-    localStorage.removeItem(`agy_doc_${path.replace(/\//g, '_')}`);
-
-    try {
-        await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({
-                collection: colName,
-                id: docId,
-                _DELETE: true // Signal deletion even if script doesn't handle it yet
-            })
-        });
-    } catch (e) {
-        console.error("Sheets Delete Failed", e);
-    }
+    return await fbsDeleteDoc(docRef);
 };
 
 export const addDoc = async (colRef, data) => {
-    const colName = colRef.path;
-    const payload = {
-        collection: colName,
-        ...data
-    };
-
-    try {
-        await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(payload)
-        });
-        return { id: 'generated' };
-    } catch (e) {
-        console.error("Sheets Add Failed", e);
-        return null;
-    }
+    return await fbsAddDoc(colRef, data);
 };
 
 export const getCountFromServer = async (colRef) => {
-    const colName = colRef.path.split('/')[0];
     try {
-        const res = await fetch(`${GOOGLE_SCRIPT_URL}`);
-        const stats = await res.json();
-        const collectionInfo = stats.collections.find(c => c.name === colName);
-        return { data: () => ({ count: collectionInfo ? collectionInfo.count : 0 }) };
+        const snap = await fbsGetCount(colRef);
+        return snap;
     } catch (e) {
-        const cached = storage.get(`agy_col_${colName}`);
-        return { data: () => ({ count: cached.length }), _fromCache: true };
+        if (e.code === 'resource-exhausted' || e.code === 'unavailable') {
+            const colPath = getPath(colRef);
+            const cached = storage.get(`agy_col_${colPath}`);
+            return { data: () => ({ count: cached.length }), _fromCache: true };
+        }
+        throw e;
     }
-};
-
-// --- MOCK UTILS ---
-export const increment = (n) => ({ __type: 'increment', value: n });
-export const arrayUnion = (...elements) => ({ __type: 'arrayUnion', elements });
-export const serverTimestamp = () => new Date().toISOString();
-export const Timestamp = {
-    now: () => new Date(),
-    fromDate: (date) => date
 };
 
 export { onAuthStateChanged, signOut, signInWithPopup };
 
-console.log("AptiVerse: Using Google Sheets Centralized Backend.");
+console.log("AptiVerse: Restored to Firebase (Centralized).");
