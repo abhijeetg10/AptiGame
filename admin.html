@@ -62,7 +62,8 @@
         <main class="admin-main">
             <header class="admin-header">
                 <h1 id="panel-title">Overview</h1>
-                <div class="header-actions">
+                <div class="header-actions" style="display: flex; gap: 1rem;">
+                    <button id="recover-firebase-btn" class="btn btn-primary" style="background-color: #8b5cf6;"><i class="fas fa-cloud-download-alt"></i> Recover from Firebase</button>
                     <button id="refresh-data-btn" class="btn btn-outline"><i class="fas fa-sync-alt"></i> Refresh Data</button>
                 </div>
             </header>
@@ -327,6 +328,7 @@
     </div>
 
     <script src="repair-agy-data.js"></script>
+    <script type="module" src="recover-firebase-data.js"></script>
     <script type="module" src="admin.js?v=6"></script>
 </body>
 </html>

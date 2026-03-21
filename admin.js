@@ -68,6 +68,24 @@ document.getElementById("refresh-data-btn").addEventListener("click", () => {
     fetchAllData();
 });
 
+const recoverBtn = document.getElementById("recover-firebase-btn");
+if (recoverBtn) {
+    recoverBtn.addEventListener("click", async () => {
+        if (confirm("This will pull all legacy data from Firebase and sync it into your local browser storage. Continue?")) {
+            recoverBtn.disabled = true;
+            recoverBtn.innerText = "Recovering...";
+            if (window.recoverFirebaseData) {
+                await window.recoverFirebaseData();
+                fetchAllData(); // Refresh UI after recovery
+            } else {
+                alert("Recovery utility not loaded properly.");
+            }
+            recoverBtn.disabled = false;
+            recoverBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Recover from Firebase';
+        }
+    });
+}
+
 document.getElementById("leaderboard-filter").addEventListener("change", (e) => {
     fetchLeaderboardData(e.target.value);
 });
