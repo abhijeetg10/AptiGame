@@ -172,22 +172,34 @@ export async function getDocs(q) {
 
 export async function getDoc(dRef) {
     const segments = dRef.path;
+    const docId = segments[segments.length - 1];
+    
+    // 1. Check Collection First
     if (segments.length % 2 === 0) {
-        // Points to a document
         const collectionKey = getCollectionKey(segments.slice(0, -1));
-        const id = segments[segments.length - 1];
         const items = storage.get(collectionKey);
-        const item = items.find(i => (i._id || i.id) === id);
-        return {
-            exists: () => !!item,
-            data: () => item
-        };
+        const item = items.find(i => (i._id || i.id) === docId);
+        if (item) return { exists: () => true, data: () => item };
     }
-    // Handle single document paths like system_stats/global
+
+    // 2. Check Individual Doc Key (Fallback/Repair)
     const docKey = `agy_doc_${segments.join('_')}`;
     const data = storage.getDoc(docKey);
+    const exists = Object.keys(data).length > 0;
+    
+    // PROACTIVE SYNC: If it exists in individual doc but NOT in collection, sync it now!
+    if (exists && segments.length % 2 === 0) {
+        console.log(`Self-healing AgyDB: Syncing missing doc to collection for ${segments.join('/')}`);
+        // We use the storage set directly to avoid infinite loops and keep it fast
+        const collectionKey = getCollectionKey(segments.slice(0, -1));
+        let collectionData = storage.get(collectionKey);
+        const syncData = { ...data, _id: docId, id: docId };
+        collectionData.push(syncData);
+        storage.set(collectionKey, collectionData);
+    }
+    
     return {
-        exists: () => Object.keys(data).length > 0,
+        exists: () => exists,
         data: () => data
     };
 }
