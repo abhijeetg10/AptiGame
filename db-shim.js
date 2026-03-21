@@ -53,7 +53,7 @@ export const query = fbsQuery;
 export const orderBy = fbsOrderBy;
 export const limit = fbsLimit;
 export const where = fbsWhere;
-export const Timestamp = Timestamp;
+export { Timestamp };
 export const serverTimestamp = fbsServerTimestamp;
 export const increment = fbsIncrement;
 export const arrayUnion = fbsArrayUnion;
