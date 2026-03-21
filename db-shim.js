@@ -1,38 +1,38 @@
 /**
  * db-shim.js
  * 
- * Re-routed to AgyDB (Local Storage) for migration.
+ * Re-routed to CENTRALIZED FIREBASE for global data sharing.
  */
-import * as agy from "./agy-db.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+import { 
+    getFirestore, collection, getDocs, query, orderBy, limit, doc, 
+    where, getDoc, setDoc, updateDoc, deleteDoc, addDoc, 
+    getCountFromServer, Timestamp, serverTimestamp, increment, arrayUnion 
+} from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { 
+    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
-// Export the AgyDB implementation as standard Firebase objects
-export const db = agy.db;
-export const auth = agy.auth;
-export const provider = agy.provider || { type: 'local-google-provider' };
+const firebaseConfig = {
+    apiKey: "AIzaSyAeEyap9MQ3eINdVhY3GGhdideIaSQ7M_Q",
+    authDomain: "aptigame.firebaseapp.com",
+    projectId: "aptigame",
+    storageBucket: "aptigame.firebasestorage.app",
+    messagingSenderId: "201198068351",
+    appId: "1:201198068351:web:13a0b2c6aaacc21632154a",
+    measurementId: "G-C9PZ77HM98"
+};
 
-// Firestore Functions
-export const collection = agy.collection;
-export const getDocs = agy.getDocs;
-export const query = agy.query;
-export const orderBy = agy.orderBy;
-export const limit = agy.limit;
-export const doc = agy.doc;
-export const where = agy.where;
-export const getDoc = agy.getDoc;
-export const setDoc = agy.setDoc;
-export const updateDoc = agy.updateDoc;
-export const deleteDoc = agy.deleteDoc;
-export const addDoc = agy.addDoc;
-export const getCountFromServer = agy.getCountFromServer;
-export const Timestamp = agy.Timestamp;
-export const serverTimestamp = agy.serverTimestamp;
-export const increment = agy.increment;
-export const arrayUnion = agy.arrayUnion;
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+export const auth = getAuth(app);
+export const provider = new GoogleAuthProvider();
 
-// Auth Functions
-export const onAuthStateChanged = agy.onAuthStateChanged;
-export const signOut = agy.signOut;
-export const signInWithPopup = agy.signInWithPopup;
+export { 
+    collection, getDocs, query, orderBy, limit, doc, 
+    where, getDoc, setDoc, updateDoc, deleteDoc, addDoc, 
+    getCountFromServer, Timestamp, serverTimestamp, increment, arrayUnion,
+    onAuthStateChanged, signOut, signInWithPopup
+};
 
-// Initialization
-console.log("AptiVerse: Data layer switched to AgyDB.");
+console.log("AptiVerse: Data layer switched back to CENTRALIZED FIREBASE.");
