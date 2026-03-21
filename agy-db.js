@@ -210,20 +210,46 @@ export async function setDoc(dRef, data, options = {}) {
     });
 
     storage.setDoc(docKey, finalData);
+
+    // SYNC TO COLLECTION (Ensures admin dashboard and leaderboards see the update)
+    if (segments.length % 2 === 0) {
+        const collectionPath = segments.slice(0, -1);
+        const collectionKey = getCollectionKey(collectionPath);
+        const docId = segments[segments.length - 1];
+        
+        let collectionData = storage.get(collectionKey);
+        const index = collectionData.findIndex(item => (item._id || item.id) === docId);
+        
+        // Ensure ID is preserved in collection item
+        const syncData = { ...finalData, _id: docId, id: docId };
+        
+        if (index > -1) {
+            collectionData[index] = syncData;
+        } else {
+            collectionData.push(syncData);
+        }
+        storage.set(collectionKey, collectionData);
+    }
 }
 
 export async function addDoc(cRef, data) {
     const key = getCollectionKey(cRef.path);
     const items = storage.get(key);
+    const docId = Math.random().toString(36).substr(2, 9);
     const newItem = { 
         ...data, 
-        id: Math.random().toString(36).substr(2, 9),
-        _id: Math.random().toString(36).substr(2, 9),
+        id: docId,
+        _id: docId,
         timestamp: new Date().toISOString()
     };
     items.push(newItem);
     storage.set(key, items);
-    return { id: newItem.id };
+
+    // Also save as individual doc for individual getDoc calls
+    const docKey = `agy_doc_${[...cRef.path, docId].join('_')}`;
+    storage.setDoc(docKey, newItem);
+
+    return { id: docId };
 }
 
 export async function updateDoc(dRef, data) {
@@ -232,11 +258,16 @@ export async function updateDoc(dRef, data) {
 
 export async function deleteDoc(dRef) {
     const segments = dRef.path;
-    const collectionKey = getCollectionKey(segments.slice(0, -1));
-    const id = segments[segments.length - 1];
-    let items = storage.get(collectionKey);
-    items = items.filter(i => (i._id || i.id) !== id);
-    storage.set(collectionKey, items);
+    const docKey = `agy_doc_${segments.join('_')}`;
+    localStorage.removeItem(docKey);
+
+    if (segments.length % 2 === 0) {
+        const collectionKey = getCollectionKey(segments.slice(0, -1));
+        const id = segments[segments.length - 1];
+        let items = storage.get(collectionKey);
+        items = items.filter(i => (i._id || i.id) !== id);
+        storage.set(collectionKey, items);
+    }
 }
 
 // No local init needed anymore as we use real Firebase Auth.
