@@ -8,7 +8,7 @@ const logoutBtn = document.getElementById("nav-logout-btn");
 
 // NEW GOOGLE SCRIPT URL
 const GOOGLE_SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbwz5YPrzW7dxg3qnF6toMVIBahoWWoUk6mKeZtaZ-vfoh49NAdbLiyfQAXIDVuZ7ggVKQ/exec";
+"https://script.google.com/macros/s/AKfycbxdpD7vNosv001RBIkVP7cJVZH6J0ICnu0ycCNO6UWlRCo3BrxJKjplg011dS2uECI6fQ/exec";
 
 
 // Detect login state
