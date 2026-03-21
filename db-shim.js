@@ -9,8 +9,8 @@ import {
     getFirestore, collection as fbsCollection, getDocs as fbsGetDocs, query as fbsQuery, 
     orderBy as fbsOrderBy, limit as fbsLimit, doc as fbsDoc, where as fbsWhere, 
     getDoc as fbsGetDoc, setDoc as fbsSetDoc, updateDoc as fbsUpdateDoc, 
-    deleteDoc as fbsDeleteDoc, addDoc as fbsAddDoc, getCountFromServer as fbsGetCount, 
-    Timestamp, serverTimestamp as fbsServerTimestamp, increment as fbsIncrement, arrayUnion as fbsArrayUnion 
+    Timestamp, serverTimestamp as fbsServerTimestamp, increment as fbsIncrement, arrayUnion as fbsArrayUnion,
+    writeBatch as fbsWriteBatch
 } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { 
     getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
@@ -57,6 +57,7 @@ export { Timestamp };
 export const serverTimestamp = fbsServerTimestamp;
 export const increment = fbsIncrement;
 export const arrayUnion = fbsArrayUnion;
+export const writeBatch = fbsWriteBatch;
 
 export const getDoc = async (docRef) => {
     const path = getPath(docRef);
