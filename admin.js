@@ -132,14 +132,23 @@ async function fetchOverviewAndUsers() {
             }
         }
 
-        // Fetch Recent Users ONLY (Limit 50) to minimize reads
+        // Fetch Recent Users ONLY (Limit 50) to drastically minimize reads
         let snapshot;
         try {
-            const q = query(collection(db, "users"), orderBy("lastLogin", "desc"));
+            const q = query(collection(db, "users"), orderBy("lastLogin", "desc"), limit(50));
             snapshot = await getDocs(q);
         } catch (indexError) {
-            console.warn("User index missing, falling back to limited fetch:", indexError);
-            snapshot = await getDocs(query(collection(db, "users")));
+            console.warn("User index missing or quota exceeded, falling back to limited fetch:", indexError);
+            snapshot = await getDocs(query(collection(db, "users"), limit(50)));
+        }
+
+        // Display Cache Warning if Firebase Quota reached
+        if (snapshot._fromCache) {
+            console.warn("ADMIN: Loading users from local cache (Firebase Quota hit or Offline)");
+            const titleEl = document.getElementById("panel-title");
+            if (titleEl && !titleEl.innerHTML.includes("(Cached)")) {
+                titleEl.innerHTML += " <span style='font-size:0.8rem; color:var(--warning);'>(Offline/Cached Data)</span>";
+            }
         }
         
         tbody.innerHTML = "";
