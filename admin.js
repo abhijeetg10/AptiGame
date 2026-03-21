@@ -169,13 +169,14 @@ async function fetchOverviewAndUsers() {
             
             // Format Date safely
             let lastLoginStr = "Unknown";
-            if (data.lastLogin) {
-                if (data.lastLogin.toDate) {
-                    lastLoginStr = data.lastLogin.toDate().toLocaleString();
-                } else if (data.lastLogin instanceof Date) {
-                    lastLoginStr = data.lastLogin.toLocaleString();
+            const dateVal = data.lastLogin || data.Server_Timestamp || data.Timestamp;
+            if (dateVal) {
+                if (dateVal.toDate) {
+                    lastLoginStr = dateVal.toDate().toLocaleString();
+                } else if (dateVal instanceof Date) {
+                    lastLoginStr = dateVal.toLocaleString();
                 } else {
-                    lastLoginStr = new Date(data.lastLogin).toLocaleString();
+                    lastLoginStr = new Date(dateVal).toLocaleString();
                 }
             }
 

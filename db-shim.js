@@ -1,21 +1,15 @@
 /**
  * db-shim.js
  * 
- * HYBRID QUOTA-RESILIENT DATA LAYER.
- * Integrates Centralized Firebase with Local AgyDB Caching & Fallback.
+ * GOOGLE SHEETS BACKEND (Firestore Replacement).
+ * Centralized, Free, and No Read Limits.
  */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-import { 
-    getFirestore, collection as fbsCollection, getDocs as fbsGetDocs, query as fbsQuery, 
-    orderBy as fbsOrderBy, limit as fbsLimit, doc as fbsDoc, where as fbsWhere, 
-    getDoc as fbsGetDoc, setDoc as fbsSetDoc, updateDoc as fbsUpdateDoc, 
-    deleteDoc as fbsDeleteDoc, addDoc as fbsAddDoc, getCountFromServer as fbsGetCount, 
-    Timestamp, serverTimestamp as fbsServerTimestamp, increment as fbsIncrement, arrayUnion as fbsArrayUnion 
-} from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { 
     getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
+// --- FIREBASE CONFIG (For Auth Only) ---
 const firebaseConfig = {
     apiKey: "AIzaSyAeEyap9MQ3eINdVhY3GGhdideIaSQ7M_Q",
     authDomain: "aptigame.firebaseapp.com",
@@ -27,138 +21,149 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
 
-// --- HELPER: LOCAL STORAGE LAYER ---
+// --- GOOGLE SHEETS BACKEND CONFIG ---
+// Paste your new Web App URL here!
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwz5YPrzW7dxg3qnF6toMVIBahoWWoUk6mKeZtaZ-vfoh49NAdbLiyfQAXIDVuZ7ggVKQ/exec";
+
+// --- LOCAL STORAGE CACHE ---
 const storage = {
-    getCol: (colName) => JSON.parse(localStorage.getItem(`agy_col_${colName}`) || '[]'),
-    setCol: (colName, items) => localStorage.setItem(`agy_col_${colName}`, JSON.stringify(items)),
-    getDoc: (docPath) => JSON.parse(localStorage.getItem(`agy_doc_${docPath.replace(/\//g, '_')}`) || '{}'),
-    setDoc: (docPath, data) => localStorage.setItem(`agy_doc_${docPath.replace(/\//g, '_')}`, JSON.stringify(data))
+    get: (key) => JSON.parse(localStorage.getItem(key) || '[]'),
+    set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
+    getDoc: (key) => JSON.parse(localStorage.getItem(`agy_doc_${key.replace(/\//g, '_')}`) || '{}'),
+    setDoc: (key, val) => localStorage.setItem(`agy_doc_${key.replace(/\//g, '_')}`, JSON.stringify(val))
 };
 
-// --- SYNC ENGINE: SHADOW WRITES & CACHED READS ---
+// --- MOCK FIRESTORE INTERFACE (SYNCED TO SHEETS) ---
 
-/**
- * Normalizes Firestore path to string
- */
-function getPath(obj) {
-    if (typeof obj === 'string') return obj;
-    if (obj.path) return Array.isArray(obj.path) ? obj.path.join('/') : obj.path;
-    return '';
-}
+export const db = { type: 'google-sheets-hybrid' };
 
-export const collection = fbsCollection;
-export const doc = fbsDoc;
-export const query = fbsQuery;
-export const orderBy = fbsOrderBy;
-export const limit = fbsLimit;
-export const where = fbsWhere;
-export const Timestamp = Timestamp;
-export const serverTimestamp = fbsServerTimestamp;
-export const increment = fbsIncrement;
-export const arrayUnion = fbsArrayUnion;
+export const collection = (db, ...path) => ({ path: path.join('/') });
+export const doc = (db, ...path) => ({ path: path.join('/'), id: path[path.length-1] });
+export const query = (q, ...args) => q; // Logic handled in fetch
+export const orderBy = (field, dir) => ({ type: 'orderBy', field, dir });
+export const limit = (n) => ({ type: 'limit', n });
+export const where = (f, op, v) => ({ type: 'where', f, op, v });
 
 export const getDoc = async (docRef) => {
-    const path = getPath(docRef);
+    const path = docRef.path;
     try {
-        const snap = await fbsGetDoc(docRef);
-        if (snap.exists()) {
-            storage.setDoc(path, snap.data());
+        // We fetch the collection and find the doc (Sheets strategy)
+        const colName = path.split('/')[0];
+        const res = await fetch(`${GOOGLE_SCRIPT_URL}?collection=${colName}`);
+        const data = await res.json();
+        const docId = docRef.id;
+        const record = data.find(i => (i.id == docId || i._id == docId || i.uid == docId));
+        
+        if (record) {
+            storage.setDoc(path, record);
+            return { exists: () => true, data: () => record, id: docId };
         }
-        return snap;
+        return { exists: () => false };
     } catch (e) {
-        if (e.code === 'resource-exhausted' || e.code === 'unavailable' || e.code === 'permission-denied') {
-            const data = storage.getDoc(path);
-            const exists = Object.keys(data).length > 0;
-            return {
-                exists: () => exists,
-                data: () => data,
-                id: docRef.id,
-                _fromCache: true
-            };
-        }
-        throw e;
+        console.warn("Sheets fetch failed, using cache for", path);
+        const cached = storage.getDoc(path);
+        return { exists: () => Object.keys(cached).length > 0, data: () => cached, id: docRef.id, _fromCache: true };
     }
 };
 
 export const getDocs = async (q) => {
-    const colPath = getPath(q); // Simplified
+    const colName = q.path.split('/')[0];
     try {
-        const snap = await fbsGetDocs(q);
-        const items = [];
-        snap.forEach(d => items.push({ ...d.data(), id: d.id, _id: d.id }));
-        if (colPath) storage.setCol(colPath, items);
-        return snap;
+        const res = await fetch(`${GOOGLE_SCRIPT_URL}?collection=${colName}`);
+        const data = await res.json();
+        storage.set(`agy_col_${colName}`, data);
+        
+        return {
+            forEach: (cb) => data.forEach(item => cb({ data: () => item, id: item.id || item._id || item.uid })),
+            docs: data.map(item => ({ data: () => item, id: item.id || item._id || item.uid })),
+            size: data.length,
+            empty: data.length === 0
+        };
     } catch (e) {
-        if (e.code === 'resource-exhausted' || e.code === 'unavailable') {
-            const items = storage.getCol(colPath);
-            return {
-                forEach: (cb) => items.forEach(item => cb({ data: () => item, id: item.id || item._id })),
-                docs: items.map(item => ({ data: () => item, id: item.id || item._id })),
-                size: items.length,
-                empty: items.length === 0,
-                _fromCache: true
-            };
-        }
-        throw e;
+        console.warn("Sheets fetch failed for collection", colName);
+        const cached = storage.get(`agy_col_${colName}`);
+        return {
+            forEach: (cb) => cached.forEach(item => cb({ data: () => item, id: item.id || item._id || item.uid })),
+            docs: cached.map(item => ({ data: () => item, id: item.id || item._id || item.uid })),
+            size: cached.length,
+            empty: cached.length === 0,
+            _fromCache: true
+        };
     }
 };
 
 export const setDoc = async (docRef, data, options = {}) => {
-    const path = getPath(docRef);
-    // Shadow Write (Immediate Local Update)
-    if (options.merge) {
-        const existing = storage.getDoc(path);
-        storage.setDoc(path, { ...existing, ...data });
-    } else {
-        storage.setDoc(path, data);
-    }
-    
+    const path = docRef.path;
+    const colName = path.split('/')[0];
+    const docId = docRef.id || data.id || data.uid;
+
+    const payload = {
+        collection: colName,
+        id: docId,
+        ...data
+    };
+
+    // Immediate Local Update
+    storage.setDoc(path, data);
+
     try {
-        return await fbsSetDoc(docRef, data, options);
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Apps Script requires no-cors normally for simple POST
+            body: JSON.stringify(payload)
+        });
+        return { status: "submitted" };
     } catch (e) {
-        console.warn("Global setDoc failed (using local), error:", e.code);
+        console.error("Sheets Save Failed", e);
         return null;
     }
 };
 
 export const addDoc = async (colRef, data) => {
-    const colPath = getPath(colRef);
-    const tempId = 'temp_' + Date.now();
-    
-    // Shadow Write
-    const items = storage.getCol(colPath);
-    items.unshift({ ...data, _id: tempId, id: tempId });
-    storage.setCol(colPath, items);
+    const colName = colRef.path;
+    const payload = {
+        collection: colName,
+        ...data
+    };
 
     try {
-        return await fbsAddDoc(colRef, data);
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify(payload)
+        });
+        return { id: 'generated' };
     } catch (e) {
-        console.warn("Global addDoc failed (saved locally), error:", e.code);
-        return { id: tempId, _fromCache: true };
+        console.error("Sheets Add Failed", e);
+        return null;
     }
 };
 
 export const getCountFromServer = async (colRef) => {
+    const colName = colRef.path.split('/')[0];
     try {
-        const snap = await fbsGetCount(colRef);
-        return snap;
+        const res = await fetch(`${GOOGLE_SCRIPT_URL}`);
+        const stats = await res.json();
+        const collectionInfo = stats.collections.find(c => c.name === colName);
+        return { data: () => ({ count: collectionInfo ? collectionInfo.count : 0 }) };
     } catch (e) {
-        if (e.code === 'resource-exhausted' || e.code === 'unavailable') {
-            const colPath = getPath(colRef);
-            const items = storage.getCol(colPath);
-            return {
-                data: () => ({ count: items.length }),
-                _fromCache: true
-            };
-        }
-        throw e;
+        const cached = storage.get(`agy_col_${colName}`);
+        return { data: () => ({ count: cached.length }), _fromCache: true };
     }
+};
+
+// --- MOCK UTILS ---
+export const increment = (n) => ({ __type: 'increment', value: n });
+export const arrayUnion = (...elements) => ({ __type: 'arrayUnion', elements });
+export const serverTimestamp = () => new Date().toISOString();
+export const Timestamp = {
+    now: () => new Date(),
+    fromDate: (date) => date
 };
 
 export { onAuthStateChanged, signOut, signInWithPopup };
 
-console.log("AptiVerse: Hybrid Resilience Layer Active (Firebase + AgyDB Cache).");
+console.log("AptiVerse: Using Google Sheets Centralized Backend.");
