@@ -242,12 +242,32 @@
         .loader-overlay {
             position: fixed;
             inset: 0;
-            background: white;
+            background: linear-gradient(135deg, #fff5f8 0%, #ffffff 100%);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 9999;
             transition: opacity 0.5s ease;
+        }
+
+        .loader-spinner {
+            width: 80px;
+            height: 80px;
+            border: 6px solid #fce7f3;
+            border-top: 6px solid var(--primary);
+            border-radius: 50%;
+            animation: spin-loader 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            margin-bottom: 2rem;
+        }
+
+        @keyframes spin-loader { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .loader-text {
+            color: var(--text-dark);
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: -0.02em;
         }
 
         .badge-pill {
@@ -340,7 +360,8 @@
 </head>
 <body>
     <div class="loader-overlay" id="loader">
-        <div style="font-size: 2rem; color: var(--primary);"><i class="fas fa-circle-notch fa-spin"></i> Analyzing Performance...</div>
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Analyzing Performance...</div>
     </div>
 
     <!-- Navbar -->
@@ -370,6 +391,8 @@
         <div class="profile-hero">
             <div class="hero-avatar" id="profile-avatar">U</div>
             <div class="hero-info">
+                <h1 id="profile-name" style="margin-bottom: 0.25rem;">AptiVerse User</h1>
+                <p id="profile-email" style="color: var(--text-muted); font-size: 1rem; margin-bottom: 1rem;">user@aptiverse.com</p>
                 <p id="profile-college" style="font-size: 1rem; color: var(--text-dark); font-weight: 500; display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
                     <i class="fas fa-university" style="color: var(--primary);"></i> <span id="college-name-display">No College Set</span>
                 </p>
@@ -465,28 +488,45 @@
                 return;
             }
 
-            // Populate Basic Profile
-            document.getElementById('profile-name').innerText = user.displayName;
-            document.getElementById('profile-email').innerText = user.email;
-            document.getElementById('nav-user-name').innerText = user.displayName.split(' ')[0];
-            const initial = user.displayName.charAt(0).toUpperCase();
-            document.getElementById('profile-avatar').innerText = initial;
-            document.getElementById('nav-user-avatar').innerText = initial;
+            // Populate Basic Profile Safely
+            const elName = document.getElementById('profile-name');
+            const elEmail = document.getElementById('profile-email');
+            const elNavName = document.getElementById('nav-user-name');
+            const elAvatar = document.getElementById('profile-avatar');
+            const elNavAvatar = document.getElementById('nav-user-avatar');
+
+            if (elName) elName.innerText = user.displayName;
+            if (elEmail) elEmail.innerText = user.email;
+            if (elNavName) elNavName.innerText = user.displayName.split(' ')[0];
+            
+            const initial = user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U';
+            if (elAvatar) elAvatar.innerText = initial;
+            if (elNavAvatar) elNavAvatar.innerText = initial;
 
             // Fetch and populate College
             const userDocRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userDocRef);
             if (userSnap.exists()) {
                 const userData = userSnap.data();
-                if (userData.college) {
-                    document.getElementById('college-name-display').innerText = userData.college;
+                const elCol = document.getElementById('college-name-display');
+                if (userData.college && elCol) {
+                    elCol.innerText = userData.college;
                 }
             }
 
-            // Load Analysis
-            await loadPerformanceAnalysis(user.displayName);
-            document.getElementById('loader').style.opacity = '0';
-            setTimeout(() => document.getElementById('loader').classList.add('hidden'), 500);
+            // Load Analysis (with safety catch)
+            try {
+                await loadPerformanceAnalysis(user.displayName);
+            } catch (err) {
+                console.warn("Performance analysis failed to load fully:", err);
+            }
+            
+            // ALWAYS hide loader
+            const loader = document.getElementById('loader');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.classList.add('hidden'), 500);
+            }
         });
 
         // Logout
