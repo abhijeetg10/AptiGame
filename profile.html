@@ -379,8 +379,11 @@
                 <li><a href="#" class="active">My Profile</a></li>
             </ul>
             <div id="nav-user-profile" style="display: flex; align-items: center; gap: 0.75rem;">
-                <div id="nav-user-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem;">U</div>
-                <span id="nav-user-name" style="font-weight: 600; font-size: 0.95rem;">User</span>
+                <!-- Profile Link Wrap -->
+                <a href="profile.html" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: inherit;">
+                    <div id="nav-user-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem; box-shadow: 0 4px 12px rgba(201, 0, 118, 0.2);">U</div>
+                    <span id="nav-user-name" style="font-weight: 600; font-size: 0.95rem; color: var(--text-dark);">User</span>
+                </a>
                 <button id="nav-logout-btn" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.85rem; margin-left: 0.5rem; text-decoration: underline;">Logout</button>
             </div>
         </div>
