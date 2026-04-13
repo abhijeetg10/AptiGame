@@ -52,9 +52,11 @@
             </ul>
             <a href="#" class="btn btn-primary" id="nav-login-btn">LOG IN</a>
             <div id="nav-user-profile" style="display: none; align-items: center; gap: 0.75rem;">
-                <!-- Fallback Initial Avatar -->
-                <div id="nav-user-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem;"></div>
-                <span id="nav-user-name" style="font-weight: 600; font-size: 0.95rem;"></span>
+                <!-- Profile Link Wrap -->
+                <a href="profile.html" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: inherit;">
+                    <div id="nav-user-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem; box-shadow: 0 4px 10px rgba(201, 0, 118, 0.2);"></div>
+                    <span id="nav-user-name" style="font-weight: 600; font-size: 0.95rem; color: var(--text-main);"></span>
+                </a>
                 <button id="nav-logout-btn" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.85rem; margin-left: 0.5rem; text-decoration: underline;">Logout</button>
             </div>
         </div>
@@ -141,25 +143,25 @@
         <h2>Choose Your Challenge</h2>
         <div class="cards-grid">
             <!-- Duel Arena Card [PREMIUM REDESIGN] -->
-            <div class="card duel-arena-card" style="border: none; background: #0f172a; position: relative; box-shadow: 0 10px 30px rgba(201, 0, 118, 0.2);">
+            <div class="card duel-arena-card" style="border: 1px solid rgba(201, 0, 118, 0.1); background: white; position: relative; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);">
                 <a href="duel.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
-                    <div class="card-img" style="height: 180px; background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%); display: flex; align-items: center; justify-content: center; position: relative;">
+                    <div class="card-img" style="height: 180px; background: radial-gradient(circle at center, #fff5f8 0%, #ffffff 100%); display: flex; align-items: center; justify-content: center; position: relative;">
                         <!-- VS Badge -->
-                        <div class="arena-vs-badge" style="width: 70px; height: 70px; background: #c90076; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 1.5rem; position: relative; z-index: 2; box-shadow: 0 0 20px rgba(201, 0, 118, 0.5);"> VS </div>
+                        <div class="arena-vs-badge" style="width: 70px; height: 70px; background: #c90076; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 1.5rem; position: relative; z-index: 2; box-shadow: 0 8px 20px rgba(201, 0, 118, 0.3);"> VS </div>
                         <!-- Pulsing Glow -->
-                        <div class="pulse-glow" style="position: absolute; width: 100px; height: 100px; background: rgba(201, 0, 118, 0.3); border-radius: 50%; animation: pulse-battle 2s infinite;"></div>
+                        <div class="pulse-glow" style="position: absolute; width: 100px; height: 100px; background: rgba(201, 0, 118, 0.1); border-radius: 50%; animation: pulse-battle 2s infinite;"></div>
                         <!-- Live Indicator -->
-                        <div style="position: absolute; top: 1rem; left: 1rem; display: flex; align-items: center; gap: 0.5rem; background: rgba(0,0,0,0.5); padding: 0.4rem 0.8rem; border-radius: 20px; border: 1px solid #c90076;">
+                        <div style="position: absolute; top: 1rem; left: 1rem; display: flex; align-items: center; gap: 0.5rem; background: white; padding: 0.4rem 0.8rem; border-radius: 20px; border: 1px solid rgba(201, 0, 118, 0.2); box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
                             <span style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%; display: inline-block; box-shadow: 0 0 10px #ef4444;"></span>
-                            <span style="font-size: 0.7rem; color: white; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;">LIVE ARENA</span>
+                            <span style="font-size: 0.7rem; color: #1e293b; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;">LIVE ARENA</span>
                         </div>
                     </div>
-                    <div class="card-content" style="background: linear-gradient(to bottom, #1e293b, #0f172a); color: white; padding: 2rem;">
-                        <h3 style="color: white; font-size: 1.5rem; margin-bottom: 0.75rem;">1v1 Battle Arena</h3>
-                        <p style="color: #94a3b8; font-size: 0.9rem;">Challenge opponents to real-time showdowns. Prove your logic speed and claim the arena.</p>
-                        <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                    <div class="card-content" style="background: white; color: var(--text-main); padding: 2rem;">
+                        <h3 style="color: var(--text-dark); font-size: 1.5rem; margin-bottom: 0.75rem;">1v1 Battle Arena</h3>
+                        <p style="color: #64748b; font-size: 0.9rem;">Challenge opponents to real-time showdowns. Prove your logic speed and claim the arena.</p>
+                        <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center;">
                             <span style="background: #c90076; color: white; padding: 0.3rem 0.8rem; border-radius: 4px; font-size: 0.75rem; font-weight: 800;">MULTIPLAYER</span>
-                            <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;"><i class="fas fa-users"></i> 240+ Playing</span>
+                            <span style="color: #64748b; font-size: 0.85rem; font-weight: 600;"><i class="fas fa-users"></i> 240+ Playing</span>
                         </div>
                     </div>
                 </a>
