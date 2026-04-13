@@ -16,12 +16,12 @@
             });
         }
     </script>
-</head>
     <script type="module" src="db-shim.js?v=5"></script>
     <script type="module" src="auth.js?v=5"></script>
     <script type="module" src="analytics.js?v=5"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
     <style>
         :root {
             --profile-bg: #fdfdfd;
@@ -815,7 +815,6 @@
                     }, { merge: true });
 
                     // 2. Aggregate Student Count in Colleges Leaderboard
-                    import { increment } from "./db-shim.js"; // Ensure increment is available if not already in scope
 
                     if (oldCollege && oldCollege !== collegeTrimmed) {
                         try {
