@@ -69,7 +69,7 @@ export const increment = fbsIncrement;
 export const arrayUnion = fbsArrayUnion;
 export const writeBatch = fbsWriteBatch;
 export const onSnapshot = fbsOnSnapshot;
-export { onAuthStateChanged, signOut, updateProfile };
+export { onAuthStateChanged, signOut, signInWithPopup, updateProfile };
 
 export const getDoc = async (docRef) => {
     const path = getPath(docRef);
@@ -156,6 +156,5 @@ export const getCountFromServer = async (colRef) => {
     }
 };
 
-export { onAuthStateChanged, signOut, signInWithPopup };
 
 console.log("AptiVerse: Restored to Firebase (Centralized).");
