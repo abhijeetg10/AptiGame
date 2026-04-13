@@ -79,6 +79,7 @@ if (elBackToModulesBtn) {
 
 // Fetch user progress on initial load
 async function loadUserProgress() {
+    highestUnlockedModule = 10; // Default to unlocked
     const activeUser = getCurrentUser();
     if (activeUser) {
         try {
@@ -86,7 +87,7 @@ async function loadUserProgress() {
             const userSnap = await getDoc(userDocRef);
             if (userSnap.exists()) {
                 const data = userSnap.data();
-                    highestUnlockedModule = 10; // Forced unlock
+                // highestUnlockedModule = data.highestUnlockedModule || 1; // Uncomment for true progression
             }
         } catch (e) {
             console.error("Error loading user progress:", e);
@@ -102,21 +103,20 @@ async function loadUserProgress() {
         startModule(1);
         if (elModuleSelection) elModuleSelection.style.display = 'none';
         if (elGameContainer) elGameContainer.classList.remove('hidden');
-        } else {
-            // Update UI locks
-            moduleBtns.forEach(btn => {
-                const modNum = parseInt(btn.getAttribute("data-module"));
-                if (modNum <= highestUnlockedModule) {
-                    btn.style.opacity = "1";
-                    btn.style.pointerEvents = "auto";
-                    btn.title = "Click to play";
-                } else {
-                    btn.style.opacity = "0.5";
-                    btn.style.pointerEvents = "none";
-                    btn.title = "Complete previous modules to unlock";
-                }
-            });
-        }
+    } else {
+        // Update UI locks
+        moduleBtns.forEach(btn => {
+            const modNum = parseInt(btn.getAttribute("data-module"));
+            if (modNum <= highestUnlockedModule) {
+                btn.style.opacity = "1";
+                btn.style.pointerEvents = "auto";
+                btn.title = "Click to play";
+            } else {
+                btn.style.opacity = "0.5";
+                btn.style.pointerEvents = "none";
+                btn.title = "Complete previous modules to unlock";
+            }
+        });
     }
 }
 
@@ -148,9 +148,6 @@ function initDuelMode() {
         document.getElementById('p2-duel-name').innerText = (data.guestName || "Waiting...") + (data.status === 'ready' ? ' (READY)' : '');
         document.getElementById('p2-duel-score').innerText = data.guestScore || 0;
     });
-
-    // Automatically start first module if in duel
-    setTimeout(() => startModule(1), 1000);
 }
 
 async function updateDuelScore() {
@@ -165,10 +162,16 @@ async function updateDuelScore() {
 }
 
 // Ensure game does not auto-start! Wait for module selection.
-if (!isMock) {
-    setTimeout(loadUserProgress, 1000);
-} else {
+if (!isMock && !window.roomId) {
+    setTimeout(loadUserProgress, 800);
+} else if (isMock) {
     setTimeout(() => startModule(1), 500);
+} else if (window.roomId) {
+    // Duel Arena starts immediately
+     setTimeout(() => {
+        loadUserProgress();
+        startModule(1);
+     }, 1000);
 }
 
 function startModule(modNum) {

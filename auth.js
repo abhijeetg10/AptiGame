@@ -16,18 +16,10 @@ onAuthStateChanged(auth, async (user) => {
         if (userProfile) {
             userProfile.style.display = "flex";
             const firstName = user.displayName ? user.displayName.split(" ")[0] : "User";
-            userName.innerText = firstName;
-            const initial = firstName.charAt(0).toUpperCase();
-            userAvatar.innerText = initial;
-
-            // Add Profile Link if not exists
-            if (!document.getElementById('nav-profile-link')) {
-                const profileLink = document.createElement('a');
-                profileLink.id = 'nav-profile-link';
-                profileLink.href = 'profile.html';
-                profileLink.innerText = 'My Profile';
-                profileLink.style.cssText = 'font-size: 0.85rem; color: var(--primary); font-weight: 700; margin-left: 1rem;';
-                userProfile.insertBefore(profileLink, logoutBtn);
+            if (userName) userName.innerText = firstName;
+            if (userAvatar) {
+                const initial = firstName.charAt(0).toUpperCase();
+                userAvatar.innerText = initial;
             }
         }
         // ROBUST SYNC: Ensure the user exists in Firestore even if they were auto-logged in
@@ -35,8 +27,6 @@ onAuthStateChanged(auth, async (user) => {
     } else {
         if (loginBtn) loginBtn.style.display = "inline-block";
         if (userProfile) userProfile.style.display = "none";
-        const existingLink = document.getElementById('nav-profile-link');
-        if (existingLink) existingLink.remove();
     }
 });
 
