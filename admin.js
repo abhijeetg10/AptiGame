@@ -8,6 +8,7 @@ let allLeaderboardData = [];
 let allFeedbackData = [];
 let allRatingsData = [];
 let allMockResultsData = [];
+let allCollegesData = []; // NEW
 let trafficChart = null;
 
 const elOverlay = document.getElementById("auth-overlay");
@@ -93,6 +94,7 @@ async function fetchAllData() {
         fetchFeedback(),
         fetchRatings(),
         fetchMockResults(),
+        fetchCollegesData(), // NEW
         fetchTrafficData("24h") // Default load traffic
     ]);
 }
@@ -695,6 +697,89 @@ async function fetchMockResults() {
     }
 }
 
+// 7. Colleges Insights
+async function fetchCollegesData() {
+    try {
+        const tbody = document.getElementById("table-body-colleges");
+        tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Fetching college data...</td></tr>";
+
+        const q = query(collection(db, "colleges_leaderboard"), orderBy("totalScore", "desc"));
+        const snapshot = await getDocs(q);
+        
+        tbody.innerHTML = "";
+        allCollegesData = [];
+
+        let totalColleges = 0;
+        let totalInstStudents = 0;
+
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const collegeName = data.displayName || docSnap.id;
+            const studentCount = data.studentCount || 0;
+            const totalScore = data.totalScore || 0;
+            const avgScore = studentCount > 0 ? (totalScore / studentCount).toFixed(1) : 0;
+
+            totalColleges++;
+            totalInstStudents += studentCount;
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><strong>${collegeName}</strong></td>
+                <td><span style="color:var(--success); font-weight:800;">${studentCount}</span></td>
+                <td><span style="color:var(--admin-accent); font-weight:800;">${totalScore.toLocaleString()}</span></td>
+                <td><span style="background:rgba(255,255,255,0.05); padding:0.2rem 0.6rem; border-radius:12px; font-size:0.85rem;">${avgScore} / student</span></td>
+                <td>
+                    <button class="btn btn-outline show-college-students" data-college="${collegeName}" style="padding: 0.3rem 0.8rem; font-size: 0.75rem;">
+                        <i class="fas fa-search"></i> View Students
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+
+            allCollegesData.push({
+                name: collegeName,
+                students: studentCount,
+                score: totalScore,
+                avg: avgScore
+            });
+        });
+
+        // Update stats cards
+        const statTotal = document.getElementById("stat-total-colleges");
+        if (statTotal) statTotal.innerText = totalColleges;
+        const statStudents = document.getElementById("stat-inst-students");
+        if (statStudents) statStudents.innerText = totalInstStudents;
+
+        if (totalColleges === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem; color:var(--admin-text-muted);">No college data aggregated yet.</td></tr>`;
+        }
+
+        // Add Listeners for "View Students"
+        document.querySelectorAll(".show-college-students").forEach(btn => {
+            btn.onclick = () => filterUsersByCollege(btn.getAttribute("data-college"));
+        });
+
+    } catch (e) {
+        console.error("Error fetching colleges data:", e);
+        document.getElementById("table-body-colleges").innerHTML = `<tr><td colspan="5" style="text-align:center; color:#ef4444;">Error loading colleges. Check console.</td></tr>`;
+    }
+}
+
+// Utility: Filter Users by College
+async function filterUsersByCollege(collegeName) {
+    // 1. Switch to Users Panel
+    const usersBtn = document.querySelector('.nav-btn[data-target="panel-users"]');
+    if (usersBtn) usersBtn.click();
+
+    // 2. Clear previous search and perform filtering logic
+    const searchInput = document.getElementById("search-users");
+    if (searchInput) {
+        searchInput.value = collegeName;
+        // Trigger a fake input event to trigger existing search logic in admin.js
+        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+}
+
 // --- CSV EXPORT LOGIC ---
 document.getElementById("download-users-csv").addEventListener("click", () => {
     if (allUsersData.length === 0) {
@@ -830,6 +915,29 @@ document.getElementById("download-mock-csv")?.addEventListener("click", () => {
     const link = document.createElement("a");
     link.setAttribute("href", url);
     link.setAttribute("download", "aptiverse_mock_results.csv");
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+
+document.getElementById("download-colleges-csv")?.addEventListener("click", () => {
+    if (allCollegesData.length === 0) {
+        alert("No college data available to download.");
+        return;
+    }
+
+    let csvContent = "College Name,Students,Total Score,Average Score\n";
+    allCollegesData.forEach(entry => {
+        const safeName = `"${entry.name.replace(/"/g, '""')}"`;
+        csvContent += `${safeName},${entry.students},${entry.score},${entry.avg}\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "aptiverse_colleges_export.csv");
     link.style.display = "none";
     document.body.appendChild(link);
     link.click();

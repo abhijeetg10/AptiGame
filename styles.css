@@ -2442,3 +2442,230 @@ img {
     0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
     100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }
+
+/* --- Assessment Hub Section [PREMIUM] --- */
+.assessment-hub {
+    background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+    padding: 8rem 2rem;
+    color: white;
+    overflow: hidden;
+    position: relative;
+    margin-top: 4rem;
+}
+
+.assessment-hub::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url('hero_student_1_1773160823080.png');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.05;
+    mix-blend-mode: soft-light;
+}
+
+.hub-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    gap: 4rem;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+.hub-content {
+    flex: 1.2;
+}
+
+.hub-badge {
+    background: rgba(201, 0, 118, 0.2);
+    color: var(--primary);
+    padding: 0.5rem 1.25rem;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    display: inline-block;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(201, 0, 118, 0.3);
+}
+
+.hub-content h2 {
+    font-size: 3.5rem;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: white;
+}
+
+.hub-content p {
+    font-size: 1.15rem;
+    color: #94a3b8;
+    margin-bottom: 3rem;
+    line-height: 1.6;
+    max-width: 580px;
+}
+
+.hub-features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    margin-bottom: 3.5rem;
+}
+
+.h-feature {
+    display: flex;
+    gap: 1.25rem;
+}
+
+.h-feature i {
+    font-size: 1.5rem;
+    color: var(--primary);
+    background: rgba(201, 0, 118, 0.1);
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    flex-shrink: 0;
+}
+
+.h-feature h4 { font-size: 1.1rem; margin-bottom: 0.4rem; color: white; }
+.h-feature p { font-size: 0.85rem; color: #64748b; margin: 0; }
+
+.hub-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: var(--primary);
+    color: white !important;
+    padding: 1.25rem 2.5rem;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    box-shadow: 0 10px 40px rgba(201, 0, 118, 0.4);
+    transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+}
+
+.hub-cta-btn:hover {
+    transform: translateY(-5px);
+    background: #e11d48;
+    box-shadow: 0 15px 50px rgba(201, 0, 118, 0.6);
+}
+
+.hub-stats {
+    display: flex;
+    gap: 3.5rem;
+    margin-top: 4rem;
+    padding-top: 3rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.h-stat { display: flex; flex-direction: column; gap: 0.5rem; }
+.h-val { font-size: 2rem; font-weight: 800; font-family: 'Space Grotesk'; color: white; }
+.h-lbl { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+
+/* Visual Side */
+.hub-visual {
+    flex: 0.8;
+    padding: 3.5rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 48px;
+    backdrop-filter: blur(24px);
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.logo-cloud-header {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.4);
+    font-weight: 900;
+    letter-spacing: 0.25em;
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.logo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+    align-items: center;
+    justify-items: center;
+}
+
+.company-logo {
+    padding: 1.75rem;
+    background: white;
+    border-radius: 24px;
+    width: 100%;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+}
+
+.company-logo img {
+    max-height: 44px;
+    max-width: 120px;
+    width: auto;
+    object-fit: contain;
+    filter: grayscale(1);
+    opacity: 0.7;
+    transition: all 0.3s;
+}
+
+.company-logo:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.company-logo:hover img {
+    filter: grayscale(0);
+    opacity: 1;
+}
+
+.visual-deco {
+    position: absolute;
+    bottom: -3rem;
+    right: -3rem;
+    width: 240px;
+    height: 240px;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.deco-circle {
+    position: absolute;
+    width: 100%; height: 100%;
+    border: 2px dashed rgba(201, 0, 118, 0.2);
+    border-radius: 50%;
+    animation: rotate-hub 30s linear infinite;
+}
+
+@keyframes rotate-hub { 
+    from { transform: rotate(0deg); } 
+    to { transform: rotate(360deg); } 
+}
+
+@media (max-width: 1024px) {
+    .hub-container { flex-direction: column; text-align: center; gap: 5rem; }
+    .hub-content h2 { font-size: 2.8rem; }
+    .hub-content p { margin: 0 auto 3rem; }
+    .hub-features { grid-template-columns: 1fr; gap: 2.5rem; text-align: left; max-width: 400px; margin: 0 auto 3.5rem; }
+    .hub-cta-btn { margin: 0 auto; }
+    .hub-stats { justify-content: center; }
+    .hub-visual { width: 100%; max-width: 600px; }
+}
+
+@media (max-width: 640px) {
+    .hub-content h2 { font-size: 2.2rem; }
+    .hub-stats { flex-direction: column; gap: 2rem; }
+    .logo-grid { grid-template-columns: 1fr; }
+}

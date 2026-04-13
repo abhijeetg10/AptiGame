@@ -47,6 +47,7 @@
                 <button class="nav-btn" data-target="panel-ratings"><i class="fas fa-star"></i> Ratings</button>
                 <button class="nav-btn" data-target="panel-traffic"><i class="fas fa-chart-area"></i> Traffic</button>
                 <button class="nav-btn" data-target="panel-feedback"><i class="fas fa-comments"></i> Support Feedback</button>
+                <button class="nav-btn" data-target="panel-colleges"><i class="fas fa-university"></i> Colleges</button>
                 <button class="nav-btn" data-target="panel-mock-results"><i class="fas fa-file-invoice"></i> Mock Test Results</button>
             </nav>
             <div class="sidebar-footer">
@@ -237,6 +238,51 @@
                                 </thead>
                                 <tbody id="table-body-feedback">
                                     <tr><td colspan="4" style="text-align: center;">Loading feedback...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PANEL: COLLEGES -->
+                <section id="panel-colleges" class="admin-panel">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <i class="fas fa-university stat-icon" style="background: rgba(201, 0, 118, 0.1); color: #c90076;"></i>
+                            <div class="stat-info">
+                                <h3>Total Colleges</h3>
+                                <div id="stat-total-colleges" class="stat-value">--</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-user-graduate stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"></i>
+                            <div class="stat-info">
+                                <h3>Institutional Students</h3>
+                                <div id="stat-inst-students" class="stat-value">--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card data-table-card" style="margin-top: 2rem;">
+                        <div class="table-header" style="justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 1.5rem 2rem 0 2rem; display: flex;">
+                            <h2 style="margin: 0;">College Insights</h2>
+                            <button id="download-colleges-csv" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                <i class="fas fa-download"></i> Download CSV
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>College Name</th>
+                                        <th>Students</th>
+                                        <th>Total Score</th>
+                                        <th>Avg/Student</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body-colleges">
+                                    <tr><td colspan="5" style="text-align: center;">Loading colleges...</td></tr>
                                 </tbody>
                             </table>
                         </div>

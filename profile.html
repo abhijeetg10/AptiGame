@@ -761,13 +761,37 @@
                 btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...';
 
                 try {
-                    // 1. Update Users Collection
+                    // 0. Fetch existing user data to handle studentCount aggregation
                     const userDocRef = doc(db, "users", auth.currentUser.uid);
+                    const userSnapData = await getDoc(userDocRef);
+                    const oldCollege = userSnapData.exists() ? userSnapData.data().college : null;
+
+                    // 1. Update Users Collection
                     await setDoc(userDocRef, {
                         college: collegeTrimmed || null
                     }, { merge: true });
 
-                    // 2. Sync Leaderboards (Update college in all game score documents)
+                    // 2. Aggregate Student Count in Colleges Leaderboard
+                    import { increment } from "./db-shim.js"; // Ensure increment is available if not already in scope
+
+                    if (oldCollege && oldCollege !== collegeTrimmed) {
+                        try {
+                            const oldColRef = doc(db, "colleges_leaderboard", oldCollege);
+                            await setDoc(oldColRef, { studentCount: increment(-1) }, { merge: true });
+                        } catch (e) { console.warn("Failed to decrement old college count"); }
+                    }
+                    if (collegeTrimmed && collegeTrimmed !== oldCollege) {
+                        try {
+                            const newColRef = doc(db, "colleges_leaderboard", collegeTrimmed);
+                            await setDoc(newColRef, { 
+                                studentCount: increment(1),
+                                displayName: collegeTrimmed,
+                                totalScore: increment(0) // Ensure field exists
+                            }, { merge: true });
+                        } catch (e) { console.warn("Failed to increment new college count"); }
+                    }
+
+                    // 3. Sync Leaderboards (Update college in all game score documents)
                     const games = ['motion', 'sudoku', 'inductive', 'grid', 'switch', 'di', 'rc'];
                     const syncPromises = games.map(async (game) => {
                         try {

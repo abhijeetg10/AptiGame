@@ -96,13 +96,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // College Leaderboards (New)
+    // College Leaderboards (Institutional Rankings)
     match /colleges_leaderboard/{collegeId} {
       allow read: if true;
-      allow create: if request.auth != null && isValidScore(request.resource.data.totalScore);
-      allow update: if request.auth != null 
-                    && isValidScore(request.resource.data.totalScore)
-                    && request.resource.data.totalScore >= resource.data.totalScore;
+      allow create, update: if request.auth != null 
+                           && (request.resource.data.totalScore is number)
+                           && (request.resource.data.studentCount is number);
     }
   }
 }
