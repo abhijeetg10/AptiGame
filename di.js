@@ -60,6 +60,7 @@ onAuthStateChanged(auth, (user) => {
 
 // Fetch user progress
 async function loadUserProgress() {
+    highestUnlockedModule = 10; // Forced unlock
     const user = auth.currentUser;
     if (user) {
         try {
@@ -67,11 +68,11 @@ async function loadUserProgress() {
             const userSnap = await getDoc(userDocRef);
             if (userSnap.exists()) {
                 const data = userSnap.data();
+                // highestUnlockedModule = data.highestUnlockedModuleDI || 1;
             }
         } catch (e) {
             console.error("Error loading progress:", e);
         }
-        highestUnlockedModule = 10; // Forced unlock
     }
     
     if (isMock) {
@@ -120,9 +121,6 @@ function initModuleGrid() {
             card.onclick = () => startModule(m.id);
         }
         elModuleGrid.appendChild(card);
-    });
-}
-
     });
 }
 
@@ -421,7 +419,7 @@ window.handleAnswer = (ans) => {
             btn.style.pointerEvents = 'auto';
         });
         nextLevel();
-    }, 1500); // Slightly longer delay to see the feedback
+    }, 1200); // Standardized delay
 };
 
 function startTimer() {

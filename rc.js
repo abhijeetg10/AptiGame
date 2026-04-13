@@ -59,13 +59,15 @@ onAuthStateChanged(auth, (user) => {
 
 // Fetch user progress
 async function loadUserProgress() {
+    highestUnlockedModule = 10; // Forced unlock
     const user = auth.currentUser;
     if (user) {
         try {
             const userDocRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userDocRef);
             if (userSnap.exists()) {
-                highestUnlockedModule = 10; // Forced unlock
+                const data = userSnap.data();
+                // highestUnlockedModule = data.highestUnlockedModuleRC || 1;
             }
         } catch (e) {
             console.error("Error loading progress:", e);
@@ -401,7 +403,7 @@ window.handleAnswer = (ans) => {
             btn.style.pointerEvents = 'auto';
         });
         nextLevel();
-    }, 1500);
+    }, 1200); // Standardized delay
 };
 
 function startTimer() {
