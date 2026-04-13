@@ -454,7 +454,7 @@ function checkVictory(movedEntity, movesExhausted = false) {
         setTimeout(() => {
             advanceLevel(false);
             startTimer(); // Resume timer
-        }, 1500);
+        }, 1200);
     }
 }
 

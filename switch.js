@@ -331,10 +331,12 @@ function showFeedback(isCorrect, solution = "") {
     
     setTimeout(() => {
         el.classList.add('hidden');
-        if (isCorrect) {
-            currentLevel++;
+        currentLevel++;
+        if (currentLevel > LEVELS_PER_MODULE) {
+            endModule();
+        } else {
+            loadLevel();
         }
-        loadLevel();
     }, 1200);
 }
 

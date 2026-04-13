@@ -491,7 +491,7 @@ function checkFinalAnswer() {
             elPromptText.style.color = "inherit";
             advanceLevel();
             startTimer(); // Resume timer
-        }, 1500);
+        }, 1200);
     } else {
         feedbackBox.style.backgroundColor = "#fee2e2";
         feedbackBox.style.color = "#991b1b";
@@ -516,7 +516,7 @@ function checkFinalAnswer() {
 
 function revealCorrectSequence(step, callback) {
     if (step >= sequenceLength) {
-        setTimeout(callback, 1000);
+        setTimeout(callback, 500);
         return;
     }
 

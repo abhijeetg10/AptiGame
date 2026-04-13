@@ -489,7 +489,7 @@ function handleAnswer(index, btnEl) {
                 reasonBox.remove();
                 advanceLevel();
                 startTimer(); // Resume timer
-            }, 3000);
+            }, 1200);
         }
     }
 }

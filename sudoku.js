@@ -391,12 +391,15 @@ function handleAnswer(selectedShape) {
 
     setTimeout(() => {
         feedbackBox.remove();
-        if (isCorrect) {
-            currentLevel++;
+        currentLevel++;
+        
+        if (currentLevel > LEVELS_PER_MODULE) {
+            endModule();
+        } else {
+            loadLevel();
+            startTimer(); // Resume timer
         }
-        loadLevel();
-        startTimer(); // Resume timer
-    }, 2500);
+    }, 1200);
 }
 
 // --- Timer ---
