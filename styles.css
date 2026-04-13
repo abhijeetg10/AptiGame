@@ -436,6 +436,48 @@ img {
     font-weight: 600;
 }
 
+/* Wide Feature Card (Mock Assessments) */
+.wide-feature-card {
+    transition: var(--transition);
+}
+
+.wide-feature-card:hover {
+    transform: translateY(-8px);
+}
+
+@media (max-width: 900px) {
+    .wide-feature-card {
+        grid-column: span 1 !important;
+        flex-direction: column !important;
+    }
+    
+    .wide-feature-card .feature-visual {
+        border-left: none !important;
+        border-top: 1px solid rgba(201, 0, 118, 0.1);
+        padding: 2rem !important;
+    }
+    
+    .wide-feature-card .feature-content {
+        padding: 2rem !important;
+    }
+    
+    .wide-feature-card h3 {
+        font-size: 1.75rem !important;
+    }
+}
+
+/* Battle Arena Animations */
+@keyframes pulse-battle {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(201, 0, 118, 0.7); opacity: 0.7; }
+    70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(201, 0, 118, 0); opacity: 0.3; }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(201, 0, 118, 0); opacity: 0.7; }
+}
+
+.duel-arena-card:hover .arena-vs-badge {
+    transform: scale(1.1) rotate(5deg);
+    transition: var(--transition);
+}
+
 .difficulty {
     padding: 0.25rem 0.5rem;
     border-radius: 4px;

@@ -140,20 +140,26 @@
     <section id="challenges" class="challenges">
         <h2>Choose Your Challenge</h2>
         <div class="cards-grid">
-            <!-- Duel Arena Card -->
-            <div class="card" style="border: 2px solid #c90076; background: rgba(201, 0, 118, 0.02);">
+            <!-- Duel Arena Card [PREMIUM REDESIGN] -->
+            <div class="card duel-arena-card" style="border: none; background: #0f172a; position: relative; box-shadow: 0 10px 30px rgba(201, 0, 118, 0.2);">
                 <a href="duel.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
-                    <div class="card-img"
-                        style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-bolt" style="font-size: 4rem; color: #c90076;"></i>
-                        <span class="card-badge hot">LIVE</span>
+                    <div class="card-img" style="height: 180px; background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%); display: flex; align-items: center; justify-content: center; position: relative;">
+                        <!-- VS Badge -->
+                        <div class="arena-vs-badge" style="width: 70px; height: 70px; background: #c90076; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 1.5rem; position: relative; z-index: 2; box-shadow: 0 0 20px rgba(201, 0, 118, 0.5);"> VS </div>
+                        <!-- Pulsing Glow -->
+                        <div class="pulse-glow" style="position: absolute; width: 100px; height: 100px; background: rgba(201, 0, 118, 0.3); border-radius: 50%; animation: pulse-battle 2s infinite;"></div>
+                        <!-- Live Indicator -->
+                        <div style="position: absolute; top: 1rem; left: 1rem; display: flex; align-items: center; gap: 0.5rem; background: rgba(0,0,0,0.5); padding: 0.4rem 0.8rem; border-radius: 20px; border: 1px solid #c90076;">
+                            <span style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%; display: inline-block; box-shadow: 0 0 10px #ef4444;"></span>
+                            <span style="font-size: 0.7rem; color: white; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;">LIVE ARENA</span>
+                        </div>
                     </div>
-                    <div class="card-content">
-                        <h3>Battle Arena (Duels)</h3>
-                        <p>Challenge your friends to a real-time showdown. Create a room, share the code, and prove who is the ultimate logic master.</p>
-                        <div class="card-meta">
-                            <span class="difficulty hard">PvP</span>
-                            <span class="time">Real-time</span>
+                    <div class="card-content" style="background: linear-gradient(to bottom, #1e293b, #0f172a); color: white; padding: 2rem;">
+                        <h3 style="color: white; font-size: 1.5rem; margin-bottom: 0.75rem;">1v1 Battle Arena</h3>
+                        <p style="color: #94a3b8; font-size: 0.9rem;">Challenge opponents to real-time showdowns. Prove your logic speed and claim the arena.</p>
+                        <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                            <span style="background: #c90076; color: white; padding: 0.3rem 0.8rem; border-radius: 4px; font-size: 0.75rem; font-weight: 800;">MULTIPLAYER</span>
+                            <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;"><i class="fas fa-users"></i> 240+ Playing</span>
                         </div>
                     </div>
                 </a>
@@ -291,33 +297,45 @@
             </div>
 
             <!-- Card 8: Company Mock Tests [REFINED - WIDE] -->
-            <div class="card" style="grid-column: span 2; border: 2px solid var(--primary); background: linear-gradient(135deg, rgba(201, 0, 118, 0.02) 0%, rgba(255, 255, 255, 1) 100%); display: flex; flex-direction: row; align-items: stretch; min-height: 250px; overflow: hidden;">
-                <div class="card-content" style="flex: 1.2; padding: 2.5rem; display: flex; flex-direction: column; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
-                        <span class="card-badge hot" style="background: var(--primary); position: static; display: inline-block;">Timed Assessment</span>
-                        <div class="card-meta" style="border: none; padding: 0; margin: 0; font-size: 0.8rem;">
-                            <span class="difficulty hard">Exam Level</span>
-                            <span class="time" style="margin-left: 1rem;">24 mins</span>
+            <div class="card wide-feature-card" style="grid-column: span 2; border: 2px solid var(--primary); background: linear-gradient(135deg, rgba(201, 0, 118, 0.03) 0%, #ffffff 100%); display: flex; min-height: 300px; overflow: hidden;">
+                <div class="feature-content" style="flex: 1.2; padding: 3rem; display: flex; flex-direction: column; justify-content: center; align-items: flex-start;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                        <span class="card-badge hot" style="position: static; padding: 0.5rem 1rem; font-size: 0.75rem;">TIMED ASSESSMENT</span>
+                        <div class="card-meta" style="border: none; padding: 0; margin: 0; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="difficulty hard" style="background: #fee2e2; color: #ef4444; padding: 0.25rem 0.75rem; border-radius: 6px; font-weight: 700;">Exam Level</span>
+                            <span class="time" style="color: var(--text-muted); font-weight: 600;"><i class="far fa-clock"></i> 24 mins</span>
                         </div>
                     </div>
-                    <h3 style="color: var(--primary); font-size: 2rem; margin-bottom: 1.25rem; font-weight: 800;">Timed Mock Assessments</h3>
-                    <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2rem;">
+                    
+                    <h3 style="color: var(--primary); font-size: 2.5rem; line-height: 1.1; margin-bottom: 1rem; font-weight: 800; letter-spacing: -0.02em;">Timed Mock <br>Assessments</h3>
+                    <p style="font-size: 1.15rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 2.5rem; max-width: 500px;">
                         Experience the exact pressure of real hiring rounds with randomized logic modules, proctoring, and global rankings.
                     </p>
-                    <a href="mock-tests.html" class="btn btn-primary" style="padding: 1.25rem 2.5rem; font-size: 1.1rem; text-align: center; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 0.75rem; width: 100%;">
-                        <i class="fas fa-play"></i> Launch Comprehensive Mock
+                    
+                    <a href="mock-tests.html" class="btn btn-primary" style="padding: 1.25rem 2.5rem; font-size: 1.1rem; border-radius: 16px; display: inline-flex; align-items: center; gap: 0.85rem; box-shadow: 0 10px 25px rgba(201, 0, 118, 0.25); width: auto;">
+                        <i class="fas fa-play-circle" style="font-size: 1.4rem;"></i> 
+                        <span style="font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;">Launch Comprehensive Mock</span>
                     </a>
                 </div>
                 
-                <div style="flex: 0.8; padding: 2.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(201, 0, 118, 0.01); border-left: 1px solid rgba(201, 0, 118, 0.1);">
-                    <p style="font-size: 0.8rem; color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 2rem; opacity: 0.7;">Prepare for Top Placements</p>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center; justify-items: center; width: 100%;">
-                        <img src="atlas copco.png" alt="Atlas Copco" style="width: 110px; height: auto; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));">
-                        <img src="cognizant.jpg" alt="Cognizant" style="width: 100px; height: auto; object-fit: contain; border-radius: 4px;">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Capgemini_201x_logo.svg/1200px-Capgemini_201x_logo.svg.png" alt="Capgemini" style="width: 110px; height: auto; object-fit: contain;">
-                        <img src="tcs.png" alt="TCS" style="width: 80px; height: auto; object-fit: contain;">
+                <div class="feature-visual" style="flex: 0.8; background: rgba(201, 0, 118, 0.02); padding: 3rem; display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 1px solid rgba(201, 0, 118, 0.1);">
+                    <p style="font-size: 0.8rem; color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 2.5rem; opacity: 0.6;">Simulated for Top MNCs</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; justify-items: center; width: 100%;">
+                        <img src="atlas copco.png" alt="Atlas Copco" style="width: 120px; height: auto; object-fit: contain; filter: grayscale(1) opacity(0.6);">
+                        <img src="cognizant.jpg" alt="Cognizant" style="width: 110px; height: auto; object-fit: contain; filter: grayscale(1) opacity(0.6);">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Capgemini_201x_logo.svg/1200px-Capgemini_201x_logo.svg.png" alt="Capgemini" style="width: 120px; height: auto; object-fit: contain; filter: grayscale(1) opacity(0.6);">
+                        <img src="tcs.png" alt="TCS" style="width: 90px; height: auto; object-fit: contain; filter: grayscale(1) opacity(0.6);">
                     </div>
-                    <div style="margin-top: 2.5rem; display: flex; gap: 1rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">
-                        <span><i class="fas fa-check-circle" style="color: var(--success);"></i> Adaptive Modules</span>
+                    <div style="margin-top: 3rem; display: flex; flex-direction: column; gap: 1rem; width: 100%;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-dark); font-size: 0.95rem; font-weight: 700;">
+                            <i class="fas fa-check-circle" style="color: #10b981;"></i> Adaptive Logic Modules
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.75rem; color: var(--text-dark); font-size: 0.95rem; font-weight: 700;">
+                            <i class="fas fa-shield-alt" style="color: #3b82f6;"></i> Proctored Environment
+                        </div>
+                    </div>
+                </div>
+            </div>
                         <span><i class="fas fa-check-circle" style="color: var(--success);"></i> Proctored</span>
                     </div>
                 </div>

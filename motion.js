@@ -454,7 +454,7 @@ function checkVictory(movedEntity, movesExhausted = false) {
         setTimeout(() => {
             advanceLevel(false);
             startTimer(); // Resume timer
-        }, 2500);
+        }, 1500);
     }
 }
 
@@ -637,10 +637,17 @@ function playSolution() {
 // --- Advancement ---
 function advanceLevel(isCorrect = false) {
     if (isCorrect) {
-        currentLevel++;
+        // Points already added in checkVictory
         updateDuelScore(); // Sync duel progress
     }
-    loadLevel();
+    
+    currentLevel++;
+    
+    if (currentLevel > LEVELS_PER_MODULE) {
+        endModule();
+    } else {
+        loadLevel();
+    }
 }
 
 function startTimer() {
