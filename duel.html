@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AptiVerse Duel Lobby - Real-time Challenges</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --duel-bg: #0f172a;
+            --duel-card: #1e293b;
+            --duel-accent: #c90076;
+        }
+
+        body {
+            background: var(--duel-bg);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .lobby-container {
+            flex: 1;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 90%;
+            padding: 4rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        .lobby-header {
+            text-align: center;
+        }
+
+        .lobby-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .duel-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .duel-card {
+            background: var(--duel-card);
+            border-radius: 24px;
+            padding: 2.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .duel-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--duel-accent);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            color: var(--duel-accent);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .card-desc {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .code-input {
+            background: rgba(0,0,0,0.2);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            color: white;
+            font-size: 1.5rem;
+            text-align: center;
+            letter-spacing: 0.5rem;
+            font-weight: 700;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .code-input:focus {
+            border-color: var(--duel-accent);
+        }
+
+        /* Room Active View */
+        .room-view {
+            background: var(--duel-card);
+            border-radius: 24px;
+            padding: 3rem;
+            text-align: center;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            border: 2px solid var(--duel-accent);
+            box-shadow: 0 0 40px rgba(201, 0, 118, 0.2);
+        }
+
+        .room-code-display {
+            font-size: 4rem;
+            font-weight: 800;
+            color: white;
+            letter-spacing: 1rem;
+            margin: 1rem 0;
+            font-family: monospace;
+        }
+
+        .player-list {
+            display: flex;
+            gap: 3rem;
+            margin: 2rem 0;
+        }
+
+        .player-slot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .player-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 24px;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            border: 2px solid transparent;
+        }
+
+        .player-slot.ready .player-avatar {
+            border-color: #10b981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .player-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .vs-divider {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--duel-accent);
+            display: flex;
+            align-items: center;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .waiting-text {
+            color: #94a3b8;
+            font-style: italic;
+            animation: pulse 2s infinite;
+        }
+
+        .game-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .game-opt {
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: 0.2s;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .game-opt.selected {
+            background: rgba(201, 0, 118, 0.1);
+            border-color: var(--duel-accent);
+            color: var(--duel-accent);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" style="background: transparent;">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <img src="logo.png" alt="AptiVerse Logo" class="logo-img">
+                <span style="display: flex; gap: 0; font-weight: 800; color: #fff;"><span style="color: var(--duel-accent);">Apti</span>Verse</span>
+            </a>
+            <div id="nav-user-profile" style="display: flex; align-items: center; gap: 0.75rem;">
+                <div id="nav-user-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: var(--duel-accent); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">U</div>
+                <span id="nav-user-name" style="font-weight: 600; font-size: 0.95rem;">User</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="lobby-container">
+        <div class="lobby-header">
+            <h1>Battle Arena</h1>
+            <p style="color: #94a3b8; font-size: 1.25rem;">Challenge friends to real-time aptitude duels.</p>
+        </div>
+
+        <!-- Initial Grid -->
+        <div class="duel-grid" id="lobby-grid">
+            <div class="duel-card">
+                <div class="card-icon"><i class="fas fa-plus-circle"></i></div>
+                <div class="card-title">Host a Duel</div>
+                <div class="card-desc">Create a private room and share the 6-digit code with a friend to start competing.</div>
+                
+                <div style="margin-top: auto;">
+                    <label style="font-size: 0.8rem; font-weight: 700; color: var(--duel-accent); margin-bottom: 0.5rem; display: block;">SELECT CHALLENGE</label>
+                    <div class="game-selector">
+                        <div class="game-opt selected" data-game="motion">Motion</div>
+                        <div class="game-opt" data-game="sudoku">Sudoku</div>
+                        <div class="game-opt" data-game="switch">Switch</div>
+                    </div>
+                    <button id="create-room-btn" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 1.25rem; font-size: 1.1rem;">
+                        Create Room
+                    </button>
+                </div>
+            </div>
+
+            <div class="duel-card">
+                <div class="card-icon"><i class="fas fa-user-friends"></i></div>
+                <div class="card-title">Join Friend</div>
+                <div class="card-desc">Enter the 6-digit room code provided by your friend to enter their lobby.</div>
+                
+                <div style="margin-top: auto;">
+                    <input type="text" id="room-code-input" class="code-input" maxlength="6" placeholder="000000">
+                    <button id="join-room-btn" class="btn btn-outline" style="width: 100%; margin-top: 1.5rem; padding: 1.25rem; font-size: 1.1rem; border-color: rgba(255,255,255,0.2); color: white;">
+                        Join Duel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Room View -->
+        <div class="room-view" id="active-room">
+            <h2 style="font-size: 1.5rem; font-weight: 700;">DUEL LOBBY</h2>
+            <div style="color: #94a3b8;">Share this code with your opponent:</div>
+            <div class="room-code-display" id="display-code">------</div>
+
+            <div class="player-list">
+                <div class="player-slot" id="p1-slot">
+                    <div class="player-avatar" id="p1-avatar"><i class="fas fa-user"></i></div>
+                    <div class="player-name" id="p1-name">Waiting...</div>
+                    <div class="badge-pill badge-gold" id="p1-status">HOST</div>
+                </div>
+                
+                <div class="vs-divider">VS</div>
+
+                <div class="player-slot" id="p2-slot">
+                    <div class="player-avatar" id="p2-avatar"><i class="fas fa-user-plus" style="opacity: 0.3;"></i></div>
+                    <div class="player-name" id="p2-name">Searching...</div>
+                    <div class="waiting-text" id="p2-status">Invite a friend</div>
+                </div>
+            </div>
+
+            <div id="room-actions" style="display: flex; gap: 1rem; width: 100%; max-width: 500px;">
+                <button id="leave-room-btn" class="btn btn-outline" style="flex: 1; border-color: rgba(255,255,255,0.1); color: #ef4444;">Leave</button>
+                <button id="start-duel-btn" class="btn btn-primary" style="flex: 2; padding: 1.25rem;" disabled>Waiting for Opponent...</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="duel.js"></script>
+</body>
+</html>

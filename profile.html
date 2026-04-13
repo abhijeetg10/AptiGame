@@ -250,7 +250,20 @@
             transition: opacity 0.5s ease;
         }
 
-        .hidden { display: none !important; }
+        .badge-pill {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .badge-gold { background: #fef3c7; color: #92400e; border-color: #f59e0b; }
+        .badge-silver { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+        .badge-purple { background: #f3e8ff; color: #6b21a8; border-color: #a855f7; }
 
         @media (max-width: 900px) {
             .bento-grid {
@@ -357,9 +370,17 @@
         <div class="profile-hero">
             <div class="hero-avatar" id="profile-avatar">U</div>
             <div class="hero-info">
-                <h1 id="profile-name">Skill Warrior</h1>
-                <p><i class="fas fa-map-marker-alt" style="color: var(--primary);"></i> AptiVerse Global Participant</p>
-                <p id="profile-email" style="font-size: 0.9rem; opacity: 0.8;"></p>
+                <p id="profile-college" style="font-size: 1rem; color: var(--text-dark); font-weight: 500; display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+                    <i class="fas fa-university" style="color: var(--primary);"></i> <span id="college-name-display">No College Set</span>
+                </p>
+                <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button id="edit-name-btn" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 8px;">
+                        <i class="fas fa-user-edit"></i> Edit Name
+                    </button>
+                    <button id="edit-college-btn" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 8px;">
+                        <i class="fas fa-university"></i> Edit College
+                    </button>
+                </div>
             </div>
             <div style="margin-left: auto; text-align: right;" class="hidden-mobile">
                 <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">AptiVerse Status</div>
@@ -436,7 +457,7 @@
 
     <!-- Scripts -->
     <script type="module">
-        import { collection, getDocs, doc, getDoc, query, where, orderBy, limit, auth, onAuthStateChanged, db } from "./db-shim.js";
+        import { collection, getDocs, doc, getDoc, query, where, orderBy, limit, auth, onAuthStateChanged, db, setDoc, updateProfile, signOut } from "./db-shim.js";
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -451,6 +472,16 @@
             const initial = user.displayName.charAt(0).toUpperCase();
             document.getElementById('profile-avatar').innerText = initial;
             document.getElementById('nav-user-avatar').innerText = initial;
+
+            // Fetch and populate College
+            const userDocRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userDocRef);
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                if (userData.college) {
+                    document.getElementById('college-name-display').innerText = userData.college;
+                }
+            }
 
             // Load Analysis
             await loadPerformanceAnalysis(user.displayName);
@@ -626,11 +657,144 @@
                     container.appendChild(square);
                 }
                 graph.appendChild(container);
+                
+                // --- BADGE EVALUATION ---
+                const badges = [];
+                const m = stats; // Combined statistics
+
+                // 1. Perfectionist: Any game with 100% accuracy (or score maxed)
+                const gameKeys = ['motion', 'sudoku', 'inductive', 'grid', 'switch', 'di', 'rc'];
+                let hasPerfection = false;
+                let totalGames = 0;
+                gameKeys.forEach(k => {
+                   const g = m.gameScores ? m.gameScores[k] : 0;
+                   if (g >= 50) hasPerfection = true; // Heuristic for high score
+                   if (g > 0) totalGames += (m.modulesCompleted || 0); 
+                });
+
+                if (stats.totalScore > 500) badges.push({ id: 'legend', icon: 'fa-crown', text: 'Logic legend', class: 'badge-gold' });
+                if (stats.modulesCompleted > 50) badges.push({ id: 'veteran', icon: 'fa-fort-awesome', text: 'Veteran', class: 'badge-purple' });
+                if (hasPerfection) badges.push({ id: 'perfectionist', icon: 'fa-star', text: 'Perfectionist', class: 'badge-silver' });
+                
+                const badgeContainer = document.getElementById('badge-container');
+                if (badgeContainer) {
+                    badgeContainer.innerHTML = badges.map(b => `
+                        <div class="badge-pill ${b.class}">
+                            <i class="fas ${b.icon}"></i> ${b.text}
+                        </div>
+                    `).join('');
+                }
 
             } catch (err) {
                 console.warn("Calendar load failed:", err);
             }
         }
+
+        // --- NAME CHANGE LOGIC ---
+        document.getElementById('edit-name-btn').addEventListener('click', async () => {
+            const currentName = auth.currentUser.displayName;
+            const newName = prompt("Enter your new display name (visible on leaderboard):", currentName);
+            
+            if (newName && newName !== currentName && newName.trim().length >= 3) {
+                const btn = document.getElementById('edit-name-btn');
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...';
+
+                try {
+                    // 1. Update Auth Profile
+                    await updateProfile(auth.currentUser, { displayName: newName.trim() });
+
+                    // 2. Update Users Collection
+                    const userDocRef = doc(db, "users", auth.currentUser.uid);
+                    await setDoc(userDocRef, {
+                        name: newName.trim(),
+                        displayName: newName.trim()
+                    }, { merge: true });
+
+                    // 3. Sync Leaderboards (Update name in all score documents where UID matches)
+                    const games = ['motion', 'sudoku', 'inductive', 'grid', 'switch', 'di', 'rc'];
+                    const syncPromises = games.map(async (game) => {
+                        try {
+                            const scoreRef = doc(db, "leaderboards", game, "scores", auth.currentUser.uid);
+                            const scoreSnap = await getDoc(scoreRef);
+                            if (scoreSnap.exists()) {
+                                await setDoc(scoreRef, { name: newName.trim() }, { merge: true });
+                            }
+                        } catch (e) {
+                            console.warn(`Failed to sync name for ${game}:`, e);
+                        }
+                    });
+
+                    await Promise.all(syncPromises);
+
+                    // Update UI locally
+                    document.getElementById('profile-name').innerText = newName.trim();
+                    document.getElementById('nav-user-name').innerText = newName.trim().split(' ')[0];
+                    const initial = newName.trim().charAt(0).toUpperCase();
+                    document.getElementById('profile-avatar').innerText = initial;
+                    document.getElementById('nav-user-avatar').innerText = initial;
+
+                    alert("Display name updated successfully! Leaderboards will reflect this change shortly.");
+                } catch (error) {
+                    console.error("Name update failed:", error);
+                    alert("Error updating name. Please try again.");
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            } else if (newName && newName.trim().length < 3) {
+                alert("Name must be at least 3 characters long.");
+            }
+        });
+
+        // --- COLLEGE CHANGE LOGIC ---
+        document.getElementById('edit-college-btn').addEventListener('click', async () => {
+            const currentCollege = document.getElementById('college-name-display').innerText === "No College Set" ? "" : document.getElementById('college-name-display').innerText;
+            const newCollege = prompt("Enter your College Name (helps in college-wise rankings):", currentCollege);
+            
+            if (newCollege !== null && newCollege.trim() !== currentCollege) {
+                const collegeTrimmed = newCollege.trim();
+                const btn = document.getElementById('edit-college-btn');
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...';
+
+                try {
+                    // 1. Update Users Collection
+                    const userDocRef = doc(db, "users", auth.currentUser.uid);
+                    await setDoc(userDocRef, {
+                        college: collegeTrimmed || null
+                    }, { merge: true });
+
+                    // 2. Sync Leaderboards (Update college in all game score documents)
+                    const games = ['motion', 'sudoku', 'inductive', 'grid', 'switch', 'di', 'rc'];
+                    const syncPromises = games.map(async (game) => {
+                        try {
+                            const scoreRef = doc(db, "leaderboards", game, "scores", auth.currentUser.uid);
+                            const scoreSnap = await getDoc(scoreRef);
+                            if (scoreSnap.exists()) {
+                                await setDoc(scoreRef, { college: collegeTrimmed || null }, { merge: true });
+                            }
+                        } catch (e) {
+                            console.warn(`Failed to sync college for ${game}:`, e);
+                        }
+                    });
+
+                    await Promise.all(syncPromises);
+
+                    // Update UI
+                    document.getElementById('college-name-display').innerText = collegeTrimmed || "No College Set";
+                    alert("College updated successfully! Rankings will reflect this change shortly.");
+                } catch (error) {
+                    console.error("College update failed:", error);
+                    alert("Error updating college. Please try again.");
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            }
+        });
     </script>
 </body>
 </html>

@@ -1,4 +1,5 @@
-import { collection, addDoc, doc, setDoc, getDoc, updateDoc, onAuthStateChanged, db, auth } from "./db-shim.js";
+import { collection, addDoc, doc, setDoc, getDoc, updateDoc, onAuthStateChanged, db, auth, increment, serverTimestamp, onSnapshot } from "./db-shim.js";
+import { getISOWeekString } from "./utils.js";
 import { initRatingSystem } from "./rating-system.js";
 import { ActivityLogger } from "./activity-logger.js";
 import { getCurrentUser } from "./auth.js";
@@ -91,25 +92,75 @@ async function loadUserProgress() {
             console.error("Error loading user progress:", e);
         }
     }
+
+    // Check for Duel Mode
+    if (window.roomId) {
+        initDuelMode();
+    }
     
     if (isMock) {
         startModule(1);
         if (elModuleSelection) elModuleSelection.style.display = 'none';
         if (elGameContainer) elGameContainer.classList.remove('hidden');
-    } else {
-        // Update UI locks
-        moduleBtns.forEach(btn => {
-            const modNum = parseInt(btn.getAttribute("data-module"));
-            if (modNum <= highestUnlockedModule) {
-                btn.style.opacity = "1";
-                btn.style.pointerEvents = "auto";
-                btn.title = "Click to play";
-            } else {
-                btn.style.opacity = "0.5";
-                btn.style.pointerEvents = "none";
-                btn.title = "Complete previous modules to unlock";
-            }
-        });
+        } else {
+            // Update UI locks
+            moduleBtns.forEach(btn => {
+                const modNum = parseInt(btn.getAttribute("data-module"));
+                if (modNum <= highestUnlockedModule) {
+                    btn.style.opacity = "1";
+                    btn.style.pointerEvents = "auto";
+                    btn.title = "Click to play";
+                } else {
+                    btn.style.opacity = "0.5";
+                    btn.style.pointerEvents = "none";
+                    btn.title = "Complete previous modules to unlock";
+                }
+            });
+        }
+    }
+}
+
+// Global roomId and role from URL
+window.roomId = new URLSearchParams(window.location.search).get('roomId');
+window.duelRole = new URLSearchParams(window.location.search).get('role');
+
+// --- DUEL LOGIC ---
+function initDuelMode() {
+    console.log("Duel Mode Initialized:", window.roomId, window.duelRole);
+    const vsBar = document.getElementById('duel-vs-bar');
+    if (vsBar) {
+        vsBar.classList.remove('hidden');
+        vsBar.style.display = 'flex';
+    }
+
+    const roomRef = doc(db, "rooms", window.roomId);
+    onSnapshot(roomRef, (snap) => {
+        if (!snap.exists()) {
+            alert("Room closed.");
+            window.location.href = "duel.html";
+            return;
+        }
+        const data = snap.data();
+        
+        // Update Names/Scores
+        document.getElementById('p1-duel-name').innerText = data.hostName;
+        document.getElementById('p1-duel-score').innerText = data.hostScore || 0;
+        document.getElementById('p2-duel-name').innerText = (data.guestName || "Waiting...") + (data.status === 'ready' ? ' (READY)' : '');
+        document.getElementById('p2-duel-score').innerText = data.guestScore || 0;
+    });
+
+    // Automatically start first module if in duel
+    setTimeout(() => startModule(1), 1000);
+}
+
+async function updateDuelScore() {
+    if (!window.roomId) return;
+    const roomRef = doc(db, "rooms", window.roomId);
+    const scoreField = window.duelRole === 'host' ? 'hostScore' : 'guestScore';
+    try {
+        await updateDoc(roomRef, { [scoreField]: score });
+    } catch (e) {
+        console.error("Duel score sync failed:", e);
     }
 }
 
@@ -155,14 +206,14 @@ function showModuleSelection() {
 // Determine grid size based on level progression
 // e.g., Level 1-3: 3x3, Level 4-6: 4x4, up to 8x8.
 function calculateGridSize() {
-    // 1-3 -> 3, 4-6 -> 4, 7-9 -> 5, 10-12 -> 6, 13-15 -> 7, 16-18 -> 8
     let size = Math.floor((currentLevel - 1) / 3) + 3;
-    return Math.min(size, 8); // Max 8x8
+    return size;
 }
 
 function loadLevel() {
     elModule.innerText = `${currentModule} / ${TOTAL_MODULES}`;
-    elLevel.innerText = `${currentLevel} / ${LEVELS_PER_MODULE}`;
+    elLevel.innerText = `${currentLevel}`;
+    elScore.innerText = score;
 
     gridDimensions = calculateGridSize();
 
@@ -299,9 +350,12 @@ function handleAnswer(selectedShape) {
     feedbackBox.style.minWidth = "350px";
     document.body.appendChild(feedbackBox);
 
-    if (selectedShape === targetAnswer) {
+    let isCorrect = selectedShape === targetAnswer;
+
+    if (isCorrect) {
         correctAnswers++;
         score += 3;
+        updateDuelScore(); // Sync duel progress
         if (elScore) elScore.innerText = score;
         sounds.correct.play().catch(e => console.log("Audio play blocked"));
         feedbackBox.innerHTML = `
@@ -312,7 +366,6 @@ function handleAnswer(selectedShape) {
         feedbackBox.style.color = "#166534";
     } else {
         wrongAnswers++;
-        // No negative mark
         sounds.wrong.play().catch(e => console.log("Audio play blocked"));
         const correctName = shapeNames[targetAnswer] || "this shape";
         feedbackBox.innerHTML = `
@@ -326,7 +379,6 @@ function handleAnswer(selectedShape) {
         feedbackBox.style.backgroundColor = "#fee2e2";
         feedbackBox.style.color = "#991b1b";
 
-        // Highlight the correct option
         allBtns.forEach(btn => {
             const shapeDiv = btn.querySelector('.shape');
             if (shapeDiv && shapeDiv.classList.contains(targetAnswer)) {
@@ -339,14 +391,12 @@ function handleAnswer(selectedShape) {
 
     setTimeout(() => {
         feedbackBox.remove();
-        if (currentLevel < LEVELS_PER_MODULE) {
+        if (isCorrect) {
             currentLevel++;
-            loadLevel();
-            startTimer(); // Resume timer
-        } else {
-            endModule();
         }
-    }, 2500); // Increased time to read explanation
+        loadLevel();
+        startTimer(); // Resume timer
+    }, 2500);
 }
 
 // --- Timer ---
@@ -394,109 +444,82 @@ async function saveScoreToAgy(btnElement, redirectCallback) {
 
     try {
         const activeUser = getCurrentUser();
-        const playerName = activeUser && activeUser.displayName ? activeUser.displayName : "Guest Player";
-
         if (activeUser) {
-            // 1. PRIORITIZE PROGRESSION (User doc usually has write permission)
-            let progressSaved = false;
+            const scoreRef = doc(db, "leaderboards", "sudoku", "scores", activeUser.uid);
+            const scoreSnap = await getDoc(scoreRef);
+            
+            let existingModuleScores = {};
+            if (scoreSnap.exists()) {
+                const oldData = scoreSnap.data();
+                if (oldData.moduleScores) existingModuleScores = oldData.moduleScores;
+            }
+
+            existingModuleScores[currentModule] = score;
+
+            let totalScore = 0;
+            for (const mod in existingModuleScores) {
+                totalScore += existingModuleScores[mod];
+            }
+
+            await setDoc(scoreRef, {
+                name: activeUser.displayName || "Anonymous Player",
+                score: totalScore,
+                moduleScores: existingModuleScores,
+                metrics: {
+                    correctCount: correctAnswers,
+                    totalMarks: totalScore,
+                    lastModuleMarks: score,
+                    timeSpent: totalTimeSpent
+                },
+                timestamp: new Date()
+            }, { merge: true });
+
+            // 1. Progression & Denormalization
+            const userDocRef = doc(db, "users", activeUser.uid);
+            await setDoc(userDocRef, {
+                totalScore: increment(correctAnswers),
+                modulesCompleted: increment(1),
+                lastPlayed: new Date()
+            }, { merge: true });
+
+            // 3. WEEKLY LEADERBOARD (New)
             try {
-                const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1);
-                if (moduleReached > highestUnlockedModule) {
-                    highestUnlockedModule = moduleReached;
-                    await setDoc(doc(db, "users", activeUser.uid), {
-                        highestModule_sudoku: highestUnlockedModule
+                const weekId = getISOWeekString();
+                const weeklyRef = doc(db, "weekly_leaderboards", weekId, "scores", activeUser.uid);
+                await setDoc(weeklyRef, {
+                    name: activeUser.displayName || "Anonymous Player",
+                    score: increment(score),
+                    timestamp: serverTimestamp()
+                }, { merge: true });
+            } catch (weeklyError) {
+                console.warn("Weekly leaderboard save failed:", weeklyError);
+            }
+
+            // 4. COLLEGE LEADERBOARD (New)
+            try {
+                const userSnap = await getDoc(doc(db, "users", activeUser.uid));
+                if (userSnap.exists() && userSnap.data().college) {
+                    const collegeName = userSnap.data().college;
+                    const collegeId = collegeName.toLowerCase().trim().replace(/\s+/g, '_');
+                    const collRef = doc(db, "colleges_leaderboard", collegeId);
+                    await setDoc(collRef, {
+                        displayName: collegeName,
+                        totalScore: increment(score),
+                        timestamp: serverTimestamp()
                     }, { merge: true });
+
+                    // Also update individual score entry
+                    await setDoc(scoreRef, { college: collegeName }, { merge: true });
                 }
-                progressSaved = true;
-            } catch (progError) {
-                console.error("Progression save failed:", progError);
-            }
-
-            // 2. ATTEMPT LEADERBOARD (Non-blocking)
-            try {
-                const scoreRef = doc(db, "leaderboards", "sudoku", "scores", activeUser.uid);
-                const scoreSnap = await getDoc(scoreRef);
-                
-                let existingModuleScores = {};
-                if (scoreSnap.exists()) {
-                    const oldData = scoreSnap.data();
-                    if (oldData.moduleScores) {
-                        existingModuleScores = oldData.moduleScores;
-                    } else if (typeof oldData.score === "number") {
-                        existingModuleScores["1"] = oldData.score; // Migration
-                    }
-                }
-
-                if (existingModuleScores[currentModule] === undefined || score > existingModuleScores[currentModule]) {
-                    existingModuleScores[currentModule] = score;
-                }
-
-                let totalScore = 0;
-                let totalPossible = 0;
-                for (const mod in existingModuleScores) {
-                    totalScore += existingModuleScores[mod];
-                    totalPossible += LEVELS_PER_MODULE; 
-                }
-
-                await setDoc(scoreRef, {
-                    name: playerName,
-                    score: totalScore,
-                    totalLevels: totalPossible,
-                    moduleScores: existingModuleScores,
-                    metrics: {
-                        correctAnswers: correctAnswers,
-                        timeSpent: totalTimeSpent
-                    },
-                    timestamp: new Date()
-                }, { merge: true });
-
-                // DENORMALIZATION: Update User's main document to reduce Profile Reads
-                const userDocRef = doc(db, "users", user.uid);
-                const updateField = `gameScores.${isMock ? 'mock_' : ''}sudoku`;
-                await setDoc(userDocRef, {
-                    totalScore: increment(correctAnswers),
-                    modulesCompleted: increment(1),
-                    [updateField]: increment(correctAnswers),
-                    lastPlayed: new Date()
-                }, { merge: true });
-            } catch (lbError) {
-                console.warn("Leaderboard save failed (Permissions?):", lbError);
-            }
-
-            if (btnElement) {
-                btnElement.innerText = progressSaved ? "Progress Saved!" : "Save Failed";
-                if (progressSaved) btnElement.style.backgroundColor = "#10b981";
-            }
-        } else {
-            // Guest fallback
-            try {
-                await addDoc(collection(db, "leaderboards", "sudoku", "scores"), {
-                    name: playerName,
-                    score: correctAnswers, 
-                    totalLevels: LEVELS_PER_MODULE,
-                    timestamp: new Date()
-                });
-                if (btnElement) btnElement.innerText = "Score Saved!";
-            } catch (guestError) {
-                console.error("Guest save failed:", guestError);
-                if (btnElement) btnElement.innerText = "Save Failed";
+            } catch (collError) {
+                console.warn("College leaderboard update failed:", collError);
             }
         }
     } catch (error) {
         Logger.handleFirestoreError("saveScore_sudoku", error);
-        if (btnElement) {
-            btnElement.innerText = "Save Failed";
-            btnElement.disabled = false;
-        }
     }
 
-    if (redirectCallback) {
-        setTimeout(redirectCallback, 500); // slight delay to show "Saved!"
-    }
-
-    if (isMock) {
-        window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
-    }
+    if (redirectCallback) redirectCallback();
 }
 
 // --- Module Progression ---
@@ -520,13 +543,10 @@ async function endModule(customTitle) {
     }
 
     elModalTitle.innerText = customTitle || `Module ${currentModule} Complete`;
-    elScoreText.innerText = `${correctAnswers} / ${LEVELS_PER_MODULE}`;
-    elCorrectCount.innerText = correctAnswers;
-    elWrongCount.innerText = wrongAnswers;
-
-    // Display Final Marks
-    let marksEl = document.getElementById('final-marks');
-    if (marksEl) marksEl.innerText = score;
+    document.getElementById('score-text').innerText = `${correctAnswers}`;
+    document.getElementById('correct-count').innerText = correctAnswers;
+    document.getElementById('wrong-count').innerText = wrongAnswers;
+    document.getElementById('final-marks').innerText = score;
 
     moduleScores.push(correctAnswers);
     saveScoreToAgy(null, null); // Autosave in background

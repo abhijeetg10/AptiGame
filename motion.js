@@ -1,9 +1,10 @@
-import { collection, addDoc, setDoc, doc, getDoc, onAuthStateChanged, db, auth } from "./db-shim.js";
+import { collection, addDoc, setDoc, doc, getDoc, onAuthStateChanged, db, auth, increment, serverTimestamp, updateDoc, onSnapshot } from "./db-shim.js";
 import { initRatingSystem } from "./rating-system.js";
 import { ActivityLogger } from "./activity-logger.js";
 import { getCurrentUser } from "./auth.js";
 import { GAME_CONFIG } from "./game-constants.js";
 import { Logger } from "./logger.js";
+import { getISOWeekString } from "./utils.js";
 
 // --- Auth Guard ---
 onAuthStateChanged(auth, (user) => {
@@ -40,6 +41,8 @@ let timerInterval;
 let isTransitioning = false;
 let moduleScores = [];
 const isMock = new URLSearchParams(window.location.search).get('mode') === 'mock';
+const roomId = new URLSearchParams(window.location.search).get('roomId');
+const duelRole = new URLSearchParams(window.location.search).get('role');
 let isSkip = false;
 
 let gridWidth = 6;
@@ -99,6 +102,11 @@ async function loadUserProgress() {
         } catch (e) {
             console.error("Error loading user progress:", e);
         }
+    }
+    
+    // Check for Duel Mode
+    if (window.roomId) {
+        initDuelMode();
     }
     
     // Update UI locks
@@ -187,8 +195,8 @@ let movesLimit = 0;
 function loadLevel() {
     isTransitioning = false;
     currentMoves = 0;
-    elModule.innerText = `${currentModule} / ${TOTAL_MODULES}`;
-    elLevel.innerText = `${currentLevel} / ${LEVELS_PER_MODULE}`;
+    elModule.innerText = `${currentModule}`;
+    elLevel.innerText = `${currentLevel}`;
 
     calculateGridSize();
 
@@ -310,58 +318,102 @@ function addEntity(id, x, y, w, h, type, isSticky, axis) {
     elBoard.appendChild(el);
 
     if (type !== "hole" && !isSticky) {
-        if (axis === "h" || axis === "all") {
-            let leftArrow = document.createElement("div");
-            leftArrow.className = "arrow-btn arrow-left";
-            leftArrow.innerHTML = "←";
-            leftArrow.addEventListener("click", (e) => onArrowClick(e, entity, -1, 0));
-            el.appendChild(leftArrow);
+        el.style.cursor = "grab";
+        el.addEventListener("pointerdown", (e) => onPointerDown(e, entity));
+    }
+}
 
-            let rightArrow = document.createElement("div");
-            rightArrow.className = "arrow-btn arrow-right";
-            rightArrow.innerHTML = "→";
-            rightArrow.addEventListener("click", (e) => onArrowClick(e, entity, 1, 0));
-            el.appendChild(rightArrow);
+// --- Pointer/Mouse Drag Mechanics ---
+let draggingEntity = null;
+let startX = 0;
+let startY = 0;
+let originX = 0;
+let originY = 0;
+
+function onPointerDown(e, entity) {
+    if (entity.isSticky || isTransitioning) return;
+    draggingEntity = entity;
+    startX = e.clientX;
+    startY = e.clientY;
+    originX = entity.x;
+    originY = entity.y;
+    entity.el.style.cursor = "grabbing";
+    entity.el.style.zIndex = "100";
+    
+    document.addEventListener("pointermove", onPointerMove);
+    document.addEventListener("pointerup", onPointerUp);
+    e.preventDefault();
+}
+
+function onPointerMove(e) {
+    if (!draggingEntity) return;
+    
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    
+    // Threshold to trigger a move (half a cell)
+    const moveX = Math.round(dx / CELL_SIZE);
+    const moveY = Math.round(dy / CELL_SIZE);
+    
+    if (moveX !== 0 || moveY !== 0) {
+        // Enforce axis constraints
+        let targetDX = 0;
+        let targetDY = 0;
+        
+        if (draggingEntity.axis === "h") targetDX = moveX;
+        else if (draggingEntity.axis === "v") targetDY = moveY;
+        else if (draggingEntity.axis === "all") {
+            if (Math.abs(dx) > Math.abs(dy)) targetDX = moveX;
+            else targetDY = moveY;
         }
-        if (axis === "v" || axis === "all") {
-            let upArrow = document.createElement("div");
-            upArrow.className = "arrow-btn arrow-up";
-            upArrow.innerHTML = "↑";
-            upArrow.addEventListener("click", (e) => onArrowClick(e, entity, 0, -1));
-            el.appendChild(upArrow);
 
-            let downArrow = document.createElement("div");
-            downArrow.className = "arrow-btn arrow-down";
-            downArrow.innerHTML = "↓";
-            downArrow.addEventListener("click", (e) => onArrowClick(e, entity, 0, 1));
-            el.appendChild(downArrow);
+        if (targetDX !== 0 || targetDY !== 0) {
+            attemptMove(draggingEntity, targetDX, targetDY);
+            // Reset start positions so one drag can trigger multiple moves if long enough
+            if (targetDX !== 0) startX += targetDX * CELL_SIZE;
+            if (targetDY !== 0) startY += targetDY * CELL_SIZE;
         }
     }
 }
 
-// --- Click to Move Mechanics ---
-function onArrowClick(e, entity, dx, dy) {
-    e.stopPropagation();
-    if (entity.isSticky || isTransitioning) return;
+function onPointerUp() {
+    if (draggingEntity) {
+        draggingEntity.el.style.cursor = "grab";
+        draggingEntity.el.style.zIndex = "1";
+    }
+    draggingEntity = null;
+    document.removeEventListener("pointermove", onPointerMove);
+    document.removeEventListener("pointerup", onPointerUp);
+}
 
-    let targetX = entity.x + dx;
-    let targetY = entity.y + dy;
+function attemptMove(entity, dx, dy) {
+    const singleDX = Math.sign(dx);
+    const singleDY = Math.sign(dy);
+    const steps = Math.abs(dx) + Math.abs(dy);
 
-    // Attempt Move
-    if (!checkCollisionRect(targetX, targetY, entity.w, entity.h, entity)) {
-        entity.x = targetX;
-        entity.y = targetY;
-        entity.el.style.left = `${entity.x * CELL_SIZE}px`;
-        entity.el.style.top = `${entity.y * CELL_SIZE}px`;
+    for (let i = 0; i < steps; i++) {
+        let targetX = entity.x + singleDX;
+        let targetY = entity.y + singleDY;
 
-        currentMoves++;
-        totalMovesPlayed++;
-        updateMovesDisplay();
+        if (!checkCollisionRect(targetX, targetY, entity.w, entity.h, entity)) {
+            entity.x = targetX;
+            entity.y = targetY;
+            entity.el.style.left = `${entity.x * CELL_SIZE}px`;
+            entity.el.style.top = `${entity.y * CELL_SIZE}px`;
 
-        if (currentMoves >= movesLimit) {
-            checkVictory(entity, true); // Final check, but if still no win, it will fail
+            currentMoves++;
+            totalMovesPlayed++;
+            updateMovesDisplay();
+
+            if (currentMoves >= movesLimit) {
+                checkVictory(entity, true);
+                if (isTransitioning) break;
+            } else {
+                checkVictory(entity);
+                if (isTransitioning) break;
+            }
         } else {
-            checkVictory(entity);
+            break; // Hit something
         }
     }
 }
@@ -388,7 +440,7 @@ function checkVictory(movedEntity, movesExhausted = false) {
         // Optional visual flourish
         movedEntity.el.style.transform = "scale(0)";
         setTimeout(() => {
-            advanceLevel();
+            advanceLevel(true);
             startTimer(); // Resume timer
         }, 1200);
     } else if (movesExhausted) {
@@ -400,7 +452,7 @@ function checkVictory(movedEntity, movesExhausted = false) {
         sounds.wrong.play().catch(e => console.log("Audio play blocked"));
         showFeedbackPopup(`MOVES EXHAUSTED!<br><span style="font-size: 1rem; opacity: 0.8;">Minimum moves were: ${window.currentSolutionPath.length}</span>`, "#fee2e2", "#991b1b");
         setTimeout(() => {
-            advanceLevel();
+            advanceLevel(false);
             startTimer(); // Resume timer
         }, 2500);
     }
@@ -583,13 +635,12 @@ function playSolution() {
 }
 
 // --- Advancement ---
-function advanceLevel() {
-    if (currentLevel < LEVELS_PER_MODULE) {
+function advanceLevel(isCorrect = false) {
+    if (isCorrect) {
         currentLevel++;
-        loadLevel();
-    } else {
-        endModule();
+        updateDuelScore(); // Sync duel progress
     }
+    loadLevel();
 }
 
 function startTimer() {
@@ -674,16 +725,13 @@ async function saveScoreToAgy(btnElement, redirectCallback) {
                 }
 
                 let totalScore = 0;
-                let totalPossible = 0;
                 for (const mod in existingModuleScores) {
                     totalScore += existingModuleScores[mod];
-                    totalPossible += LEVELS_PER_MODULE; 
                 }
 
                 await setDoc(scoreRef, {
                     name: playerName,
                     score: totalScore,
-                    totalLevels: totalPossible,
                     moduleScores: existingModuleScores,
                     metrics: {
                         totalMoves: totalMovesPlayed,
@@ -702,6 +750,38 @@ async function saveScoreToAgy(btnElement, redirectCallback) {
                     [updateField]: increment(correctAnswers),
                     lastPlayed: new Date()
                 }, { merge: true });
+                // 3. WEEKLY LEADERBOARD
+                try {
+                    const weekId = getISOWeekString();
+                    const weeklyRef = doc(db, "weekly_leaderboards", weekId, "scores", activeUser.uid);
+                    await setDoc(weeklyRef, {
+                        name: playerName,
+                        score: increment(score),
+                        timestamp: serverTimestamp()
+                    }, { merge: true });
+                } catch (weeklyError) {
+                    console.warn("Weekly leaderboard save failed:", weeklyError);
+                }
+
+                // 4. COLLEGE LEADERBOARD (New)
+                try {
+                    const userSnap = await getDoc(doc(db, "users", activeUser.uid));
+                    if (userSnap.exists() && userSnap.data().college) {
+                        const collegeName = userSnap.data().college;
+                        const collegeId = collegeName.toLowerCase().trim().replace(/\s+/g, '_');
+                        const collRef = doc(db, "colleges_leaderboard", collegeId);
+                        await setDoc(collRef, {
+                            displayName: collegeName,
+                            totalScore: increment(score),
+                            timestamp: serverTimestamp()
+                        }, { merge: true });
+
+                        // Also update individual score entry
+                        await setDoc(scoreRef, { college: collegeName }, { merge: true });
+                    }
+                } catch (collError) {
+                    console.warn("College leaderboard update failed:", collError);
+                }
             } catch (lbError) {
                 console.warn("Motion leaderboard save failed (Permissions?):", lbError);
             }
@@ -764,7 +844,7 @@ async function endModule(customTitle) {
     }
 
     elModalTitle.innerText = customTitle || `Module ${currentModule} Complete`;
-    elScoreText.innerText = `${correctAnswers} / ${LEVELS_PER_MODULE}`;
+    elScoreText.innerText = `${correctAnswers}`;
     elCorrectCount.innerText = correctAnswers;
     elWrongCount.innerText = wrongAnswers;
     

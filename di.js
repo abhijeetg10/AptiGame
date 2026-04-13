@@ -1,7 +1,7 @@
-import { ActivityLogger } from "./activity-logger.js";
-import { collection, addDoc, doc, getDoc, setDoc, onAuthStateChanged, db, auth } from "./db-shim.js";
+import { collection, addDoc, doc, getDoc, setDoc, onAuthStateChanged, db, auth, increment, serverTimestamp } from "./db-shim.js";
 import { GAME_CONFIG } from "./game-constants.js";
 import { Logger } from "./logger.js";
+import { getISOWeekString } from "./utils.js";
 
 // --- Constants & Config ---
 const { TOTAL_MODULES, LEVELS_PER_MODULE, MODULE_TIME_LIMIT, POINTS_PER_CORRECT } = GAME_CONFIG;
@@ -123,15 +123,56 @@ function initModuleGrid() {
     });
 }
 
-// initModuleGrid() will be called from loadUserProgress()
+    });
+}
+
+// Global roomId and role from URL
+window.roomId = new URLSearchParams(window.location.search).get('roomId');
+window.duelRole = new URLSearchParams(window.location.search).get('role');
+
+// --- DUEL LOGIC ---
+function initDuelMode() {
+    console.log("Duel Mode Initialized:", window.roomId, window.duelRole);
+    const vsBar = document.getElementById('duel-vs-bar');
+    if (vsBar) {
+        vsBar.classList.remove('hidden');
+        vsBar.style.display = 'flex';
+    }
+
+    const roomRef = doc(db, "rooms", window.roomId);
+    onSnapshot(roomRef, (snap) => {
+        if (!snap.exists()) {
+            alert("Room closed.");
+            window.location.href = "duel.html";
+            return;
+        }
+        const data = snap.data();
+        
+        // Update Names/Scores
+        document.getElementById('p1-duel-name').innerText = data.hostName;
+        document.getElementById('p1-duel-score').innerText = data.hostScore || 0;
+        document.getElementById('p2-duel-name').innerText = (data.guestName || "Waiting...") + (data.status === 'ready' ? ' (READY)' : '');
+        document.getElementById('p2-duel-score').innerText = data.guestScore || 0;
+    });
+
+    // Automatically start first module if in duel
+    setTimeout(() => startModule(1), 1000);
+}
+
+async function updateDuelScore() {
+    if (!window.roomId) return;
+    const roomRef = doc(db, "rooms", window.roomId);
+    const scoreField = window.duelRole === 'host' ? 'hostScore' : 'guestScore';
+    try {
+        await updateDoc(roomRef, { [scoreField]: score });
+    } catch (e) {
+        console.error("Duel score sync failed:", e);
+    }
+}
 
 // --- Data Generation Engine ---
-// --- Data Generation Engine ---
-function generateLevelData() {
+function generateDataResources() {
     const companies = ['A', 'B', 'C', 'D', 'E'];
-    const years = [2021, 2022];
-    
-    // Core data titles (Improved for clarity)
     const titles = [
         "Annual Output & Export Distribution",
         "Quarterly Manufacturing Statistics",
@@ -149,11 +190,10 @@ function generateLevelData() {
         
         const rows = companies.map(comp => {
             const row = { label: comp };
-            // Production in thousands (100 to 200)
-            row['Units 2021'] = Math.floor(Math.random() * 10) * 20 + 100; // 100, 120, 140...
-            row['% Exported (21)'] = Math.floor(Math.random() * 5) * 10 + 10; // 10%, 20%, 30%...
-            row['Units 2022'] = row['Units 2021'] + 20; // Fixed growth for easier tracking
-            row['% Exported (22)'] = row['% Exported (21)'] + 10; // Fixed growth for easier tracking
+            row['Units 2021'] = Math.floor(Math.random() * 10) * 20 + 100;
+            row['% Exported (21)'] = Math.floor(Math.random() * 5) * 10 + 10;
+            row['Units 2022'] = row['Units 2021'] + 20;
+            row['% Exported (22)'] = row['% Exported (21)'] + 10;
             return row;
         });
 
@@ -165,12 +205,16 @@ function generateLevelData() {
             rows: rows,
             chartType: type === 'chart' ? (i === 3 ? 'bar' : (i === 4 ? 'line' : 'pie')) : null,
             labels: headers.slice(1),
-            // For charts, we use specific values
             values: headers.slice(1).map(() => Math.floor(Math.random() * 1000) + 200)
         });
     }
+    return tabs;
+}
 
-    const questionTab = Math.floor(Math.random() * 6);
+function generateQuestionFromResources(tabs, level) {
+    const companies = ['A', 'B', 'C', 'D', 'E'];
+    // 3 questions per tab, total 18 questions
+    const questionTab = Math.min(5, Math.floor((level - 1) / 3)); 
     const selectedTab = tabs[questionTab];
     let questionText = "";
     let solution = "";
@@ -178,86 +222,66 @@ function generateLevelData() {
     const roll = Math.random();
     
     if (roll < 0.3) {
-        // Direct Value Retrieval (Easier)
         const companyIdx = Math.floor(Math.random() * companies.length);
         const row = selectedTab.rows[companyIdx];
-        const year = 2022;
-        const val = row[`Units ${year}`];
-        
+        const val = row[`Units 2022`];
         const isCorrect = Math.random() > 0.4;
         const displayVal = isCorrect ? val : val + 15;
-        
-        questionText = `According to the <strong>${selectedTab.title}</strong>, did Company ${row.label} produce exactly ${displayVal} units in ${year}?`;
+        questionText = `According to the <strong>Tab ${questionTab + 1}</strong> data, did Company ${row.label} produce exactly ${displayVal} units in 2022?`;
         solution = isCorrect ? "Yes" : "No";
     } else if (roll < 0.6) {
-        // Percentage Check (Moderate)
         const companyIdx = Math.floor(Math.random() * companies.length);
         const row = selectedTab.rows[companyIdx];
         const pct = row['% Exported (22)'];
-        
         const isCorrect = Math.random() > 0.4;
         const displayPct = isCorrect ? pct : pct + 5;
-        
-        questionText = `Does the data in <strong>${selectedTab.title}</strong> confirm that Company ${row.label} exported ${displayPct}% of its units in 2022?`;
+        questionText = `Does <strong>Tab ${questionTab + 1}</strong> confirm that Company ${row.label} exported ${displayPct}% of its units in 2022?`;
         solution = isCorrect ? "Yes" : "No";
     } else if (roll < 0.85) {
-        // Comparison (Simple)
         const c1 = selectedTab.rows[0];
         const c2 = selectedTab.rows[1];
         const isHigher = c1['Units 2022'] > c2['Units 2022'];
-        
         const isCorrect = Math.random() > 0.5;
         const targetResult = isCorrect ? (isHigher ? "more" : "fewer") : (isHigher ? "fewer" : "more");
-        
-        questionText = `In the <strong>${selectedTab.title}</strong> report, did Company ${c1.label} produce ${targetResult} units than Company ${c2.label} in 2022?`;
+        questionText = `In <strong>Tab ${questionTab + 1}</strong>, did Company ${c1.label} produce ${targetResult} units than Company ${c2.label} in 2022?`;
         solution = isCorrect ? "Yes" : "No";
     } else {
-        // Total Sum (Moderate)
         let total22 = 0;
         selectedTab.rows.forEach(r => total22 += r['Units 2022']);
-        
         const isCorrect = Math.random() > 0.5;
         const displaySum = isCorrect ? total22 : total22 + 50;
-        
-        questionText = `Is the total combined production for all companies in 2022 equal to ${displaySum} units?`;
+        questionText = `Based on <strong>Tab ${questionTab + 1}</strong>, is the total combined production for all companies in 2022 equal to ${displaySum} units?`;
         solution = isCorrect ? "Yes" : "No";
     }
 
-    return { tabs, questionText, solution };
+    return { questionText, solution };
 }
 
 // --- Rendering Logic ---
-function renderTabs() {
-    elTabContainer.innerHTML = '';
-    currentData.tabs.forEach((tab, index) => {
-        const card = document.createElement('div');
-        card.className = 'data-card';
-        card.innerHTML = `
-            <i class="fas fa-folder card-icon"></i>
-            <div class="card-label">DATA</div>
-            <div class="card-title">${tab.title}</div>
+function renderResourceTabs() {
+    const elResourceTabs = document.getElementById('resource-tabs');
+    elResourceTabs.innerHTML = '';
+    currentDataResources.forEach((tab, index) => {
+        const tabEl = document.createElement('div');
+        tabEl.className = `res-tab ${activeTab === index ? 'active' : ''}`;
+        
+        let iconClass = 'fa-table';
+        if (tab.chartType === 'bar') iconClass = 'fa-chart-bar';
+        if (tab.chartType === 'line') iconClass = 'fa-chart-line';
+        if (tab.chartType === 'pie') iconClass = 'fa-chart-pie';
+
+        tabEl.innerHTML = `
+            <i class="fas ${iconClass}"></i>
+            <span class="res-tab-num">TAB ${index + 1}</span>
         `;
-        card.onclick = () => {
+        tabEl.onclick = () => {
             activeTab = index;
-            toggleDataView(true);
+            renderResourceTabs();
             renderActiveTabData();
         };
-        elTabContainer.appendChild(card);
+        elResourceTabs.appendChild(tabEl);
     });
 }
-
-function toggleDataView(showData) {
-    if (showData) {
-        elTabContainer.style.display = 'none';
-        elDataViewerContainer.style.display = 'flex';
-        elAnswerBar.style.display = 'flex';
-    } else {
-        elTabContainer.style.display = 'grid';
-        elDataViewerContainer.style.display = 'none';
-        elAnswerBar.style.display = 'none';
-    }
-}
-window.toggleDataView = toggleDataView;
 
 function renderActiveTabData() {
     const data = currentData.tabs[activeTab];
@@ -301,22 +325,35 @@ function renderActiveTabData() {
 }
 
 // --- Game Flow ---
+let currentDataResources = null;
+
 window.startModule = (mod) => {
     currentModule = mod;
     currentLevel = 1;
     score = 0;
     correctAnswers = 0;
     timeLeft = MODULE_TIME_LIMIT;
+    activeTab = 0;
     
+    // Check for Duel Mode
+    if (window.roomId) {
+        initDuelMode();
+    }
+    
+    currentDataResources = generateDataResources();
+
     elModuleSelection.classList.add('hidden');
     elResultsModal.classList.add('hidden');
     elGameContainer.classList.remove('hidden');
     elGameHeader.classList.remove('hidden');
+    elAnswerBar.style.display = 'flex';
     
-    elModule.innerText = `${currentModule} / 5`;
+    elModule.innerText = `${currentModule}`;
     elLevel.innerText = `${currentLevel} / ${LEVELS_PER_MODULE}`;
     elScore.innerText = score;
     
+    renderResourceTabs();
+    renderActiveTabData();
     nextLevel();
     if (!isMock) startTimer();
     else if (elTimer) elTimer.style.display = 'none';
@@ -327,13 +364,17 @@ function nextLevel() {
         endGame();
         return;
     }
-    toggleDataView(false);
-    currentData = generateLevelData();
-    currentSolution = currentData.solution;
-    elQuestion.innerHTML = currentData.questionText;
+    
+    // Auto sync active tab to the relevant one for the level (3 questions per tab)
+    activeTab = Math.min(5, Math.floor((currentLevel - 1) / 3));
+    renderResourceTabs();
+    renderActiveTabData();
+
+    const qData = generateQuestionFromResources(currentDataResources, currentLevel);
+    currentSolution = qData.solution;
+    elQuestion.innerHTML = qData.questionText;
     elLevel.innerText = `${currentLevel} / ${LEVELS_PER_MODULE}`;
     document.getElementById('level-indicator').innerText = `Q${currentLevel}`;
-    renderTabs();
 }
 
 window.handleAnswer = (ans) => {
@@ -351,6 +392,7 @@ window.handleAnswer = (ans) => {
     if (ans === currentSolution) {
         score += POINTS_PER_CORRECT;
         correctAnswers++;
+        updateDuelScore(); // Sync duel progress
         sounds.correct.play().catch(() => {});
         if (clickedBtn) clickedBtn.classList.add('correct');
         showFeedbackPopup("CORRECT!", "+3 MARKS", "#22c55e");
@@ -495,6 +537,39 @@ async function endGame() {
                 [updateField]: increment(score),
                 lastPlayed: new Date()
             }, { merge: true });
+
+            // 3. WEEKLY LEADERBOARD (New)
+            try {
+                const weekId = getISOWeekString();
+                const weeklyRef = doc(db, "weekly_leaderboards", weekId, "scores", user.uid);
+                await setDoc(weeklyRef, {
+                    name: user.displayName || "Guest Player",
+                    score: increment(score),
+                    timestamp: serverTimestamp()
+                }, { merge: true });
+            } catch (weeklyError) {
+                console.warn("Weekly leaderboard save failed:", weeklyError);
+            }
+
+            // 4. COLLEGE LEADERBOARD (New)
+            try {
+                const userSnap = await getDoc(doc(db, "users", user.uid));
+                if (userSnap.exists() && userSnap.data().college) {
+                    const collegeName = userSnap.data().college;
+                    const collegeId = collegeName.toLowerCase().trim().replace(/\s+/g, '_');
+                    const collRef = doc(db, "colleges_leaderboard", collegeId);
+                    await setDoc(collRef, {
+                        displayName: collegeName,
+                        totalScore: increment(score),
+                        timestamp: serverTimestamp()
+                    }, { merge: true });
+
+                    // Also update college in the individual score entry for filtering
+                    await setDoc(scoreRef, { college: collegeName }, { merge: true });
+                }
+            } catch (collError) {
+                console.warn("College leaderboard update failed:", collError);
+            }
         } catch (lbError) {
             console.warn("DI leaderboard save failed (Permissions?):", lbError);
         }

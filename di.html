@@ -331,6 +331,57 @@
             to { transform: translate(-50%, 0); opacity: 1; }
         }
 
+        /* New Resource Tabs Styling */
+        .resource-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 1rem;
+            overflow-x: auto;
+        }
+
+        .res-tab {
+            flex: 1;
+            padding: 1rem;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .res-tab:hover {
+            border-color: var(--accent);
+            background: white;
+        }
+
+        .res-tab.active {
+            border-color: var(--accent);
+            background: #eff6ff;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .res-tab i {
+            display: block;
+            font-size: 1.5rem;
+            margin-bottom: 0.3rem;
+            color: #94a3b8;
+        }
+
+        .res-tab.active i {
+            color: var(--accent);
+        }
+
+        .res-tab-num {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
         /* Results & Modules - Keeping standard AptiVerse style but refined */
         .module-selection { background: var(--bg-light); }
 
@@ -363,6 +414,21 @@
             <a href="#" class="btn btn-primary" id="nav-login-btn">LOG IN</a>
         </div>
     </nav>
+
+    <!-- VS Bar (Real-time Multiplayer) -->
+    <div id="duel-vs-bar" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 60px; background: #0f172a; z-index: 1000; border-bottom: 2px solid #c90076; display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; font-weight: 800; color: white;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div id="p1-duel-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: #c90076; display: flex; align-items: center; justify-content: center;">H</div>
+            <div id="p1-duel-name">Host</div>
+            <div style="font-size: 1.5rem; color: #c90076;" id="p1-duel-score">0</div>
+        </div>
+        <div style="font-size: 1.25rem; font-weight: 900; background: #c90076; padding: 0.25rem 0.75rem; border-radius: 8px;">VS</div>
+        <div style="display: flex; align-items: center; gap: 1rem; flex-direction: row-reverse;">
+            <div id="p2-duel-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: #3b82f6; display: flex; align-items: center; justify-content: center;">G</div>
+            <div id="p2-duel-name">Guest</div>
+            <div style="font-size: 1.5rem; color: #3b82f6;" id="p2-duel-score">0</div>
+        </div>
+    </div>
 
     <!-- Game Header (Standard) -->
     <header class="game-header hidden" id="game-header">
@@ -417,18 +483,23 @@
                 </div>
             </div>
 
-            <!-- Bento Card Grid -->
-            <div class="cards-grid" id="cards-grid">
+            <!-- Resource Tabs (Fixed) -->
+            <div class="resource-tabs" id="resource-tabs">
+                <!-- 6 Tabs injected here -->
+            </div>
+
+            <!-- Bento Card Grid (Hidden during play) -->
+            <div class="cards-grid hidden" id="cards-grid">
                 <!-- Injected via JS -->
             </div>
 
-            <!-- Data Detail Viewer -->
-            <div class="data-viewer-container" id="data-viewer">
-                <div class="back-to-cards" onclick="toggleDataView(false)">
-                    <i class="fas fa-chevron-left"></i> Back to Datasets
-                </div>
+            <!-- Data Detail Viewer (Active Area) -->
+            <div class="data-viewer-container" id="data-viewer" style="display: flex;">
                 <div id="tab-data-viewer" class="table-wrapper">
-                    <!-- Tables/Charts here -->
+                    <div style="text-align: center; padding: 4rem; color: var(--text-muted);">
+                        <i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <p>Select a data tab above to begin analysis</p>
+                    </div>
                 </div>
             </div>
         </div>

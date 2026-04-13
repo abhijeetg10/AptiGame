@@ -3,42 +3,106 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // -------------------------------------------------------------------------
-    // MASTER ADMIN BYPASS (CRITICAL FOR SYNC)
-    // -------------------------------------------------------------------------
-    match /{document=**} {
-      allow read, write: if request.auth.token.email == "argaikwad24@gmail.com";
+    // --- Helper Functions ---
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == "argaikwad24@gmail.com";
+    }
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function isParticipantInRoom(rdata) {
+      return request.auth != null && (request.auth.uid == rdata.hostUid || request.auth.uid == rdata.guestUid);
+    }
+
+    function isValidScore(val) {
+      return val is number && val >= 0;
     }
 
     // -------------------------------------------------------------------------
-    // COLLECTION-SPECIFIC RULES (FOR OTHER USERS)
+    // MASTER ADMIN BYPASS
+    // -------------------------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // COLLECTION-SPECIFIC RULES
     // -------------------------------------------------------------------------
     
     // Users can read/write their own profiles
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
     }
 
-    // Publicly readable leaderboards
+    // Leaderboards: Publicly readable, owner-writable with validation
     match /leaderboards/{gameId}/scores/{scoreId} {
       allow read: if true;
-      allow create: if request.auth != null;
+      allow create: if request.auth != null && isValidScore(request.resource.data.score);
+      allow update: if isOwner(scoreId) 
+                    && isValidScore(request.resource.data.score)
+                    && request.resource.data.score >= resource.data.score;
     }
 
-    // Analytics and Traffic (Only authenticated users can log)
+    // Traffic & Activity Logs
     match /traffic/{docId} {
       allow create: if request.auth != null;
     }
     
-    // Mock Results (Only owner can read/write)
+    match /activity_logs/{logId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && request.auth.uid == resource.data.uid;
+    }
+    
+    // Ratings & Feedback (Anyone authenticated can submit)
+    match /rating/{resId} {
+      allow create: if request.auth != null;
+      allow read: if isAdmin();
+    }
+    
+    match /feedback/{docId} {
+      allow create: if request.auth != null;
+      allow read: if isAdmin();
+    }
+
+    // Mock Results
     match /mock_results/{resId} {
-      allow read, write: if request.auth != null && request.auth.token.email == resource.data.email;
+      allow read, create, update: if request.auth != null && request.auth.token.email == (resource.data.userEmail || request.resource.data.userEmail);
+    }
+
+    // Rooms for Live Duels (Strict Participant Check)
+    match /rooms/{roomId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null; // Shared by guest searching or host
+      allow update: if isParticipantInRoom(resource.data) 
+                    && isValidScore(request.resource.data.hostScore) 
+                    && isValidScore(request.resource.data.guestScore);
+      allow delete: if isOwner(resource.data.hostUid);
+    }
+
+    // Weekly Tournament Leaderboards
+    match /weekly_leaderboards/{weekId}/scores/{uid} {
+      allow read: if true;
+      allow create: if request.auth != null && isValidScore(request.resource.data.score);
+      allow update: if isOwner(uid) 
+                    && isValidScore(request.resource.data.score)
+                    && request.resource.data.score >= resource.data.score;
     }
 
     // System Stats
     match /system_stats/global {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.token.email == "argaikwad24@gmail.com";
+      allow write: if isAdmin();
+    }
+
+    // College Leaderboards (New)
+    match /colleges_leaderboard/{collegeId} {
+      allow read: if true;
+      allow create: if request.auth != null && isValidScore(request.resource.data.totalScore);
+      allow update: if request.auth != null 
+                    && isValidScore(request.resource.data.totalScore)
+                    && request.resource.data.totalScore >= resource.data.totalScore;
     }
   }
 }

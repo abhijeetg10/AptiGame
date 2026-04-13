@@ -41,6 +41,21 @@
         </div>
     </nav>
 
+    <!-- VS Bar (Real-time Multiplayer) -->
+    <div id="duel-vs-bar" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 60px; background: #0f172a; z-index: 1000; border-bottom: 2px solid #c90076; display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; font-weight: 800; color: white;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div id="p1-duel-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: #c90076; display: flex; align-items: center; justify-content: center;">H</div>
+            <div id="p1-duel-name">Host</div>
+            <div style="font-size: 1.5rem; color: #c90076;" id="p1-duel-score">0</div>
+        </div>
+        <div style="font-size: 1.25rem; font-weight: 900; background: #c90076; padding: 0.25rem 0.75rem; border-radius: 8px;">VS</div>
+        <div style="display: flex; align-items: center; gap: 1rem; flex-direction: row-reverse;">
+            <div id="p2-duel-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: #3b82f6; display: flex; align-items: center; justify-content: center;">G</div>
+            <div id="p2-duel-name">Guest</div>
+            <div style="font-size: 1.5rem; color: #3b82f6;" id="p2-duel-score">0</div>
+        </div>
+    </div>
+
     <!-- Game Header (Hidden initially) -->
     <header class="game-header hidden" id="game-header">
         <a href="#" class="back-link" id="back-to-modules-btn">&larr; Back to Modules</a>

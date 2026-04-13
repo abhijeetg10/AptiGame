@@ -1,9 +1,10 @@
-import { collection, addDoc, doc, setDoc, getDoc, onAuthStateChanged, db, auth } from "./db-shim.js";
+import { collection, addDoc, doc, setDoc, getDoc, onAuthStateChanged, db, auth, increment, serverTimestamp } from "./db-shim.js";
 import { initRatingSystem } from "./rating-system.js";
 import { ActivityLogger } from "./activity-logger.js";
 import { getCurrentUser } from "./auth.js";
 import { GAME_CONFIG } from "./game-constants.js";
 import { Logger } from "./logger.js";
+import { getISOWeekString } from "./utils.js";
 
 // --- Auth Guard ---
 onAuthStateChanged(auth, (user) => {
@@ -611,6 +612,39 @@ async function saveScoreToAgy(btnElement, redirectCallback) {
                     [updateField]: increment(correctAnswers),
                     lastPlayed: new Date()
                 }, { merge: true });
+
+                // 3. WEEKLY LEADERBOARD (New)
+                try {
+                    const weekId = getISOWeekString();
+                    const weeklyRef = doc(db, "weekly_leaderboards", weekId, "scores", user.uid);
+                    await setDoc(weeklyRef, {
+                        name: playerName,
+                        score: increment(correctAnswers), // Using correctAnswers (Marks)
+                        timestamp: serverTimestamp()
+                    }, { merge: true });
+                } catch (weeklyError) {
+                    console.warn("Weekly leaderboard save failed:", weeklyError);
+                }
+
+                // 4. COLLEGE LEADERBOARD (New)
+                try {
+                    const userSnap = await getDoc(doc(db, "users", user.uid));
+                    if (userSnap.exists() && userSnap.data().college) {
+                        const collegeName = userSnap.data().college;
+                        const collegeId = collegeName.toLowerCase().trim().replace(/\s+/g, '_');
+                        const collRef = doc(db, "colleges_leaderboard", collegeId);
+                        await setDoc(collRef, {
+                            displayName: collegeName,
+                            totalScore: increment(correctAnswers),
+                            timestamp: serverTimestamp()
+                        }, { merge: true });
+
+                        // Also update individual score entry
+                        await setDoc(scoreRef, { college: collegeName }, { merge: true });
+                    }
+                } catch (collError) {
+                    console.warn("College leaderboard update failed:", collError);
+                }
             } catch (lbError) {
                 console.warn("Inductive leaderboard save failed (Permissions?):", lbError);
             }

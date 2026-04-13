@@ -47,8 +47,8 @@
             <ul class="nav-links">
                 <li><a href="#" class="active">Home</a></li>
                 <li><a href="#challenges">Challenges</a></li>
+                <li><a href="duel.html" style="color: #c90076; font-weight: 700;"><i class="fas fa-bolt"></i> Duel Arena</a></li>
                 <li><a href="mock-tests.html" style="color: var(--primary); font-weight: 700;"><i class="fas fa-trophy"></i> Mock Tests</a></li>
-                <li><a href="#leaderboard">Leaderboard</a></li>
             </ul>
             <a href="#" class="btn btn-primary" id="nav-login-btn">LOG IN</a>
             <div id="nav-user-profile" style="display: none; align-items: center; gap: 0.75rem;">
@@ -140,6 +140,25 @@
     <section id="challenges" class="challenges">
         <h2>Choose Your Challenge</h2>
         <div class="cards-grid">
+            <!-- Duel Arena Card -->
+            <div class="card" style="border: 2px solid #c90076; background: rgba(201, 0, 118, 0.02);">
+                <a href="duel.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
+                    <div class="card-img"
+                        style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-bolt" style="font-size: 4rem; color: #c90076;"></i>
+                        <span class="card-badge hot">LIVE</span>
+                    </div>
+                    <div class="card-content">
+                        <h3>Battle Arena (Duels)</h3>
+                        <p>Challenge your friends to a real-time showdown. Create a room, share the code, and prove who is the ultimate logic master.</p>
+                        <div class="card-meta">
+                            <span class="difficulty hard">PvP</span>
+                            <span class="time">Real-time</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
             <!-- Card 1: Motion Challenge -->
             <div class="card">
                 <a href="motion.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
@@ -273,8 +292,7 @@
 
             <!-- Card 8: Company Mock Tests [REFINED - WIDE] -->
             <div class="card" style="grid-column: span 2; border: 2px solid var(--primary); background: linear-gradient(135deg, rgba(201, 0, 118, 0.02) 0%, rgba(255, 255, 255, 1) 100%); display: flex; flex-direction: row; align-items: stretch; min-height: 250px; overflow: hidden;">
-                <div class="card-content" style="flex: 1.2; padding: 2.5rem; display: flex; flex-direction: column; justify-content: center;">
-                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div class="card-content" style="flex: 1.2; padding: 2.5rem; display: flex; flex-direction: column; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
                         <span class="card-badge hot" style="background: var(--primary); position: static; display: inline-block;">Timed Assessment</span>
                         <div class="card-meta" style="border: none; padding: 0; margin: 0; font-size: 0.8rem;">
                             <span class="difficulty hard">Exam Level</span>
@@ -319,6 +337,7 @@
             <!-- Tabs -->
             <div class="leaderboard-tabs">
                 <button class="tab-btn active" data-board="all">Overall</button>
+                <button class="tab-btn" data-board="weekly" style="background: var(--primary); color: white; border-color: var(--primary);">Weekly <i class="fas fa-bolt" style="margin-left: 4px;"></i></button>
                 <button class="tab-btn" data-board="motion">Motion</button>
                 <button class="tab-btn" data-board="sudoku">Sudoku</button>
                 <button class="tab-btn" data-board="inductive">Inductive</button>
@@ -326,6 +345,7 @@
                 <button class="tab-btn" data-board="switch">Switch</button>
                 <button class="tab-btn" data-board="di">DI</button>
                 <button class="tab-btn" data-board="rc">RC</button>
+                <button class="tab-btn" data-board="colleges" style="border-color: #f59e0b; color: #b45309;"><i class="fas fa-university"></i> Colleges</button>
             </div>
             
             <!-- Hall of Fame Content -->
@@ -519,6 +539,15 @@
         const tabBtns = document.querySelectorAll('.tab-btn');
 
         /**
+         * Simple HTML Escaper to prevent XSS
+         */
+        const escapeHTML = (str) => {
+            const p = document.createElement('p');
+            p.textContent = str;
+            return p.innerHTML;
+        };
+
+        /**
          * Renders the Hall of Fame UI.
          * @param {string} category - The active category (all, motion, etc.)
          * @param {Array} data - Array of user objects {rank, name, score, avatarUrl (optional)}
@@ -544,63 +573,73 @@
             if (top3[0]) podiumOrder.push(top3[0]); // 1st Place (Center)
             if (top3[2]) podiumOrder.push(top3[2]); // 3rd Place (Right)
 
+            const currentUserId = window.activeUserId || null;
+
             podiumOrder.forEach(entry => {
-                const initial = entry.name.charAt(0).toUpperCase();
+                const avatarContent = category === 'colleges' ? '<i class="fas fa-university"></i>' : entry.name.charAt(0).toUpperCase();
                 const slot = document.createElement('div');
-                slot.className = `podium-slot rank-${entry.rank}`;
+                slot.className = `podium-slot ${entry.rank === 1 ? 'gold' : entry.rank === 2 ? 'silver' : 'bronze'}`;
                 
-                let shineOverlay = '';
-                if (entry.rank === 1) {
-                    shineOverlay = '<div class="shine-overlay"></div>';
-                }
+                const shineOverlay = entry.rank === 1 ? '<div class="shine-overlay"></div>' : '';
+                const displayName = entry.name === "Guest Player" ? `Guest #${entry.uid.substring(0, 4)}` : entry.name;
+                const safeName = escapeHTML(displayName);
+                const isCurrentUser = (currentUserId && entry.uid === currentUserId);
+                
+                // Medal icon for weekly
+                const medal = category === 'weekly' ? `<div class="weekly-medal-icon" style="position: absolute; top: -10px; right: -10px; font-size: 1.5rem;">${entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : '🥉'}</div>` : '';
 
                 slot.innerHTML = `
                     ${shineOverlay}
+                    ${medal}
                     <div class="podium-rank-badge">${entry.rank}</div>
-                    <div class="podium-avatar">${initial}</div>
-                    <div class="podium-name">${entry.name}</div>
-                    <div class="podium-score">${entry.score}</div>
-                    <div class="podium-accuracy">Accuracy: ${entry.accuracy}%</div>
+                    <div class="podium-avatar">${avatarContent}</div>
+                    <div class="podium-name">${safeName} ${isCurrentUser ? '(You)' : ''}</div>
+                    <div class="podium-score">${entry.score} Marks</div>
                 `;
                 podiumContainer.appendChild(slot);
             });
 
             // 2. Render List (Ranks 4-10)
-            const listData = data.slice(3, 10);
-            const userRankRow = document.getElementById('user-rank-row');
-            const userRankGuest = document.getElementById('user-rank-guest');
-            const currentUserName = window.activeUserName || null;
+            const listData = data.slice(3, 15); // Show slightly more in the list
             
             listData.forEach(entry => {
-                const initial = entry.name.charAt(0).toUpperCase();
+                const avatarContent = category === 'colleges' ? '<i class="fas fa-university"></i>' : entry.name.charAt(0).toUpperCase();
                 const row = document.createElement('div');
                 row.className = 'list-row';
-                if (entry.name === currentUserName) row.classList.add('highlight-user');
+                const isCurrentUser = (currentUserId && entry.uid === currentUserId);
+                if (isCurrentUser) row.classList.add('highlight-user');
+
+                const displayName = entry.name === "Guest Player" ? `Guest #${entry.uid.substring(0, 4)}` : entry.name;
+                const safeName = escapeHTML(displayName);
+
                 row.innerHTML = `
                     <div class="list-rank">${entry.rank}</div>
-                    <div class="list-avatar">${initial}</div>
+                    <div class="list-avatar">${avatarContent}</div>
                     <div class="list-info">
-                        <div class="list-name">${entry.name} ${entry.name === currentUserName ? '(You)' : ''}</div>
-                        <div class="list-score">${entry.score} <span class="list-accuracy">(${entry.accuracy}%)</span></div>
+                        <div class="list-name">${safeName} ${isCurrentUser ? '(You)' : ''}</div>
+                        <div class="list-score">${entry.score} Marks</div>
                     </div>
                 `;
                 listContainer.appendChild(row);
             });
 
             // 3. Handle Pinned User Row
-            if (currentUserName) {
+            const userRankRow = document.getElementById('user-rank-row');
+            const userRankGuest = document.getElementById('user-rank-guest');
+            if (currentUserId) {
                 userRankGuest.style.display = 'none';
-                const userEntry = data.find(entry => entry.name === currentUserName);
+                const userEntry = data.find(entry => entry.uid === currentUserId);
                 
                 if (userEntry) {
                     userRankRow.style.display = 'flex';
                     const initial = userEntry.name.charAt(0).toUpperCase();
+                    const safeName = escapeHTML(userEntry.name);
                     userRankRow.innerHTML = `
                         <div class="list-rank">${userEntry.rank}</div>
                         <div class="list-avatar">${initial}</div>
                         <div class="list-info">
-                            <div class="list-name">${userEntry.name} (Your Rank)</div>
-                            <div class="list-score">${userEntry.score} <span class="list-accuracy">Accuracy: ${userEntry.accuracy}%</span></div>
+                            <div class="list-name">${safeName} (Your Rank)</div>
+                            <div class="list-score">${userEntry.score} Marks</div>
                             <div class="list-insight" style="font-size: 0.75rem; opacity: 0.9;"><i class="fas fa-lightbulb"></i> ${userEntry.insight}</div>
                         </div>
                     `;
@@ -614,7 +653,7 @@
                 userRankGuest.style.display = 'block';
             }
 
-            // 4. Handle "See More" Button logic - Hidden for Top 10 Limit
+            // 4. See More Logic
             const toggleContainer = document.getElementById('see-more-container');
             if (toggleContainer) toggleContainer.style.display = 'none';
         }
@@ -654,8 +693,8 @@
                     listContainer.innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-muted);">Loading...</p>';
                     podiumContainer.innerHTML = '';
                     // trigger AgyDB fetches
-                if (window.fetchRemaining) {
-                    window.fetchRemaining(category).then(data => window.renderLeaderboard(category, data));
+                if (window.fetchFromAgy) {
+                    window.fetchFromAgy(category).then(data => window.renderLeaderboard(category, data));
                 }
                 });
             });
@@ -668,12 +707,15 @@
     <script type="module">
         import { collection, getDocs, query, orderBy, limit, addDoc, serverTimestamp, db, auth, onAuthStateChanged } from "./db-shim.js";
         import { getCurrentUser } from "./auth.js";
+        import { getISOWeekString } from "./utils.js";
 
-        // Create a global helper for the renderer to check the active user name
+        // Create a global helper for the renderer to check the active user name and ID
         window.activeUserName = null;
+        window.activeUserId = null;
         
         onAuthStateChanged(auth, (user) => {
             window.activeUserName = user && user.displayName ? user.displayName : null;
+            window.activeUserId = user ? user.uid : null;
             const heroBtn = document.getElementById('hero-profile-btn-container');
             if (user) {
                 if (heroBtn) heroBtn.classList.remove('hidden');
@@ -686,21 +728,42 @@
         window.fetchFromAgy = async function(category) {
             try {
                 let collectionsToFetch = [];
-                if (category === 'all') {
-                    collectionsToFetch = ['motion', 'sudoku', 'inductive', 'grid', 'switch', 'di', 'rc'];
+                let isWeekly = category === 'weekly';
+
+                if (category === 'colleges') {
+                    const q = query(collection(db, "colleges_leaderboard"), orderBy("totalScore", "desc"), limit(20));
+                    const sn = await getDocs(q);
+                    return sn.docs.map((doc, idx) => ({
+                        rank: idx + 1,
+                        uid: doc.id,
+                        name: doc.data().displayName || doc.id,
+                        score: doc.data().totalScore
+                    }));
+                }
+
+                if (isWeekly) {
+                    collectionsToFetch = ['weekly']; // Special marker
+                } else if (category === 'all') {
+                    collectionsToFetch = ['motion', 'sudoku', 'inductive', 'grid', 'switch', 'di', 'rc', 'reading'];
                 } else {
                     collectionsToFetch = [category];
                 }
 
                 let allDocs = [];
                 for (const cat of collectionsToFetch) {
-                    const q = query(
-                        collection(db, "leaderboards", cat, "scores"), 
-                        orderBy("score", "desc")
-                    );
+                    let colRef;
+                    if (cat === 'weekly') {
+                        const weekId = getISOWeekString();
+                        colRef = collection(db, "weekly_leaderboards", weekId, "scores");
+                    } else {
+                        colRef = collection(db, "leaderboards", cat, "scores");
+                    }
+
+                    const q = query(colRef, orderBy("score", "desc"), limit(20));
                     const sn = await getDocs(q);
-                    sn.forEach(doc => {
-                        const d = doc.data();
+                    sn.forEach(docSnap => {
+                        const d = docSnap.data();
+                        d._sourceId = docSnap.id;
                         d._sourceCategory = cat;
                         allDocs.push(d);
                     });
@@ -708,13 +771,14 @@
                 
                 window.allDocsRaw = allDocs; // Save for personal stats (internal use)
 
-                // 1. AGGREGATE BY NAME (Cumulative)
+                // 1. AGGREGATE BY ID (Cumulative)
                 const userTotals = {};
                 
                 allDocs.forEach(d => {
-                    const name = d.name || "Unknown";
-                    if (!userTotals[name]) {
-                        userTotals[name] = { 
+                    const id = d._sourceId || d.uid || d.id || d.name || "Unknown"; 
+                    if (!userTotals[id]) {
+                        userTotals[id] = { 
+                            name: d.name || "Unknown",
                             score: 0, 
                             totalLevels: 0, 
                             metrics: { 
@@ -727,34 +791,29 @@
                         };
                     }
                     
-                    userTotals[name].score += d.score || 0;
+                    userTotals[id].score += d.score || 0;
                     
-                    // Total Levels Logic
                     let levels = d.totalLevels || 18;
-                    if (d._sourceCategory === 'sudoku' || d._sourceCategory === 'motion' || d._sourceCategory === 'switch') levels = d.totalLevels || 10;
-                    if (d._sourceCategory === 'inductive') levels = d.totalLevels || 12;
-                    userTotals[name].totalLevels += levels;
+                    userTotals[id].totalLevels += levels;
 
-                    // Metrics Aggregation
                     if (d.metrics) {
-                        userTotals[name].metrics.correctLevels += (d.metrics.correctLevels || d.metrics.correctAnswers || d.metrics.correctCount || d.score || 0);
+                        userTotals[id].metrics.correctLevels += (d.metrics.correctLevels || d.metrics.correctAnswers || d.metrics.correctCount || d.score || 0);
                         
                         if (d._sourceCategory === 'motion') {
-                            userTotals[name].metrics.motionMoves += d.metrics.totalMoves || 0;
-                            userTotals[name].metrics.motionMin += d.metrics.minMoves || 0;
+                            userTotals[id].metrics.motionMoves += d.metrics.totalMoves || d.metrics.moves || 0;
+                            userTotals[id].metrics.motionMin += d.metrics.minMoves || d.metrics.minPossibleMoves || 0;
                         } else if (d.metrics.timeSpent) {
-                            userTotals[name].metrics.totalTime += d.metrics.timeSpent;
-                            userTotals[name].metrics.timeCount += 1;
+                            userTotals[id].metrics.totalTime += d.metrics.timeSpent;
+                            userTotals[id].metrics.timeCount += 1;
                         }
                     } else {
-                        // Fallback for very old data if any
-                        userTotals[name].metrics.correctLevels += d.score || 0;
+                        userTotals[id].metrics.correctLevels += d.score || 0;
                     }
                 });
 
                 // 2. CONVERT TO RENDERABLE FORMAT
                 const data = [];
-                for (const [name, stats] of Object.entries(userTotals)) {
+                for (const [uid, stats] of Object.entries(userTotals)) {
                     // Accuracy is based on CORRECT LEVELS solved, not MARKS
                     const accuracy = Math.round((stats.metrics.correctLevels / stats.totalLevels) * 100) || 0;
                     
@@ -774,9 +833,11 @@
                     }
 
                     data.push({
-                        name: name,
+                        uid: uid,
+                        name: stats.name,
                         rawScore: stats.score,
-                        score: `${stats.score} / ${stats.totalLevels}`,
+                        score: stats.score, // Showing total marks clearly now
+                        totalLevels: stats.totalLevels,
                         accuracy: accuracy,
                         insight: insight,
                         _percent: stats.score / Math.max(1, stats.totalLevels)
@@ -797,8 +858,8 @@
                 });
 
                 // Update personal rank if data is for "all"
-                if (category === 'all' && window.activeUserName) {
-                    const userEntry = data.find(e => e.name === window.activeUserName);
+                if (category === 'all' && window.activeUserId) {
+                    const userEntry = data.find(e => e.uid === window.activeUserId);
                     if (userEntry) {
                         // Logic moved to profile page primarily, but keeping lightweight hook if needed
                         console.log("User Global Rank:", userEntry.rank);

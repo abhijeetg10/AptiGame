@@ -284,35 +284,42 @@ async function fetchLeaderboardData(gameId) {
                     );
                     const sn = await getDocs(q);
                     sn.forEach(doc => {
-                        allDocs.push({ ...doc.data(), _cat: cat });
+                        allDocs.push({ ...doc.data(), _id: doc.id, _cat: cat });
                     });
                 } catch (err) {
                     console.warn(`Failed to fetch ${cat} for overall leaderboard:`, err);
                 }
             }
 
-            // AGGREGATE BY NAME
+            // AGGREGATE BY ID
             const userTotals = {};
             allDocs.forEach(d => {
-                const name = d.name || "Unknown";
-                if (!userTotals[name]) {
-                    userTotals[name] = { score: 0, latestDate: new Date(0) };
+                const id = d._id || d.name || "Unknown";
+                if (!userTotals[id]) {
+                    userTotals[id] = { 
+                        name: d.name || "Unknown", 
+                        score: 0, 
+                        latestDate: new Date(0) 
+                    };
                 }
-                userTotals[name].score += d.score || 0;
+                userTotals[id].score += d.score || 0;
                 
                 // Track latest date
                 if (d.timestamp?.toDate) {
                     const dDate = d.timestamp.toDate();
-                    if (dDate > userTotals[name].latestDate) userTotals[name].latestDate = dDate;
+                    if (dDate > userTotals[id].latestDate) userTotals[id].latestDate = dDate;
                 }
             });
 
             // Convert back to sorted array
-            snapshotData = Object.entries(userTotals).map(([name, data]) => ({
-                name,
-                score: data.score,
-                dateStr: data.latestDate > new Date(0) ? data.latestDate.toLocaleString() : "Active"
-            }));
+            snapshotData = Object.entries(userTotals).map(([id, data]) => {
+                const displayName = data.name === "Guest Player" ? `Guest #${id.substring(0, 4)}` : data.name;
+                return {
+                    name: displayName,
+                    score: data.score,
+                    dateStr: data.latestDate > new Date(0) ? data.latestDate.toLocaleString() : "Active"
+                };
+            });
             
             snapshotData.sort((a, b) => b.score - a.score);
             // Limit removed as per user request

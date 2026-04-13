@@ -6,9 +6,7 @@ const userAvatar = document.getElementById("nav-user-avatar");
 const userName = document.getElementById("nav-user-name");
 const logoutBtn = document.getElementById("nav-logout-btn");
 
-// OLD GOOGLE SCRIPT URL (REVERTED)
-const GOOGLE_SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbwz5YPrzW7dxg3qnF6toMVIBahoWWoUk6mKeZtaZ-vfoh49NAdbLiyfQAXIDVuZ7ggVKQ/exec";
+
 
 
 // Detect login state
@@ -106,25 +104,6 @@ export const loginWithGoogle = async () => {
 
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
-
-        // 1. Google Sheets Logging
-        const payload = {
-            name: user.displayName || "Unknown",
-            email: user.email || "No Email",
-            score: 0,
-            challenge: "Login",
-            time: new Date().toLocaleString()
-        };
-
-        await fetch(GOOGLE_SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        });
-        console.log("User login tracked via Webhook.");
 
         // AgyDB Local Auth Check Logging (For the Admin Dashboard)
         try {

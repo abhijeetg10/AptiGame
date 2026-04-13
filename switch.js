@@ -1,10 +1,10 @@
-console.log("Switch Logic Loaded - Version 2.0.2");
-import { collection, addDoc, doc, setDoc, getDoc, onAuthStateChanged, db, auth, increment, signOut } from "./db-shim.js";
+import { collection, addDoc, doc, setDoc, getDoc, onAuthStateChanged, db, auth, increment, signOut, serverTimestamp, updateDoc, onSnapshot } from "./db-shim.js";
 import { ActivityLogger } from "./activity-logger.js";
 import { initRatingSystem } from "./rating-system.js";
 import { getCurrentUser } from "./auth.js";
 import { GAME_CONFIG } from "./game-constants.js";
 import { Logger } from "./logger.js";
+import { getISOWeekString } from "./utils.js";
 
 // --- Constants & Config ---
 const SHAPES_POOL = ['circle', 'square', 'triangle', 'plus', 'star', 'diamond', 'pentagon', 'hexagon'];
@@ -45,6 +45,11 @@ function init() {
     } else {
         renderModuleSelection();
     }
+
+    // Check for Duel Mode
+    if (window.roomId) {
+        initDuelMode();
+    }
     
     document.getElementById('back-to-modules-btn').onclick = (e) => {
         e.preventDefault();
@@ -83,13 +88,57 @@ function renderModuleSelection() {
             </div>
             <div class="card-content">
                 <h3>Set ${i}</h3>
-                <p>18 Logic Puzzles</p>
+                <p>Logic Puzzles</p>
             </div>
         `;
         if (!isLocked) {
             card.onclick = () => startModule(i);
         }
         elModuleGrid.appendChild(card);
+    }
+}
+
+// Global roomId and role from URL
+window.roomId = new URLSearchParams(window.location.search).get('roomId');
+window.duelRole = new URLSearchParams(window.location.search).get('role');
+
+// --- DUEL LOGIC ---
+function initDuelMode() {
+    console.log("Duel Mode Initialized:", window.roomId, window.duelRole);
+    const vsBar = document.getElementById('duel-vs-bar');
+    if (vsBar) {
+        vsBar.classList.remove('hidden');
+        vsBar.style.display = 'flex';
+    }
+
+    const roomRef = doc(db, "rooms", window.roomId);
+    onSnapshot(roomRef, (snap) => {
+        if (!snap.exists()) {
+            alert("Room closed.");
+            window.location.href = "duel.html";
+            return;
+        }
+        const data = snap.data();
+        
+        // Update Names/Scores
+        document.getElementById('p1-duel-name').innerText = data.hostName;
+        document.getElementById('p1-duel-score').innerText = data.hostScore || 0;
+        document.getElementById('p2-duel-name').innerText = (data.guestName || "Waiting...") + (data.status === 'ready' ? ' (READY)' : '');
+        document.getElementById('p2-duel-score').innerText = data.guestScore || 0;
+    });
+
+    // Automatically start first module if in duel
+    setTimeout(() => startModule(1), 1000);
+}
+
+async function updateDuelScore() {
+    if (!window.roomId) return;
+    const roomRef = doc(db, "rooms", window.roomId);
+    const scoreField = window.duelRole === 'host' ? 'hostScore' : 'guestScore';
+    try {
+        await updateDoc(roomRef, { [scoreField]: score });
+    } catch (e) {
+        console.error("Duel score sync failed:", e);
     }
 }
 
@@ -105,7 +154,7 @@ window.startModule = function (moduleNum) {
     elGameHeader.classList.remove('hidden');
     elGameContainer.classList.remove('hidden');
     
-    elModuleDisplay.innerText = `${currentModule} / ${TOTAL_MODULES}`;
+    elModuleDisplay.innerText = `${currentModule}`;
     
     loadLevel();
     if (!isMock) {
@@ -138,13 +187,8 @@ function updateTimerDisplay() {
 }
 
 function loadLevel() {
-    if (currentLevel > LEVELS_PER_MODULE) {
-        endModule();
-        return;
-    }
-
     isGameActive = true;
-    elLevel.innerText = `${currentLevel} / ${LEVELS_PER_MODULE}`;
+    elLevel.innerText = `${currentLevel}`;
     elScore.innerText = score;
 
     generateLevel();
@@ -261,6 +305,7 @@ function handleAnswer(selectedCode) {
     if (isCorrect) {
         score += 3;
         correctCount++;
+        updateDuelScore(); // Sync duel progress
         showFeedback(true, currentSolution);
     } else {
         // No negative mark
@@ -286,7 +331,9 @@ function showFeedback(isCorrect, solution = "") {
     
     setTimeout(() => {
         el.classList.add('hidden');
-        currentLevel++;
+        if (isCorrect) {
+            currentLevel++;
+        }
         loadLevel();
     }, 1200);
 }
@@ -308,7 +355,7 @@ async function endModule(customTitle) {
 
     if (customTitle) document.getElementById('modal-title').innerText = customTitle;
 
-    document.getElementById('score-text').innerText = `${correctCount} / ${LEVELS_PER_MODULE}`;
+    document.getElementById('score-text').innerText = `${correctCount}`;
     document.getElementById('correct-count').innerText = correctCount;
     document.getElementById('wrong-count').innerText = wrongCount;
     document.getElementById('final-marks').innerText = score;
@@ -402,16 +449,14 @@ async function saveScoreToAgy(btnElement = null, redirectCallback = null) {
             }
 
             let totalScore = 0;
-            let totalPossible = 0;
+            // Removed Levels_Per_Module calculation for infinite play
             for (const mod in existingModuleScores) {
                 totalScore += existingModuleScores[mod];
-                totalPossible += LEVELS_PER_MODULE; 
             }
 
             const payload = {
                 name: user.displayName || "Anonymous Player",
                 score: totalScore,
-                totalLevels: totalPossible,
                 moduleScores: existingModuleScores,
                 metrics: {
                     correctCount: cumulativeCorrect,
@@ -424,7 +469,7 @@ async function saveScoreToAgy(btnElement = null, redirectCallback = null) {
 
             await setDoc(scoreRef, payload, { merge: true });
 
-            // Progression & Denormalization
+            // 1. Progression & Denormalization
             const moduleReached = Math.min(TOTAL_MODULES, currentModule + 1);
             await setDoc(doc(db, "users", user.uid), {
                 [`highestModule_switch`]: moduleReached,
@@ -433,6 +478,39 @@ async function saveScoreToAgy(btnElement = null, redirectCallback = null) {
                 [`gameScores.${isMock ? 'mock_' : ''}switch`]: increment(score),
                 lastPlayed: new Date()
             }, { merge: true });
+            
+            // 2. WEEKLY LEADERBOARD (New)
+            try {
+                const weekId = getISOWeekString();
+                const weeklyRef = doc(db, "weekly_leaderboards", weekId, "scores", user.uid);
+                await setDoc(weeklyRef, {
+                    name: user.displayName || "Anonymous Player",
+                    score: increment(score),
+                    timestamp: serverTimestamp()
+                }, { merge: true });
+            } catch (weeklyError) {
+                console.warn("Weekly leaderboard save failed:", weeklyError);
+            }
+
+            // 3. COLLEGE LEADERBOARD (New)
+            try {
+                const userSnap = await getDoc(doc(db, "users", user.uid));
+                if (userSnap.exists() && userSnap.data().college) {
+                    const collegeName = userSnap.data().college;
+                    const collegeId = collegeName.toLowerCase().trim().replace(/\s+/g, '_');
+                    const collRef = doc(db, "colleges_leaderboard", collegeId);
+                    await setDoc(collRef, {
+                        displayName: collegeName,
+                        totalScore: increment(score),
+                        timestamp: serverTimestamp()
+                    }, { merge: true });
+
+                    // Also update individual score entry
+                    await setDoc(scoreRef, { college: collegeName }, { merge: true });
+                }
+            } catch (collError) {
+                console.warn("College leaderboard update failed:", collError);
+            }
 
             if (btnElement) {
                 btnElement.innerText = "Progress Saved!";

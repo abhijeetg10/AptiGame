@@ -9,8 +9,9 @@ import {
     getFirestore, collection as fbsCollection, getDocs as fbsGetDocs, query as fbsQuery, 
     orderBy as fbsOrderBy, limit as fbsLimit, doc as fbsDoc, where as fbsWhere, 
     getDoc as fbsGetDoc, setDoc as fbsSetDoc, updateDoc as fbsUpdateDoc, 
+    deleteDoc as fbsDeleteDoc, addDoc as fbsAddDoc, getCountFromServer as fbsGetCount,
     Timestamp, serverTimestamp as fbsServerTimestamp, increment as fbsIncrement, arrayUnion as fbsArrayUnion,
-    writeBatch as fbsWriteBatch
+    writeBatch as fbsWriteBatch, onSnapshot as fbsOnSnapshot
 } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { 
     getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
@@ -43,13 +44,16 @@ const storage = {
 
 function getPath(obj) {
     if (!obj) return '';
-    if (typeof obj === 'string') return obj;
+    if (typeof obj === 'string') return obj.replace(/\//g, '_');
     // Handle Collection/Doc References
-    if (obj.path) return typeof obj.path === 'string' ? obj.path : obj.path.join('/');
-    // Handle Query objects (they contain the collection/path in internal properties or we can extract from converter)
-    if (obj._query && obj._query.path) return obj._query.path.canonicalString();
+    if (obj.path) {
+        const p = typeof obj.path === 'string' ? obj.path : obj.path.join('_');
+        return p.replace(/\//g, '_');
+    }
+    // Handle Query objects (they contain the collection/path in internal properties)
+    if (obj._query && obj._query.path) return obj._query.path.canonicalString().replace(/\//g, '_');
     // Fallback search for common paths
-    if (obj.type === 'collection') return obj.path;
+    if (obj.type === 'collection') return obj.path.replace(/\//g, '_');
     return '';
 }
 
@@ -64,6 +68,7 @@ export const serverTimestamp = fbsServerTimestamp;
 export const increment = fbsIncrement;
 export const arrayUnion = fbsArrayUnion;
 export const writeBatch = fbsWriteBatch;
+export const onSnapshot = fbsOnSnapshot;
 
 export const getDoc = async (docRef) => {
     const path = getPath(docRef);
