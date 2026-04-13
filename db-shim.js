@@ -14,7 +14,7 @@ import {
     writeBatch as fbsWriteBatch, onSnapshot as fbsOnSnapshot
 } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 import { 
-    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
+    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, updateProfile 
 } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -69,6 +69,7 @@ export const increment = fbsIncrement;
 export const arrayUnion = fbsArrayUnion;
 export const writeBatch = fbsWriteBatch;
 export const onSnapshot = fbsOnSnapshot;
+export { onAuthStateChanged, signOut, updateProfile };
 
 export const getDoc = async (docRef) => {
     const path = getPath(docRef);
