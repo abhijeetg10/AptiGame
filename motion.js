@@ -687,7 +687,6 @@ function playSolution() {
 function advanceLevel(isCorrect = false) {
     if (isCorrect) {
         // Points already added in checkVictory
-        updateDuelScore(); // Sync duel progress
     }
     
     currentLevel++;
