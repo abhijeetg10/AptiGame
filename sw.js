@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aptiverse-v6-force-purge';
+const CACHE_NAME = 'aptiverse-v7-force-purge';
 const ASSETS_TO_CACHE = [
   '/',
   'index.html',
@@ -13,7 +13,7 @@ const ASSETS_TO_CACHE = [
   'games/grid.html',
   'games/grid.js',
   'games/switch.html',
-  'switch-v2.js',
+  'games/switch.js',
   'games/sudoku.html',
   'games/sudoku.js',
   'games/inductive.html',
@@ -37,7 +37,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Opened cache v5 (Total Refresh)');
+      console.log('Opened cache v7 (Total Refresh)');
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
