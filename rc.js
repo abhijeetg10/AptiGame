@@ -353,7 +353,7 @@ function nextLevel() {
     // Auto sync active doc to the relevant one for the level (3 questions per doc)
     activeDoc = Math.min(5, Math.floor((currentLevel - 1) / 3));
     renderResourceTabs();
-    renderDocView();
+    renderActiveDoc();
 
     const qData = generateQuestionFromResources(currentDataResources, currentLevel);
     currentSolution = qData.solution;
