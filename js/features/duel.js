@@ -36,7 +36,7 @@ let currentUser = null;
 onAuthStateChanged(auth, (user) => {
     if (!user) {
         alert("Please login to enter the Battle Arena.");
-        window.location.href = "index.html";
+        window.location.href = "../index.html";
         return;
     }
     currentUser = user;

@@ -36,14 +36,14 @@ onAuthStateChanged(auth, (user) => {
     } else {
         // Access Denied
         alert("ACCESS DENIED: You do not have administrator privileges.");
-        window.location.href = "index.html";
+        window.location.href = "../index.html";
     }
 });
 
 // Logout
 btnLogout.addEventListener("click", async () => {
     await signOut(auth);
-    window.location.href = "index.html";
+    window.location.href = "../index.html";
 });
 
 // --- NAVIGATION LOGIC ---

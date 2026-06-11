@@ -52,7 +52,7 @@ const elBackToModulesBtn = document.getElementById('back-to-modules-btn');
 // --- Initialization ---
 onAuthStateChanged(auth, (user) => {
     if (!user) {
-        window.location.href = 'index.html';
+        window.location.href = "../index.html";
     } else {
         loadUserProgress();
     }
@@ -136,7 +136,7 @@ function initDuelMode() {
     onSnapshot(roomRef, (snap) => {
         if (!snap.exists()) {
             alert("Room closed.");
-            window.location.href = "duel.html";
+            window.location.href = "../duel.html";
             return;
         }
         const data = snap.data();
@@ -581,7 +581,7 @@ async function endGame() {
 
     elNextModuleBtn.onclick = () => {
         if (currentModule < TOTAL_MODULES) startModule(currentModule + 1);
-        else window.location.href = 'index.html';
+        else window.location.href = "../index.html";
     };
 
     if (isMock) {

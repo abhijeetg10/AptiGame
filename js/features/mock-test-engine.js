@@ -117,7 +117,7 @@ function init() {
     // Auth-aware initialization
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
-            window.location.href = 'index.html';
+            window.location.href = "../index.html";
             return;
         }
         if (!currentState.firestoreId && !currentState.isFinished) {

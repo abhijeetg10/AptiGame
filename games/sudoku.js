@@ -10,7 +10,7 @@ import { Logger } from "../js/utils/logger.js";
 onAuthStateChanged(auth, (user) => {
     if (!user) {
         alert("Authentication required. Redirecting to home page...");
-        window.location.href = "index.html";
+        window.location.href = "../index.html";
     }
 });
 
@@ -137,7 +137,7 @@ function initDuelMode() {
     onSnapshot(roomRef, (snap) => {
         if (!snap.exists()) {
             alert("Room closed.");
-            window.location.href = "duel.html";
+            window.location.href = "../duel.html";
             return;
         }
         const data = snap.data();
@@ -565,7 +565,7 @@ async function endModule(customTitle) {
         elNextBtn.innerText = "Finish & Exit";
         elNextBtn.onclick = () => {
             saveScoreToAgy(elNextBtn, () => {
-                window.location.href = "index.html";
+                window.location.href = "../index.html";
             });
         };
     } else {

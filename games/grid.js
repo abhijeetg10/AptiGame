@@ -9,7 +9,7 @@ import { getISOWeekString } from "../js/core/utils.js";
 onAuthStateChanged(auth, (user) => {
     if (!user) {
         alert("Authentication required. Redirecting to home page...");
-        window.location.href = "index.html";
+        window.location.href = "../index.html";
     }
 });
 
@@ -782,7 +782,7 @@ async function endModule(customTitle) {
         elNextBtn.innerText = "Finish & Exit";
         elNextBtn.onclick = () => {
             saveScoreToAgy(elNextBtn, () => {
-                window.location.href = "index.html";
+                window.location.href = "../index.html";
             });
         };
     } else {

@@ -115,7 +115,7 @@ function initDuelMode() {
     onSnapshot(roomRef, (snap) => {
         if (!snap.exists()) {
             alert("Room closed.");
-            window.location.href = "duel.html";
+            window.location.href = "../duel.html";
             return;
         }
         const data = snap.data();
@@ -375,7 +375,7 @@ async function endModule(customTitle) {
         elNextBtn.innerText = "Finish & Exit";
         elNextBtn.onclick = () => {
             saveScoreToAgy(elNextBtn, () => {
-                window.location.href = "index.html";
+                window.location.href = "../index.html";
             });
         };
     } else {
@@ -572,7 +572,7 @@ if(btnLogout) {
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
-        window.location.href = 'index.html';
+        window.location.href = "../index.html";
     } else {
         // Load User Progress
         try {
