@@ -91,12 +91,7 @@ function initModuleGrid() {
         { id: 2, name: "Module 2", desc: "Inference & Logic", color: "linear-gradient(135deg, #10b981, #34d399)" },
         { id: 3, name: "Module 3", desc: "Technical Synthesis", color: "linear-gradient(135deg, #f59e0b, #fbbf24)" },
         { id: 4, name: "Module 4", desc: "Abstract Concepts", color: "linear-gradient(135deg, #8b5cf6, #a78bfa)" },
-        { id: 5, name: "Module 5", desc: "Strategic Reading", color: "linear-gradient(135deg, #ef4444, #f87171)" },
-        { id: 6, name: "Module 6", desc: "Advanced Analysis", color: "linear-gradient(135deg, #c90076, #ff4b2b)" },
-        { id: 7, name: "Module 7", desc: "Complex Synthesis", color: "linear-gradient(135deg, #2563eb, #3b82f6)" },
-        { id: 8, name: "Module 8", desc: "Hyper-Deductive RC", color: "linear-gradient(135deg, #059669, #10b981)" },
-        { id: 9, name: "Module 9", desc: "Patterns in Prose", color: "linear-gradient(135deg, #d97706, #f59e0b)" },
-        { id: 10, name: "Module 10", desc: "Legendary Comprehension", color: "linear-gradient(135deg, #4f46e5, #6366f1)" }
+        { id: 5, name: "Module 5", desc: "Strategic Reading", color: "linear-gradient(135deg, #ef4444, #f87171)" }
     ];
 
     elModuleGrid.innerHTML = '';
