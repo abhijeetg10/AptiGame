@@ -582,7 +582,7 @@ function showFeedbackPopup(status, points, color) {
     const popup = document.getElementById('feedback-popup');
     const statusEl = document.getElementById('feedback-status');
     const pointsEl = document.getElementById('feedback-points');
-    statusEl.innerText = status;
+    statusEl.innerHTML = status;
     statusEl.style.color = color;
     pointsEl.innerText = points;
     popup.classList.remove('hidden');
