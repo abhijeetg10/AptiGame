@@ -11,8 +11,8 @@
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
     <link rel="manifest" href="manifest.json">
     <script>
         if ('serviceWorker' in navigator) {
@@ -21,10 +21,10 @@
             });
         }
     </script>
-    <script type="module" src="db-shim.js?v=5"></script>
-    <script type="module" src="auth.js?v=5"></script>
-    <script type="module" src="analytics.js?v=5"></script>
-    <script type="module" src="mock-test-engine.js?v=5"></script>
+    <script type="module" src="js/core/db-shim.js?v=5"></script>
+    <script type="module" src="js/core/auth.js?v=5"></script>
+    <script type="module" src="js/utils/analytics.js?v=5"></script>
+    <script type="module" src="js/features/mock-test-engine.js?v=5"></script>
     <style>
         .page-header {
             padding: 8rem 2rem 4rem;
@@ -222,7 +222,7 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="index.html" class="logo">
-                <img src="logo.png" alt="AptiVerse Logo" class="logo-img">
+                <img src="assets/images/logo.png" alt="AptiVerse Logo" class="logo-img">
                 <span style="display: flex; gap: 0; font-weight: 800; color: var(--text-main);"><span style="color: var(--primary);">Apti</span>Verse</span>
             </a>
             <ul class="nav-links">
@@ -345,7 +345,7 @@
 
     <!-- Scripts -->
     <script type="module">
-        import { collection, getDocs, query, orderBy, limit, doc, getDoc, auth, onAuthStateChanged, db, where } from "./db-shim.js";
+        import { collection, getDocs, query, orderBy, limit, doc, getDoc, auth, onAuthStateChanged, db, where } from "./js/core/db-shim.js";
 
         // Global function for the buttons
         window.startMock = function (companyId) {

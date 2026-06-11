@@ -19,10 +19,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
     <link rel="manifest" href="manifest.json">
-    <script type="module" src="analytics.js?v=5"></script>
+    <script type="module" src="js/utils/analytics.js?v=5"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -41,7 +41,7 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="#" class="logo">
-                <img src="logo.png" alt="AptiVerse Logo" class="logo-img">
+                <img src="assets/images/logo.png" alt="AptiVerse Logo" class="logo-img">
                 <span style="display: flex; gap: 0; font-weight: 800; color: var(--text-main);"><span style="color: var(--primary);">Apti</span>Verse</span>
             </a>
             <ul class="nav-links">
@@ -62,7 +62,7 @@
     </nav>
     
     <!-- Load Auth System -->
-    <script type="module" src="auth.js?v=5"></script>
+    <script type="module" src="js/core/auth.js?v=5"></script>
 
     <!-- Hero Section -->
     <header class="hero">
@@ -92,16 +92,16 @@
             <div class="hero-visuals">
                 <!-- Placeholders for the circular images shown in the reference -->
                 <div class="circle circle-1" aria-label="Student preparing for aptitude test"
-                    style="background-image: url('hero_student_1_1773160823080.png'); background-size: cover; background-position: center;">
+                    style="background-image: url('assets/images/hero_student_1_1773160823080.png'); background-size: cover; background-position: center;">
                 </div>
                 <div class="circle circle-2" aria-label="Student succeeding in logic puzzles"
-                    style="background-image: url('hero_student_2_1773160921455.png'); background-size: cover; background-position: center;">
+                    style="background-image: url('assets/images/hero_student_2_1773160921455.png'); background-size: cover; background-position: center;">
                 </div>
                 <div class="circle circle-3" aria-label="Student practicing gamified assessments"
-                    style="background-image: url('hero_student_3_1773160944783.png'); background-size: cover; background-position: center;">
+                    style="background-image: url('assets/images/hero_student_3_1773160944783.png'); background-size: cover; background-position: center;">
                 </div>
                 <div class="circle circle-4" aria-label="Portrait of Abhijeet Gaikwad"
-                    style="background-image: url('Abhi.jpg'); background-size: cover; background-position: center;">
+                    style="background-image: url('assets/images/Abhi.jpg'); background-size: cover; background-position: center;">
                 </div>
             </div>
         </div>
@@ -145,9 +145,9 @@
 
             <!-- Card 1: Motion Challenge -->
             <div class="card">
-                <a href="motion.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
+                <a href="games/motion.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
                     <div class="card-img"
-                        style="background-image: url('motion challenge.png'); background-size: cover; background-position: center;">
+                        style="background-image: url('assets/images/motion challenge.png'); background-size: cover; background-position: center;">
                         <span class="card-badge new">New</span>
                     </div>
                     <div class="card-content">
@@ -164,9 +164,9 @@
 
             <!-- Card 2: Sudoku -->
             <div class="card">
-                <a href="sudoku.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
+                <a href="games/sudoku.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
                     <div class="card-img"
-                        style="background-image: url('sudoku.png'); background-size: cover; background-position: center;">
+                        style="background-image: url('assets/images/sudoku.png'); background-size: cover; background-position: center;">
                         <span class="card-badge hot">Hot</span>
                     </div>
                     <div class="card-content">
@@ -182,10 +182,10 @@
             </div>
 
             <!-- Card 3: Inductive Challenge -->
-            <a href="inductive.html" class="game-link" style="text-decoration: none; color: inherit; display: block;">
+            <a href="games/inductive.html" class="game-link" style="text-decoration: none; color: inherit; display: block;">
                 <div class="card">
                     <div class="card-img"
-                        style="background-image: url('inductive challenge.png'); background-size: cover; background-position: center;">
+                        style="background-image: url('assets/images/inductive challenge.png'); background-size: cover; background-position: center;">
                     </div>
                     <div class="card-content">
                         <h3>Inductive Challenge</h3>
@@ -201,10 +201,10 @@
             </a>
 
             <!-- Card 4: Grid Challenge -->
-            <a href="grid.html" class="game-link" style="text-decoration: none; color: inherit; display: block;">
+            <a href="games/grid.html" class="game-link" style="text-decoration: none; color: inherit; display: block;">
                 <div class="card">
                     <div class="card-img"
-                        style="background-image: url('grid challenge.png'); background-size: cover; background-position: center;">
+                        style="background-image: url('assets/images/grid challenge.png'); background-size: cover; background-position: center;">
                     </div>
                     <div class="card-content">
                         <h3>Grid Challenge</h3>
@@ -221,9 +221,9 @@
 
             <!-- Card 5: Switch Challenge -->
             <div class="card">
-                <a href="switch.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
+                <a href="games/switch.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
                     <div class="card-img"
-                        style="background-image: url('switch challenge.png'); background-size: cover; background-position: center;">
+                        style="background-image: url('assets/images/switch challenge.png'); background-size: cover; background-position: center;">
                         <span class="card-badge hot">HOT</span>
                     </div>
                     <div class="card-content">
@@ -239,9 +239,9 @@
 
             <!-- Card 6: Tab Based DI -->
             <div class="card">
-                <a href="di.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
+                <a href="games/di.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
                     <div class="card-img"
-                        style="background-image: url('DI.png'); background-size: cover; background-position: center;">
+                        style="background-image: url('assets/images/DI.png'); background-size: cover; background-position: center;">
                         <span class="card-badge new">New</span>
                     </div>
                     <div class="card-content">
@@ -257,9 +257,9 @@
 
             <!-- Card 7: Tab Based RC -->
             <div class="card">
-                <a href="rc.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
+                <a href="games/rc.html" class="game-link" style="display: flex; flex-direction: column; height: 100%;">
                     <div class="card-img"
-                        style="background-image: url('RC.png'); background-size: cover; background-position: center;">
+                        style="background-image: url('assets/images/RC.png'); background-size: cover; background-position: center;">
                         <span class="card-badge new">New</span>
                     </div>
                     <div class="card-content">
@@ -322,9 +322,9 @@
             <div class="hub-visual">
                 <div class="logo-cloud-header">TRUSTED BY STUDENTS FOR</div>
                 <div class="logo-grid">
-                    <div class="company-logo"><img src="tcs.png" alt="TCS"></div>
-                    <div class="company-logo"><img src="cognizant.jpg" alt="Cognizant"></div>
-                    <div class="company-logo"><img src="atlas copco.png" alt="Atlas Copco"></div>
+                    <div class="company-logo"><img src="assets/images/tcs.png" alt="TCS"></div>
+                    <div class="company-logo"><img src="assets/images/cognizant.jpg" alt="Cognizant"></div>
+                    <div class="company-logo"><img src="assets/images/atlas copco.png" alt="Atlas Copco"></div>
                     <div class="company-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Capgemini_201x_logo.svg/1200px-Capgemini_201x_logo.svg.png" alt="Capgemini"></div>
                 </div>
                 <div class="visual-deco">
@@ -707,9 +707,9 @@
 
     <!-- AgyDB Logic -->
     <script type="module">
-        import { collection, getDocs, query, orderBy, limit, addDoc, serverTimestamp, db, auth, onAuthStateChanged } from "./db-shim.js";
-        import { getCurrentUser } from "./auth.js";
-        import { getISOWeekString } from "./utils.js";
+        import { collection, getDocs, query, orderBy, limit, addDoc, serverTimestamp, db, auth, onAuthStateChanged } from "./js/core/db-shim.js";
+        import { getCurrentUser } from "./js/core/auth.js";
+        import { getISOWeekString } from "./js/core/utils.js";
 
         // Create a global helper for the renderer to check the active user name and ID
         window.activeUserName = null;

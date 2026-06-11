@@ -6,8 +6,8 @@
     <title>My Profile | AptiVerse Performance Analysis</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
     <link rel="manifest" href="manifest.json">
     <script>
         if ('serviceWorker' in navigator) {
@@ -16,9 +16,9 @@
             });
         }
     </script>
-    <script type="module" src="db-shim.js?v=5"></script>
-    <script type="module" src="auth.js?v=5"></script>
-    <script type="module" src="analytics.js?v=5"></script>
+    <script type="module" src="js/core/db-shim.js?v=5"></script>
+    <script type="module" src="js/core/auth.js?v=5"></script>
+    <script type="module" src="js/utils/analytics.js?v=5"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -368,7 +368,7 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="index.html" class="logo">
-                <img src="logo.png" alt="AptiVerse Logo" class="logo-img">
+                <img src="assets/images/logo.png" alt="AptiVerse Logo" class="logo-img">
                 <span style="display: flex; gap: 0; font-weight: 800; color: var(--text-main);"><span style="color: var(--primary);">Apti</span>Verse</span>
             </a>
             <ul class="nav-links">
@@ -483,7 +483,7 @@
 
     <!-- Scripts -->
     <script type="module">
-        import { collection, getDocs, doc, getDoc, query, where, orderBy, limit, auth, onAuthStateChanged, db, setDoc, updateProfile, signOut } from "./db-shim.js";
+        import { collection, getDocs, doc, getDoc, query, where, orderBy, limit, auth, onAuthStateChanged, db, setDoc, updateProfile, signOut } from "./js/core/db-shim.js";
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
