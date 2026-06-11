@@ -1,4 +1,4 @@
-import { collection, addDoc, serverTimestamp, db, auth } from "../js/core/db-shim.js";
+import { collection, addDoc, serverTimestamp, db, auth } from "../core/db-shim.js";
 
 /**
  * Activity Logger - Tracks user engagement for the Consistency Calendar

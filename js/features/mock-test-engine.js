@@ -1,4 +1,4 @@
-import { collection, addDoc, doc, getDoc, setDoc, updateDoc, serverTimestamp, db, auth, onAuthStateChanged, increment, Timestamp } from "../js/core/db-shim.js";
+import { collection, addDoc, doc, getDoc, setDoc, updateDoc, serverTimestamp, db, auth, onAuthStateChanged, increment, Timestamp } from "../core/db-shim.js";
 
 // --- CONFIGURATION ---
 const TOTAL_MOCK_TIME = 24 * 60; // 24 minutes in seconds

@@ -3,4 +3,4 @@
  * 
  * Re-routes legacy cached scripts to the new js/core/db-shim.js (AgyDB).
  */
-export * from "../js/core/db-shim.js";
+export * from "./db-shim.js";

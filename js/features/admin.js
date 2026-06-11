@@ -1,4 +1,4 @@
-import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, where, orderBy, limit, auth, onAuthStateChanged, signOut, db, serverTimestamp, Timestamp, getCountFromServer, writeBatch } from "../js/core/db-shim.js";
+import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, where, orderBy, limit, auth, onAuthStateChanged, signOut, db, serverTimestamp, Timestamp, getCountFromServer, writeBatch } from "../core/db-shim.js";
 
 // --- SECURITY PROTOCOL ---
 // Replace this exactly with the user's provided email.

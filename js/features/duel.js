@@ -5,7 +5,7 @@
 import { 
     db, auth, collection, doc, setDoc, getDoc, updateDoc, 
     onSnapshot, serverTimestamp, deleteDoc 
-} from "../js/core/db-shim.js";
+} from "../core/db-shim.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
 // -- DOM Elements --

@@ -1,4 +1,4 @@
-import { collection, addDoc, serverTimestamp, db } from "../js/core/db-shim.js";
+import { collection, addDoc, serverTimestamp, db } from "../core/db-shim.js";
 // Mocked analytics for AgyDB
 export const getAnalytics = () => ({});
 export const logEvent = () => {};
