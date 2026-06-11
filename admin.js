@@ -134,14 +134,14 @@ async function fetchOverviewAndUsers() {
             }
         }
 
-        // Fetch Recent Users ONLY (Limit 50) to drastically minimize reads
+        // Fetch All Users
         let snapshot;
         try {
-            const q = query(collection(db, "users"), orderBy("lastLogin", "desc"), limit(50));
+            const q = query(collection(db, "users"), orderBy("lastLogin", "desc"));
             snapshot = await getDocs(q);
         } catch (indexError) {
-            console.warn("User index missing or quota exceeded, falling back to limited fetch:", indexError);
-            snapshot = await getDocs(query(collection(db, "users"), limit(50)));
+            console.warn("User index missing or quota exceeded, falling back to basic fetch:", indexError);
+            snapshot = await getDocs(query(collection(db, "users")));
         }
 
         // Display Cache Warning if Firebase Quota reached
@@ -966,13 +966,19 @@ if (btnResetLeaderboards) {
                 
                 if (snapshot.empty) continue;
 
-                // Use Firestore Batch for reliable deletion
-                const batch = writeBatch(db);
-                snapshot.forEach(scoreDoc => {
-                    batch.delete(doc(db, "leaderboards", gameId, "scores", scoreDoc.id));
-                });
+                // Use Firestore Batch for reliable deletion with chunking (500 limit)
+                let docsList = [];
+                snapshot.forEach(d => docsList.push(d.id));
+
+                for (let i = 0; i < docsList.length; i += 400) {
+                    const chunk = docsList.slice(i, i + 400);
+                    const batch = writeBatch(db);
+                    chunk.forEach(id => {
+                        batch.delete(doc(db, "leaderboards", gameId, "scores", id));
+                    });
+                    await batch.commit();
+                }
                 
-                await batch.commit();
                 totalDeleted += snapshot.size;
                 console.log(`Deleted ${snapshot.size} entries from ${gameId}`);
             }
@@ -991,6 +997,8 @@ if (btnResetLeaderboards) {
     });
 }
 
+// --- FACTORY RESET LOGIC ---
+const btnFactoryReset = document.getElementById("factory-reset-btn");
 // --- LOGIN HISTORY MODAL ---
 function showLoginHistory(userId) {
     const user = allUsersData.find(u => u.id === userId);

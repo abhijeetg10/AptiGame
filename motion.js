@@ -186,8 +186,11 @@ function clearBoard() {
 function calculateGridSize() {
     // Scales loosely from 6x6 to 8x8 based on progress
     let size = Math.min(8, 6 + Math.floor((currentLevel - 1) / 6));
-    gridWidth = size;
-    gridHeight = size;
+    if (currentModule >= 3) {
+        size += currentModule; // Drastically expand grid
+    }
+    gridWidth = Math.min(size, 10); // cap at 10 to fit on screen
+    gridHeight = Math.min(size, 10);
 }
 
 let movesLimit = 0;
@@ -247,6 +250,11 @@ function generateSolvableBoard() {
         // Reduce hurdles slightly if falling back repeatedly
         let hurdleReduction = Math.floor(fallbackCounter / 10);
         let numHurdles = Math.max(0, 2 + Math.floor((currentLevel + (currentModule * 2)) / 2) - hurdleReduction);
+        
+        if (currentModule >= 3) {
+            numHurdles += (currentModule * 3); // Extreme jump in hurdles
+        }
+
         let attempts = 0;
 
         while (entities.length - 2 < numHurdles && attempts < 100) {
@@ -256,7 +264,7 @@ function generateSolvableBoard() {
             let w = isVertical ? 1 : (2 + Math.floor(Math.random() * 2));
             let h = isVertical ? (2 + Math.floor(Math.random() * 2)) : 1;
 
-            let stickyChance = Math.min(0.3, (currentLevel + currentModule) * 0.02);
+            let stickyChance = Math.min(0.6, 0.2 + (currentLevel + currentModule) * 0.02);
             let isSticky = Math.random() < stickyChance;
             let axis = isVertical ? "v" : "h";
             if (isSticky) axis = "none";
@@ -320,6 +328,47 @@ function addEntity(id, x, y, w, h, type, isSticky, axis) {
     if (type !== "hole" && !isSticky) {
         el.style.cursor = "grab";
         el.addEventListener("pointerdown", (e) => onPointerDown(e, entity));
+        
+        // Add arrow buttons for direct clicking
+        const createArrow = (dir, dx, dy, icon, posStyles) => {
+            let btn = document.createElement("button");
+            btn.innerHTML = `<i class="fas fa-chevron-${icon}"></i>`;
+            btn.style.position = "absolute";
+            Object.assign(btn.style, posStyles);
+            btn.style.background = "rgba(0,0,0,0.5)";
+            btn.style.color = "white";
+            btn.style.border = "none";
+            btn.style.borderRadius = "50%";
+            btn.style.width = "20px";
+            btn.style.height = "20px";
+            btn.style.display = "flex";
+            btn.style.alignItems = "center";
+            btn.style.justifyContent = "center";
+            btn.style.cursor = "pointer";
+            btn.style.fontSize = "10px";
+            btn.style.zIndex = "10";
+            
+            // Prevent pointerdown from bubbling up so dragging isn't triggered
+            btn.addEventListener("pointerdown", (e) => e.stopPropagation());
+            
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                if (!isTransitioning) {
+                    attemptMove(entity, dx, dy);
+                }
+            });
+            return btn;
+        };
+        
+        // Add allowed arrows based on axis
+        if (axis === "h" || axis === "all") {
+            el.appendChild(createArrow("left", -1, 0, "left", { left: "2px", top: "50%", transform: "translateY(-50%)" }));
+            el.appendChild(createArrow("right", 1, 0, "right", { right: "2px", top: "50%", transform: "translateY(-50%)" }));
+        }
+        if (axis === "v" || axis === "all") {
+            el.appendChild(createArrow("up", 0, -1, "up", { top: "2px", left: "50%", transform: "translateX(-50%)" }));
+            el.appendChild(createArrow("down", 0, 1, "down", { bottom: "2px", left: "50%", transform: "translateX(-50%)" }));
+        }
     }
 }
 
@@ -442,7 +491,7 @@ function checkVictory(movedEntity, movesExhausted = false) {
         setTimeout(() => {
             advanceLevel(true);
             startTimer(); // Resume timer
-        }, 1200);
+        }, 100);
     } else if (movesExhausted) {
         clearInterval(timerInterval); // Pause timer
         isTransitioning = true;
@@ -479,7 +528,7 @@ function showFeedbackPopup(message, bgColor, textColor) {
 
     setTimeout(() => {
         feedbackBox.remove();
-    }, 1000); // Remove after 1 second
+    }, 400); // Reduce from 1s to 400ms for snappier experience
 }
 
 // --- Solvability Engine (BFS) ---

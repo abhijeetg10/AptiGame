@@ -210,7 +210,10 @@ function showModuleSelection() {
 // e.g., Level 1-3: 3x3, Level 4-6: 4x4, up to 8x8.
 function calculateGridSize() {
     let size = Math.floor((currentLevel - 1) / 3) + 3;
-    return size;
+    if (currentModule >= 3) {
+        size += (currentModule); // Rapidly expand grid
+    }
+    return Math.min(size, 8); // cap at 8x8 to prevent overflowing pool
 }
 
 function loadLevel() {
@@ -260,10 +263,9 @@ function generateLatinSquare(n, shapes) {
     grid.sort(() => 0.5 - Math.random());
     // Column shuffle requires transposition, skipping for simplicity unless needed.
 
-    // To make it sparse like Sudoku, we could remove more shapes, 
-    // but the prompt asked for finding 1 missing shape at a question mark.
-    // If the grid gets large, we might want to mask extra distractors.
-    let distractorsToMask = Math.floor((n * n) * 0.4); // 40% empty
+    // To make it sparse like Sudoku, we could remove more shapes
+    let percentEmpty = currentModule >= 3 ? 0.75 : 0.4;
+    let distractorsToMask = Math.floor((n * n) * percentEmpty); 
     let maskedCount = 0;
     while (maskedCount < distractorsToMask) {
         let r = Math.floor(Math.random() * n);

@@ -217,12 +217,18 @@ function generateDotMatrix() {
 function calculateDifficulty() {
     // Number of dots starts at 12 to ensure enough screen space for 10 sequences
     numDots = 11 + currentModule;
+    if (currentModule >= 3) {
+        numDots += (currentModule * 2); // Massive increase in dots
+    }
 
     // Sequence length linearly scales from 2 at level 1 to 10 at level 18
     // We add a slight bump for higher modules
     let baseSeq = 2 + (currentModule - 1);
+    if (currentModule >= 3) {
+        baseSeq += (currentModule * 2); // Massive bump in sequence
+    }
     sequenceLength = baseSeq + Math.round((currentLevel - 1) * (8 / 17));
-    sequenceLength = Math.min(sequenceLength, 12); // cap at 12 for sanity
+    sequenceLength = Math.min(sequenceLength, 20); // cap increased from 12 to 20
 }
 
 function loadLevel() {

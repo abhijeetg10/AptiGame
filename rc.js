@@ -231,7 +231,12 @@ function generateRCResources() {
     ];
 
     return topics.map((t, idx) => {
-        const p = `The ${t.name} report provides several key metrics for the upcoming fiscal cycle. It states that ${t.facts[0]}. Additionally, the document confirms that ${t.facts[1]}. Specialists also noted that ${t.facts[2]}, which serves as a baseline for future growth. Finally, the report indicates that ${t.facts[3]}.`;
+        let p = `The ${t.name} report provides several key metrics for the upcoming fiscal cycle. It states that ${t.facts[0]}. Additionally, the document confirms that ${t.facts[1]}. Specialists also noted that ${t.facts[2]}, which serves as a baseline for future growth. Finally, the report indicates that ${t.facts[3]}.`;
+        
+        if (currentModule >= 3) {
+            p = `In a comprehensive and detailed analysis involving multiple global stakeholders, the ${t.name} report provides several key metrics for the upcoming fiscal cycle. According to preliminary findings by an independent commission, it states that ${t.facts[0]}, although some critics debate the margin of error. Additionally, despite ongoing supply chain disruptions and geopolitical tensions, the document confirms that ${t.facts[1]}. Specialists who have monitored the sector for over a decade also noted that ${t.facts[2]}, which serves as a crucial baseline for future growth and investment allocations. Finally, synthesizing data from over forty regional offices, the report indicates that ${t.facts[3]}. This underscores the need for proactive regulatory measures moving forward.`;
+        }
+        
         return { id: idx, title: t.name, text: p, facts: t.facts };
     });
 }
@@ -305,7 +310,7 @@ function renderResourceTabs() {
 }
 
 function renderActiveDoc() {
-    const doc = currentData.docs[activeDoc];
+    const doc = currentDataResources[activeDoc];
     elDocViewer.innerText = doc.text;
 }
 

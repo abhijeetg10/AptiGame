@@ -170,7 +170,10 @@ async function updateDuelScore() {
 
 // --- Data Generation Engine ---
 function generateDataResources() {
-    const companies = ['A', 'B', 'C', 'D', 'E'];
+    let companies = ['A', 'B', 'C', 'D', 'E'];
+    if (currentModule >= 3) {
+        companies.push('F', 'G', 'H', 'I', 'J'); // Aggressive difficulty jump
+    }
     const titles = [
         "Annual Output & Export Distribution",
         "Quarterly Manufacturing Statistics",
@@ -190,6 +193,11 @@ function generateDataResources() {
             const row = { label: comp };
             row['Units 2021'] = Math.floor(Math.random() * 10) * 20 + 100;
             row['% Exported (21)'] = Math.floor(Math.random() * 5) * 10 + 10;
+            if (currentModule >= 3) {
+                // Add noise for higher levels
+                row['Units 2021'] += Math.floor(Math.random() * 50);
+                row['% Exported (21)'] += Math.floor(Math.random() * 15);
+            }
             row['Units 2022'] = row['Units 2021'] + 20;
             row['% Exported (22)'] = row['% Exported (21)'] + 10;
             return row;
@@ -210,7 +218,10 @@ function generateDataResources() {
 }
 
 function generateQuestionFromResources(tabs, level) {
-    const companies = ['A', 'B', 'C', 'D', 'E'];
+    let companies = ['A', 'B', 'C', 'D', 'E'];
+    if (currentModule >= 3) {
+        companies.push('F', 'G', 'H', 'I', 'J');
+    }
     // 3 questions per tab, total 18 questions
     const questionTab = Math.min(5, Math.floor((level - 1) / 3)); 
     const selectedTab = tabs[questionTab];
@@ -282,7 +293,7 @@ function renderResourceTabs() {
 }
 
 function renderActiveTabData() {
-    const data = currentData.tabs[activeTab];
+    const data = currentDataResources[activeTab];
     elDataViewer.innerHTML = '';
     if (chartInstance) chartInstance.destroy();
 

@@ -159,12 +159,15 @@ function showModuleSelection() {
 function calculateGridSize() {
     // Scales playfully: 3x3 for Mod1, 4x4 Mod2, 5x5 Mod3, 6x6 Mod4, 7x7 Mod5
     let size = 2 + currentModule;
-    let finalSize = Math.min(size, 7); // Max 7x7
+    if (currentModule >= 3) {
+        size += (currentModule); // Massive jump in grid complexity
+    }
+    let finalSize = Math.min(size, 8); // Max 8x8
 
     // Dynamically scale CSS variables to prevent overflow on 6x6 and 7x7
     if (finalSize >= 6) {
-        document.documentElement.style.setProperty('--cell-size', '22px');
-        document.documentElement.style.setProperty('--shape-size', '14px');
+        document.documentElement.style.setProperty('--cell-size', '20px');
+        document.documentElement.style.setProperty('--shape-size', '12px');
     } else if (finalSize === 5) {
         document.documentElement.style.setProperty('--cell-size', '32px');
         document.documentElement.style.setProperty('--shape-size', '20px');
