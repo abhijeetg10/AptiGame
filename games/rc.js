@@ -22,8 +22,8 @@ let currentSolution = null;
 let activeDoc = 0;
 
 const sounds = {
-    correct: new Audio('assets/sounds/rc_correct.mp3'),
-    wrong: new Audio('assets/sounds/rc_wrong.mp3')
+    correct: new Audio('../assets/sounds/rc_correct.mp3'),
+    wrong: new Audio('../assets/sounds/rc_wrong.mp3')
 };
 
 // --- DOM Elements ---

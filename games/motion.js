@@ -19,9 +19,9 @@ const { TOTAL_MODULES, LEVELS_PER_MODULE, MODULE_TIME_LIMIT, POINTS_PER_CORRECT 
 
 // --- Sound Effects ---
 const sounds = {
-    correct: new Audio('assets/sounds/correct.mp3'),
-    wrong: new Audio('assets/sounds/wrong.mp3'),
-    complete: new Audio('assets/sounds/complete.mp3')
+    correct: new Audio('../assets/sounds/correct.mp3'),
+    wrong: new Audio('../assets/sounds/wrong.mp3'),
+    complete: new Audio('../assets/sounds/complete.mp3')
 };
 
 const CELL_SIZE = 60; // Pixels per grid cell (fixed for calculation)
@@ -38,6 +38,7 @@ let totalMovesPlayed = 0;
 let totalMinMovesPossible = 0;
 let timeRemaining = MODULE_TIME_LIMIT;
 let timerInterval;
+let totalTimeSpent = 0;
 let isTransitioning = false;
 let moduleScores = [];
 const isMock = new URLSearchParams(window.location.search).get('mode') === 'mock';

@@ -21,8 +21,8 @@ let activeTab = 0;
 let chartInstance = null;
 
 const sounds = {
-    correct: new Audio('assets/sounds/correct.mp3'),
-    wrong: new Audio('assets/sounds/wrong.mp3')
+    correct: new Audio('../assets/sounds/correct.mp3'),
+    wrong: new Audio('../assets/sounds/wrong.mp3')
 };
 
 // --- DOM Elements ---

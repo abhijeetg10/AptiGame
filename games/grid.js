@@ -18,9 +18,9 @@ const { TOTAL_MODULES, LEVELS_PER_MODULE, MODULE_TIME_LIMIT } = GAME_CONFIG;
 
 // --- Sound Effects ---
 const sounds = {
-    correct: new Audio('assets/sounds/correct.mp3'),
-    wrong: new Audio('assets/sounds/wrong.mp3'),
-    complete: new Audio('assets/sounds/complete.mp3')
+    correct: new Audio('../assets/sounds/correct.mp3'),
+    wrong: new Audio('../assets/sounds/wrong.mp3'),
+    complete: new Audio('../assets/sounds/complete.mp3')
 };
 const INITIAL_TIME = 8 * 60; // 8 minutes
 
