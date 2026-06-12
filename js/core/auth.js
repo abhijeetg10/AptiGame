@@ -1,4 +1,4 @@
-import { onAuthStateChanged, signOut, setDoc, doc, getDoc, increment, auth, db, provider, signInWithPopup, arrayUnion } from "./db-shim.js";
+import { onAuthStateChanged, signOut, setDoc, doc, getDoc, increment, auth, db, provider, signInWithPopup, signInWithRedirect, getRedirectResult, arrayUnion } from "./db-shim.js";
 
 const loginBtn = document.getElementById("nav-login-btn");
 const userProfile = document.getElementById("nav-user-profile");
@@ -10,6 +10,31 @@ const logoutBtn = document.getElementById("nav-logout-btn");
 
 
 // Detect login state
+// Process redirect result if coming back from Google Login
+getRedirectResult(auth).then(async (result) => {
+    if (result && result.user) {
+        // AgyDB Local Auth Check Logging
+        try {
+            const user = result.user;
+            const userDocRef = doc(db, "users", user.uid);
+            await setDoc(userDocRef, {
+                name: user.displayName || "",
+                email: user.email || "",
+                lastLogin: new Date(),
+                loginsToday: increment(1),
+                totalLogins: increment(1),
+                loginHistory: arrayUnion(new Date().toISOString())
+            }, { merge: true }); 
+            console.log("Redirect login tracked in Firestore.");
+        } catch (dbError) {
+            console.error("Failed to sync redirect user:", dbError);
+        }
+    }
+}).catch((error) => {
+    console.error("Redirect Login Error", error);
+    alert("Failed to log in with Google.");
+});
+
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         localStorage.setItem("aptiverse_logged_in", "true");
@@ -91,35 +116,13 @@ async function syncUserToFirestore(user) {
 
 // LOGIN FUNCTION
 export const loginWithGoogle = async () => {
-
     try {
-
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-
-        // AgyDB Local Auth Check Logging (For the Admin Dashboard)
-        try {
-            const userDocRef = doc(db, "users", user.uid);
-            await setDoc(userDocRef, {
-                name: user.displayName || "",
-                email: user.email || "",
-                lastLogin: new Date(),
-                loginsToday: increment(1),
-                totalLogins: increment(1),
-                loginHistory: arrayUnion(new Date().toISOString())
-            }, { merge: true }); 
-            console.log("Explicit login tracked in Firestore.");
-        } catch (dbError) {
-            console.error("Failed to sync user to Database:", dbError);
-        }
-
+        // Use signInWithRedirect for better mobile compatibility instead of Popup
+        await signInWithRedirect(auth, provider);
     } catch (error) {
-
-        console.error("Login Failed", error);
-        alert("Failed to log in with Google.");
-
+        console.error("Login Trigger Failed", error);
+        alert("Failed to initiate Google login.");
     }
-
 };
 
 
