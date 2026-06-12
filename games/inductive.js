@@ -1,3 +1,4 @@
+import { Toast } from "../js/utils/toast.js";
 import { collection, addDoc, doc, setDoc, getDoc, onAuthStateChanged, db, auth, increment, serverTimestamp } from "../js/core/db-shim.js";
 import { initRatingSystem } from "../js/utils/rating-system.js";
 import { ActivityLogger } from "../js/utils/activity-logger.js";
@@ -9,7 +10,7 @@ import { getISOWeekString } from "../js/core/utils.js";
 // --- Auth Guard ---
 onAuthStateChanged(auth, (user) => {
     if (!user) {
-        alert("Authentication required. Redirecting to home page...");
+        Toast.show("Authentication required. Redirecting to home page...", 'info');
         window.location.href = "../index.html";
     }
 });

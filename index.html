@@ -41,7 +41,7 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="#" class="logo">
-                <img src="assets/images/logo.png" alt="AptiVerse Logo" class="logo-img">
+                <img loading="lazy" src="assets/images/logo.png" alt="AptiVerse Logo" class="logo-img">
                 <span style="display: flex; gap: 0; font-weight: 800; color: var(--text-main);"><span style="color: var(--primary);">Apti</span>Verse</span>
             </a>
             <ul class="nav-links">
@@ -322,8 +322,8 @@
             <div class="hub-visual">
                 <div class="logo-cloud-header">TRUSTED BY STUDENTS FOR</div>
                 <div class="logo-grid">
-                    <div class="company-logo"><img src="assets/images/tcs.png" alt="TCS"></div>
-                    <div class="company-logo"><img src="assets/images/cognizant.jpg" alt="Cognizant"></div>
+                    <div class="company-logo"><img loading="lazy" src="assets/images/tcs.png" alt="TCS"></div>
+                    <div class="company-logo"><img loading="lazy" src="assets/images/cognizant.jpg" alt="Cognizant"></div>
                     <div class="company-logo"><img src="assets/images/atlas copco.png" alt="Atlas Copco"></div>
                     <div class="company-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Capgemini_201x_logo.svg/1200px-Capgemini_201x_logo.svg.png" alt="Capgemini"></div>
                 </div>
@@ -708,6 +708,7 @@
     <!-- AgyDB Logic -->
     <script type="module">
         import { collection, getDocs, query, orderBy, limit, addDoc, serverTimestamp, db, auth, onAuthStateChanged } from "./js/core/db-shim.js";
+        import { Toast } from "./js/utils/toast.js";
         import { getCurrentUser } from "./js/core/auth.js";
         import { getISOWeekString } from "./js/core/utils.js";
 
@@ -898,7 +899,7 @@
                 const ratingNode = document.querySelector('input[name="rating"]:checked');
                 
                 if (!nameNode.value || !emailNode.value || !typeNode.value || !msgNode.value || !ratingNode) {
-                    alert("Please fill out all fields and provide a rating.");
+                    Toast.show("Please fill out all fields and provide a rating.", "warning");
                     return;
                 }
 
@@ -916,11 +917,11 @@
                         timestamp: serverTimestamp()
                     });
                     
-                    alert("Success! Your feedback has been received. Thank you for helping us improve!");
+                    Toast.show("Success! Your feedback has been received. Thank you for helping us improve!", "success");
                     feedbackForm.reset();
                 } catch (error) {
                     console.error("Feedback error:", error);
-                    alert("Sorry, we couldn't send your feedback. Please try again later.");
+                    Toast.show("Sorry, we couldn't send your feedback. Please try again later.", "error");
                 } finally {
                     feedbackBtn.innerHTML = originalText;
                     feedbackBtn.disabled = false;

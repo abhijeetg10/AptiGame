@@ -1,3 +1,4 @@
+import { Toast } from "../utils/toast.js";
 /**
  * js/features/duel.js
  * Real-time Duel Lobby Logic for AptiVerse.
@@ -35,7 +36,7 @@ let currentUser = null;
 // -- Initialization --
 onAuthStateChanged(auth, (user) => {
     if (!user) {
-        alert("Please login to enter the Battle Arena.");
+        Toast.show("Please login to enter the Battle Arena.", 'info');
         window.location.href = "../index.html";
         return;
     }
@@ -75,14 +76,14 @@ async function createRoom() {
         listenToRoom(roomId);
     } catch (err) {
         console.error("Failed to create room:", err);
-        alert("Failed to create room. Try again.");
+        Toast.show("Failed to create room. Try again.", 'info');
     }
 }
 
 async function joinRoom() {
     const roomId = roomCodeInput.value.trim();
     if (roomId.length !== 6) {
-        alert("Enter a valid 6-digit code.");
+        Toast.show("Enter a valid 6-digit code.", 'info');
         return;
     }
 
@@ -90,13 +91,13 @@ async function joinRoom() {
     const snap = await getDoc(roomRef);
 
     if (!snap.exists()) {
-        alert("Room not found.");
+        Toast.show("Room not found.", 'info');
         return;
     }
 
     const data = snap.data();
     if (data.guestId && data.guestId !== currentUser.uid) {
-        alert("Room is full.");
+        Toast.show("Room is full.", 'info');
         return;
     }
 
@@ -133,7 +134,7 @@ function listenToRoom(roomId) {
 
     currentUnsubscribe = onSnapshot(doc(db, "rooms", roomId), (snap) => {
         if (!snap.exists()) {
-            alert("Room has been closed by the host.");
+            Toast.show("Room has been closed by the host.", 'info');
             exitRoom();
             return;
         }

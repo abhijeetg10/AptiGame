@@ -1,3 +1,4 @@
+import { Toast } from "../js/utils/toast.js";
 import { collection, addDoc, doc, setDoc, getDoc, onAuthStateChanged, db, auth, increment, signOut, serverTimestamp, updateDoc, onSnapshot } from "../js/core/db-shim.js";
 import { ActivityLogger } from "../js/utils/activity-logger.js";
 import { initRatingSystem } from "../js/utils/rating-system.js";
@@ -114,7 +115,7 @@ function initDuelMode() {
     const roomRef = doc(db, "rooms", window.roomId);
     onSnapshot(roomRef, (snap) => {
         if (!snap.exists()) {
-            alert("Room closed.");
+            Toast.show("Room closed.", 'info');
             window.location.href = "../duel.html";
             return;
         }

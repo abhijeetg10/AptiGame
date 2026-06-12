@@ -1,3 +1,4 @@
+import { Toast } from "../utils/toast.js";
 import { collection, addDoc, doc, getDoc, setDoc, updateDoc, serverTimestamp, db, auth, onAuthStateChanged, increment, Timestamp } from "../core/db-shim.js";
 
 // --- CONFIGURATION ---
@@ -373,7 +374,7 @@ async function terminateTest(status = "aborted") {
 
     try {
         await updateFirestoreRecord(status);
-        alert(`Assessment Terminated: ${status === "terminated (tab-switch)" ? "Tab switching is not allowed." : "Test aborted."}\nYour progress has been saved.`);
+        Toast.show(`Assessment Terminated: ${status === "terminated (tab-switch)" ? "Tab switching is not allowed." : "Test aborted."}\nYour progress has been saved.`, 'info');
         
         sessionStorage.removeItem('mock_test_active');
         sessionStorage.removeItem('mock_test_state');
@@ -451,7 +452,7 @@ window.updateMockStatus = updateFirestoreRecord;
 window.terminateMockTest = terminateTest;
 
 function handleTestTimeout() {
-    alert("TIME UP! Submitting your current progress.");
+    Toast.show("TIME UP! Submitting your current progress.", 'info');
     finishTest();
 }
 

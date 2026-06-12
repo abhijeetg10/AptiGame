@@ -1,3 +1,4 @@
+import { Toast } from "../utils/toast.js";
 import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, where, orderBy, limit, auth, onAuthStateChanged, signOut, db, serverTimestamp, Timestamp, getCountFromServer, writeBatch } from "../core/db-shim.js";
 
 // --- SECURITY PROTOCOL ---
@@ -35,7 +36,7 @@ onAuthStateChanged(auth, (user) => {
         }, 500);
     } else {
         // Access Denied
-        alert("ACCESS DENIED: You do not have administrator privileges.");
+        Toast.show("ACCESS DENIED: You do not have administrator privileges.", 'info');
         window.location.href = "../index.html";
     }
 });
@@ -783,7 +784,7 @@ async function filterUsersByCollege(collegeName) {
 // --- CSV EXPORT LOGIC ---
 document.getElementById("download-users-csv").addEventListener("click", () => {
     if (allUsersData.length === 0) {
-        alert("No users data available to download.");
+        Toast.show("No users data available to download.", 'info');
         return;
     }
 
@@ -812,7 +813,7 @@ document.getElementById("download-users-csv").addEventListener("click", () => {
 
 document.getElementById("download-leaderboard-csv").addEventListener("click", () => {
     if (allLeaderboardData.length === 0) {
-        alert("No leaderboard data available to download.");
+        Toast.show("No leaderboard data available to download.", 'info');
         return;
     }
 
@@ -840,7 +841,7 @@ document.getElementById("download-leaderboard-csv").addEventListener("click", ()
 
 document.getElementById("download-feedback-csv").addEventListener("click", () => {
     if (allFeedbackData.length === 0) {
-        alert("No feedback data available to download.");
+        Toast.show("No feedback data available to download.", 'info');
         return;
     }
 
@@ -868,7 +869,7 @@ document.getElementById("download-feedback-csv").addEventListener("click", () =>
 
 document.getElementById("download-ratings-csv").addEventListener("click", () => {
     if (allRatingsData.length === 0) {
-        alert("No ratings data available to download.");
+        Toast.show("No ratings data available to download.", 'info');
         return;
     }
 
@@ -894,7 +895,7 @@ document.getElementById("download-ratings-csv").addEventListener("click", () => 
 
 document.getElementById("download-mock-csv")?.addEventListener("click", () => {
     if (allMockResultsData.length === 0) {
-        alert("No mock results available to download.");
+        Toast.show("No mock results available to download.", 'info');
         return;
     }
 
@@ -923,7 +924,7 @@ document.getElementById("download-mock-csv")?.addEventListener("click", () => {
 
 document.getElementById("download-colleges-csv")?.addEventListener("click", () => {
     if (allCollegesData.length === 0) {
-        alert("No college data available to download.");
+        Toast.show("No college data available to download.", 'info');
         return;
     }
 
@@ -983,13 +984,13 @@ if (btnResetLeaderboards) {
                 console.log(`Deleted ${snapshot.size} entries from ${gameId}`);
             }
 
-            alert(`Success! Successfully cleared ${totalDeleted} entries across all leaderboards.`);
+            Toast.show(`Success! Successfully cleared ${totalDeleted} entries across all leaderboards.`, 'info');
             // Refresh the current view
             const currentGame = document.getElementById("leaderboard-filter").value;
             fetchLeaderboardData(currentGame);
         } catch (error) {
             console.error("Error resetting leaderboards:", error);
-            alert("Error: Failed to clear leaderboards. Check console for details.");
+            Toast.show("Error: Failed to clear leaderboards. Check console for details.", 'info');
         } finally {
             btnResetLeaderboards.innerHTML = '<i class="fas fa-trash-alt"></i> Reset All Leaderboards';
             btnResetLeaderboards.disabled = false;

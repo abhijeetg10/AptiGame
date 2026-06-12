@@ -1,3 +1,4 @@
+import { Toast } from "./toast.js";
 /**
  * js/utils/logger.js - Simple error monitoring and logging utility for AptiVerse
  */
@@ -29,7 +30,7 @@ export const Logger = {
         
         // Show a non-intrusive alert if the operation was critical
         if (operation.includes('saveScore')) {
-            alert("Warning: We're having trouble saving your progress locally. Check your browser storage.");
+            Toast.show("Warning: We're having trouble saving your progress locally. Check your browser storage.", 'info');
         }
     }
 };

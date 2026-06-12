@@ -1,3 +1,4 @@
+import { Toast } from "../js/utils/toast.js";
 import { collection, addDoc, doc, setDoc, getDoc, updateDoc, onAuthStateChanged, db, auth, increment, serverTimestamp, onSnapshot } from "../js/core/db-shim.js";
 import { getISOWeekString } from "../js/core/utils.js";
 import { initRatingSystem } from "../js/utils/rating-system.js";
@@ -9,7 +10,7 @@ import { Logger } from "../js/utils/logger.js";
 // --- Auth Guard ---
 onAuthStateChanged(auth, (user) => {
     if (!user) {
-        alert("Authentication required. Redirecting to home page...");
+        Toast.show("Authentication required. Redirecting to home page...", 'info');
         window.location.href = "../index.html";
     }
 });
@@ -136,7 +137,7 @@ function initDuelMode() {
     const roomRef = doc(db, "rooms", window.roomId);
     onSnapshot(roomRef, (snap) => {
         if (!snap.exists()) {
-            alert("Room closed.");
+            Toast.show("Room closed.", 'info');
             window.location.href = "../duel.html";
             return;
         }

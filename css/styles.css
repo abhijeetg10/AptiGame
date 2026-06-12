@@ -2679,3 +2679,45 @@ img {
 
 .game-link { height: 100%; display: block; }
 
+/* --- TOAST NOTIFICATIONS --- */
+#toast-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    pointer-events: none;
+}
+.apti-toast {
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xl);
+    border-left: 4px solid var(--primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+    animation: toast-slide-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.apti-toast.error { border-left-color: #ef4444; }
+.apti-toast.success { border-left-color: #22c55e; }
+.apti-toast.warning { border-left-color: #f59e0b; }
+.apti-toast i { font-size: 1.25rem; }
+.apti-toast.error i { color: #ef4444; }
+.apti-toast.success i { color: #22c55e; }
+.apti-toast.warning i { color: #f59e0b; }
+
+@keyframes toast-slide-in {
+    0% { transform: translateX(120%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+}
+@keyframes toast-fade-out {
+    0% { transform: translateX(0); opacity: 1; }
+    100% { transform: translateX(120%); opacity: 0; }
+}

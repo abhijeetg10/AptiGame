@@ -1,4 +1,5 @@
-import { onAuthStateChanged, signOut, setDoc, doc, getDoc, increment, auth, db, provider, signInWithPopup, signInWithRedirect, getRedirectResult, arrayUnion } from "./db-shim.js";
+import { Toast } from "../utils/toast.js";
+import { onAuthStateChanged, signOut, setDoc, doc, getDoc, increment, auth, db, provider, signInWithPopup, arrayUnion } from "./db-shim.js";
 
 const loginBtn = document.getElementById("nav-login-btn");
 const userProfile = document.getElementById("nav-user-profile");
@@ -10,31 +11,7 @@ const logoutBtn = document.getElementById("nav-logout-btn");
 
 
 // Detect login state
-// Process redirect result if coming back from Google Login
-getRedirectResult(auth).then(async (result) => {
-    if (result && result.user) {
-        // AgyDB Local Auth Check Logging
-        try {
-            const user = result.user;
-            const userDocRef = doc(db, "users", user.uid);
-            await setDoc(userDocRef, {
-                name: user.displayName || "",
-                email: user.email || "",
-                lastLogin: new Date(),
-                loginsToday: increment(1),
-                totalLogins: increment(1),
-                loginHistory: arrayUnion(new Date().toISOString())
-            }, { merge: true }); 
-            console.log("Redirect login tracked in Firestore.");
-        } catch (dbError) {
-            console.error("Failed to sync redirect user:", dbError);
-        }
-    }
-}).catch((error) => {
-    console.error("Redirect Login Error", error);
-    alert("Failed to log in with Google.");
-});
-
+// Detect login state
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         localStorage.setItem("aptiverse_logged_in", "true");
@@ -117,11 +94,33 @@ async function syncUserToFirestore(user) {
 // LOGIN FUNCTION
 export const loginWithGoogle = async () => {
     try {
-        // Use signInWithRedirect for better mobile compatibility instead of Popup
-        await signInWithRedirect(auth, provider);
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+
+        // AgyDB Local Auth Check Logging
+        try {
+            const userDocRef = doc(db, "users", user.uid);
+            await setDoc(userDocRef, {
+                name: user.displayName || "",
+                email: user.email || "",
+                lastLogin: new Date(),
+                loginsToday: increment(1),
+                totalLogins: increment(1),
+                loginHistory: arrayUnion(new Date().toISOString())
+            }, { merge: true }); 
+        } catch (dbError) {
+            console.error("Failed to sync user to Database:", dbError);
+        }
+
     } catch (error) {
         console.error("Login Trigger Failed", error);
-        alert("Failed to initiate Google login.");
+        if (error.code === 'auth/popup-blocked') {
+            Toast.show("Safari blocked the login window! Please click the 'LOG IN' button at the top right to sign in.", 'info');
+        } else if (error.code === 'auth/cancelled-popup-request' || error.code === 'auth/popup-closed-by-user') {
+            // User closed it, do nothing
+        } else {
+            Toast.show("Failed to log in with Google. Safari users may need to disable 'Prevent cross-site tracking' in settings.", 'info');
+        }
     }
 };
 
