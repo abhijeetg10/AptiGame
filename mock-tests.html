@@ -349,7 +349,8 @@
 
         // Global function for the buttons
         window.startMock = function (companyId) {
-            if (!auth.currentUser) {
+            const isOptimisticallyLoggedIn = localStorage.getItem("aptiverse_logged_in") === "true";
+            if (!auth.currentUser && !isOptimisticallyLoggedIn) {
                 alert("Please login to attempt Mock Tests!");
                 return;
             }
