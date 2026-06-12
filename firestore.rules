@@ -39,7 +39,7 @@ service cloud.firestore {
     // Leaderboards: Publicly readable, owner-writable with validation
     match /leaderboards/{gameId}/scores/{scoreId} {
       allow read: if true;
-      allow create: if request.auth != null && isValidScore(request.resource.data.score);
+      allow create: if isOwner(scoreId) && isValidScore(request.resource.data.score);
       allow update: if isOwner(scoreId) 
                     && isValidScore(request.resource.data.score)
                     && request.resource.data.score >= resource.data.score;
@@ -62,7 +62,7 @@ service cloud.firestore {
     }
     
     match /feedback/{docId} {
-      allow create: if request.auth != null;
+      allow create: if true;
       allow read: if isAdmin();
     }
 
@@ -84,7 +84,7 @@ service cloud.firestore {
     // Weekly Tournament Leaderboards
     match /weekly_leaderboards/{weekId}/scores/{uid} {
       allow read: if true;
-      allow create: if request.auth != null && isValidScore(request.resource.data.score);
+      allow create: if isOwner(uid) && isValidScore(request.resource.data.score);
       allow update: if isOwner(uid) 
                     && isValidScore(request.resource.data.score)
                     && request.resource.data.score >= resource.data.score;

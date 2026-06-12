@@ -12,6 +12,7 @@ const logoutBtn = document.getElementById("nav-logout-btn");
 // Detect login state
 onAuthStateChanged(auth, async (user) => {
     if (user) {
+        localStorage.setItem("aptiverse_logged_in", "true");
         if (loginBtn) loginBtn.style.display = "none";
         if (userProfile) {
             userProfile.style.display = "flex";
@@ -25,6 +26,7 @@ onAuthStateChanged(auth, async (user) => {
         // ROBUST SYNC: Ensure the user exists in Firestore even if they were auto-logged in
         await syncUserToFirestore(user);
     } else {
+        localStorage.removeItem("aptiverse_logged_in");
         if (loginBtn) loginBtn.style.display = "inline-block";
         if (userProfile) userProfile.style.display = "none";
     }
@@ -125,6 +127,7 @@ export const loginWithGoogle = async () => {
 export const logout = async () => {
 
     try {
+        localStorage.removeItem("aptiverse_logged_in");
         await signOut(auth);
     } catch (error) {
         console.error("Logout Failed", error);
@@ -164,9 +167,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const gameLinks = document.querySelectorAll(".game-link");
     gameLinks.forEach(link => {
         link.addEventListener("click", (e) => {
-            if (!getCurrentUser()) {
+            const isOptimisticallyLoggedIn = localStorage.getItem("aptiverse_logged_in") === "true";
+            if (!getCurrentUser() && !isOptimisticallyLoggedIn) {
                 e.preventDefault();
-                alert("Please log in to play the challenges!");
+                // Removed alert() to prevent iOS/Mac Safari from blocking the auth popup
+                console.log("User not logged in, triggering login flow.");
                 loginWithGoogle();
             }
         });

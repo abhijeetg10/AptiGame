@@ -373,6 +373,7 @@ img {
     border: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
+    height: 100%;
 }
 
 .card:hover {
@@ -2675,3 +2676,6 @@ img {
     .hub-stats { flex-direction: column; gap: 2rem; }
     .logo-grid { grid-template-columns: 1fr; }
 }
+
+.game-link { height: 100%; display: block; }
+
