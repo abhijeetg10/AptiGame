@@ -82,6 +82,7 @@ if (elBackToModulesBtn) {
 
 // Fetch user progress on initial load
 async function loadUserProgress() {
+    highestUnlockedModule = 10; // Forced unlock at start
     const activeUser = getCurrentUser();
     if (activeUser) {
         try {

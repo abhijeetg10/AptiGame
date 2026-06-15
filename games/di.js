@@ -57,6 +57,7 @@ onAuthStateChanged(auth, (user) => {
 
 // Fetch user progress
 async function loadUserProgress() {
+    highestUnlockedModule = 10; // Forced unlock at start
     highestUnlockedModule = 10; // Forced unlock
     const user = auth.currentUser;
     if (user) {
