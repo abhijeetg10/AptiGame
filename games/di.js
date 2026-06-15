@@ -52,11 +52,7 @@ const elBackToModulesBtn = document.getElementById('back-to-modules-btn');
 
 // --- Initialization ---
 onAuthStateChanged(auth, (user) => {
-    if (!user) {
-        window.location.href = "../index.html";
-    } else {
-        loadUserProgress();
-    }
+    if (!user) { loadUserProgress(); } else { loadUserProgress(); }
 });
 
 // Fetch user progress

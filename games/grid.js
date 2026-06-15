@@ -8,10 +8,7 @@ import { getISOWeekString } from "../js/core/utils.js";
 
 // --- Auth Guard ---
 onAuthStateChanged(auth, (user) => {
-    if (!user) {
-        Toast.show("Authentication required. Redirecting to home page...", 'info');
-        window.location.href = "../index.html";
-    }
+    if (!user) { console.log("Guest mode"); }
 });
 
 // --- Constants & Config ---

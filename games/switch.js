@@ -572,9 +572,7 @@ if(btnLogout) {
 }
 
 onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        window.location.href = "../index.html";
-    } else {
+    if (!user) { if (typeof init === "function" && !isMock) init(); } else {
         // Load User Progress
         try {
             const userDoc = await getDoc(doc(db, "users", user.uid));
