@@ -349,11 +349,7 @@
 
         // Global function for the buttons
         window.startMock = function (companyId) {
-            const isOptimisticallyLoggedIn = localStorage.getItem("aptiverse_logged_in") === "true";
-            if (!auth.currentUser && !isOptimisticallyLoggedIn) {
-                alert("Please login to attempt Mock Tests!");
-                return;
-            }
+            // Guests are allowed
             window.location.href = `mock-test-activity.html?company=${companyId}`;
         };
 
@@ -394,12 +390,8 @@
         }
 
         onAuthStateChanged(auth, (user) => {
-            if (user) {
-                fetchToppers();
-            } else {
-                // Strictly enforce login for the hub
-                window.location.href = 'index.html';
-            }
+            // Always fetch toppers whether user is logged in or not
+            fetchToppers();
         });
     </script>
 
