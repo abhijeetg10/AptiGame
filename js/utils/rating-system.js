@@ -76,6 +76,16 @@ export async function initRatingSystem(container) {
         console.error("Error checking rating status:", e);
     }
 
+    // Increment games played counter
+    let gamesPlayed = parseInt(localStorage.getItem(`gamesPlayed_${user.uid}`) || '0');
+    gamesPlayed++;
+    localStorage.setItem(`gamesPlayed_${user.uid}`, gamesPlayed.toString());
+
+    // Show on the 1st game, and every 3 games after that (1, 4, 7, 10...)
+    if ((gamesPlayed - 1) % 3 !== 0) {
+        return;
+    }
+
     container.innerHTML = RATING_HTML;
     container.classList.remove('hidden');
 
