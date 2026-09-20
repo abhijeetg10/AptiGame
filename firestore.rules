@@ -66,10 +66,7 @@ service cloud.firestore {
       allow read: if isAdmin();
     }
 
-    // Mock Results
-    match /mock_results/{resId} {
-      allow read, create, update: if request.auth != null && request.auth.token.email == (resource.data.userEmail || request.resource.data.userEmail);
-    }
+
 
     // Rooms for Live Duels (Strict Participant Check)
     match /rooms/{roomId} {

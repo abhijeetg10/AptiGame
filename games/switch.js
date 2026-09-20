@@ -22,7 +22,7 @@ let timeLeft = MODULE_TIME_LIMIT;
 let timerInterval = null;
 let isGameActive = false;
 let currentSolution = "";
-const isMock = new URLSearchParams(window.location.search).get('mode') === 'mock';
+
 
 // --- DOM Elements ---
 const elTimer = document.getElementById('timer-display');
@@ -54,9 +54,7 @@ function init() {
     
     document.getElementById('back-to-modules-btn').onclick = (e) => {
         e.preventDefault();
-        if (isMock) {
-            if (confirm("Abort Mock Test?")) window.parent.location.href = 'mock-tests.html';
-        } else {
+         else {
             location.reload();
         }
     };
@@ -77,7 +75,7 @@ function renderModuleSelection() {
         const card = document.createElement('div');
         card.className = 'card module-card';
         
-        const isLocked = i > highestUnlockedModule && !isMock; // Unlock all for normal play
+        const isLocked = i > highestUnlockedModule; // Unlock all for normal play
         card.style.cursor = "pointer";
         card.style.opacity = "1";
         card.title = "Click to play";
@@ -158,10 +156,8 @@ window.startModule = function (moduleNum) {
     elModuleDisplay.innerText = `${currentModule}`;
     
     loadLevel();
-    if (!isMock) {
-        updateTimerDisplay();
+    updateTimerDisplay();
         startTimer();
-    }
     else if (elTimer) elTimer.style.display = 'none';
 };
 
@@ -353,11 +349,6 @@ async function endModule(customTitle) {
 
     ActivityLogger.log('solve', 'switch');
 
-    if (isMock) {
-        window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
-        return;
-    }
-
     const modal = document.getElementById('results-modal');
     modal.classList.remove('hidden');
     modal.style.display = 'flex';
@@ -484,7 +475,7 @@ async function saveScoreToAgy(btnElement = null, redirectCallback = null) {
                 [`highestModule_switch`]: moduleReached,
                 totalScore: increment(score),
                 modulesCompleted: increment(1),
-                [`gameScores.${isMock ? 'mock_' : ''}switch`]: increment(score),
+                [`gameScores.switch`]: increment(score),
                 lastPlayed: new Date()
             }, { merge: true });
             
@@ -572,7 +563,7 @@ if(btnLogout) {
 }
 
 onAuthStateChanged(auth, async (user) => {
-    if (!user) { if (typeof init === "function" && !isMock) init(); } else {
+    if (!user) { if (typeof init === "function") init(); } else {
         // Load User Progress
         try {
             const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -580,11 +571,11 @@ onAuthStateChanged(auth, async (user) => {
                     highestUnlockedModule = 10; // Forced unlock
             }
         } catch (e) { console.error(e); }
-        if (!isMock) init();
+        init();
     }
 });
 
-const isMockLocal = new URLSearchParams(window.location.search).get('mode') === 'mock';
+
 if (isMockLocal) {
     // Auto-start first module in mock mode
     setTimeout(() => {

@@ -94,7 +94,6 @@ async function fetchAllData() {
         fetchLeaderboardData("overall"), // Default load
         fetchFeedback(),
         fetchRatings(),
-        fetchMockResults(),
         fetchCollegesData(), // NEW
         fetchTrafficData("24h") // Default load traffic
     ]);

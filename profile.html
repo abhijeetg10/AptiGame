@@ -656,16 +656,6 @@
                     activityData[key] = (activityData[key] || 0) + (d.type === 'solve' ? 2 : 1);
                 });
 
-                // 2. Fetch from mock_results
-                const qMock = query(collection(db, "mock_results"), where("uid", "==", uid));
-                const snMock = await getDocs(qMock);
-                snMock.forEach(doc => {
-                    const d = doc.data();
-                    const date = d.timestamp?.toDate ? d.timestamp.toDate() : new Date(d.timestamp);
-                    const key = date.toISOString().split('T')[0];
-                    activityData[key] = (activityData[key] || 0) + 3; // Mock tests worth more
-                });
-
                 // 3. Render squares for last 365 days
                 const now = new Date();
                 const container = document.createDocumentFragment();

@@ -39,7 +39,7 @@ let timerInterval;
 let totalTimeSpent = 0;
 let isTransitioning = false;
 let moduleScores = [];
-const isMock = new URLSearchParams(window.location.search).get('mode') === 'mock';
+
 const roomId = new URLSearchParams(window.location.search).get('roomId');
 const duelRole = new URLSearchParams(window.location.search).get('role');
 let isSkip = false;
@@ -125,9 +125,7 @@ async function loadUserProgress() {
 }
 
 // Ensure game does not auto-start! Wait for module selection.
-if (!isMock) {
-    setTimeout(loadUserProgress, 1000);
-} else {
+setTimeout(loadUserProgress, 1000); else {
     // Auto-start in mock mode
     setTimeout(() => startModule(1), 500);
 }
@@ -162,7 +160,7 @@ function startModule(modNum) {
     elGameHeader.classList.remove("hidden");
     elGameContainer.classList.remove("hidden");
 
-    if (!isMock) startTimer();
+    startTimer();
     else if (elTimer) elTimer.style.display = 'none';
     loadLevel();
     totalMovesPlayed = 0; // Reset for new module
@@ -798,7 +796,7 @@ async function saveScoreToAgy(btnElement, redirectCallback) {
                 }, { merge: true });
                 // DENORMALIZATION
                 const userDocRef = doc(db, "users", user.uid);
-                const updateField = `gameScores.${isMock ? 'mock_' : ''}motion`;
+                const updateField = `gameScores.motion`;
                 await setDoc(userDocRef, {
                     totalScore: increment(correctAnswers),
                     modulesCompleted: increment(1),
@@ -881,10 +879,6 @@ async function saveScoreToAgy(btnElement, redirectCallback) {
 // --- Module Progression ---
 async function endModule(customTitle) {
     clearInterval(timerInterval);
-    if (isMock) {
-        window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
-        return;
-    }
     sounds.complete.play().catch(e => console.log("Audio play blocked"));
     ActivityLogger.log('solve', 'motion');
 

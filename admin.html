@@ -48,7 +48,7 @@
                 <button class="nav-btn" data-target="panel-traffic"><i class="fas fa-chart-area"></i> Traffic</button>
                 <button class="nav-btn" data-target="panel-feedback"><i class="fas fa-comments"></i> Support Feedback</button>
                 <button class="nav-btn" data-target="panel-colleges"><i class="fas fa-university"></i> Colleges</button>
-                <button class="nav-btn" data-target="panel-mock-results"><i class="fas fa-file-invoice"></i> Mock Test Results</button>
+
             </nav>
             <div class="sidebar-footer">
                 <div id="admin-profile" class="admin-profile">
@@ -94,13 +94,7 @@
                                 <div id="stat-avg-rating" class="stat-value">--</div>
                             </div>
                         </div>
-                        <div class="stat-card">
-                            <i class="fas fa-file-invoice stat-icon" style="color: #8b5cf6;"></i>
-                            <div class="stat-info">
-                                <h3>Total Mock Tests</h3>
-                                <div id="stat-total-mock" class="stat-value">--</div>
-                            </div>
-                        </div>
+
                     </div>
                     
                     <div class="card" style="margin-top: 2rem;">
@@ -289,35 +283,6 @@
                     </div>
                 </section>
 
-                <!-- PANEL: MOCK TEST RESULTS -->
-                <section id="panel-mock-results" class="admin-panel">
-                    <div class="card data-table-card">
-                        <div class="table-header" style="justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 1.5rem 2rem 0 2rem; display: flex;">
-                            <h2 style="margin: 0;">Company Mock Test Results</h2>
-                            <button id="download-mock-csv" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                                <i class="fas fa-download"></i> Download CSV
-                            </button>
-                        </div>
-                        <div class="table-container">
-                            <table class="admin-table">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Candidate</th>
-                                        <th>Company</th>
-                                        <th>Score</th>
-                                        <th>Time Left</th>
-                                        <th>Status</th>
-                                        <th>Feedback</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="table-body-mock-results">
-                                    <tr><td colspan="7" style="text-align: center;">Loading mock results...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
 
                 <!-- TRAFFIC ANALYTICS PANEL -->
                 <section id="panel-traffic" class="admin-panel">

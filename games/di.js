@@ -15,7 +15,7 @@ let score = 0;
 let correctAnswers = 0;
 let timeLeft = MODULE_TIME_LIMIT;
 let timerInterval = null;
-const isMock = new URLSearchParams(window.location.search).get('mode') === 'mock';
+
 let currentData = null; // Stores data for 6 tabs
 let currentSolution = null; // The correct answer (Yes/No/Cant Say)
 let activeTab = 0;
@@ -73,11 +73,7 @@ async function loadUserProgress() {
         }
     }
     
-    if (isMock) {
-        startModule(1);
-        if (elModuleSelection) elModuleSelection.style.display = 'none';
-        if (elGameContainer) elGameContainer.classList.remove('hidden');
-    } else {
+     else {
         initModuleGrid();
     }
 }
@@ -357,7 +353,7 @@ window.startModule = (mod) => {
     renderResourceTabs();
     renderActiveTabData();
     nextLevel();
-    if (!isMock) startTimer();
+    startTimer();
     else if (elTimer) elTimer.style.display = 'none';
 };
 
@@ -451,10 +447,6 @@ function updateTimerDisplay() {
 async function endGame() {
     clearInterval(timerInterval);
     ActivityLogger.log('solve', 'di');
-    if (isMock) {
-        window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
-        return;
-    }
     const ratingContainer = document.getElementById('rating-section');
     if (ratingContainer) initRatingSystem(ratingContainer);
 
@@ -532,7 +524,7 @@ async function endGame() {
             console.log("DI leaderboard updated.");
             // DENORMALIZATION
             const userDocRef = doc(db, "users", user.uid);
-            const updateField = `gameScores.${isMock ? 'mock_' : ''}di`;
+            const updateField = `gameScores.di`;
             await setDoc(userDocRef, {
                 totalScore: increment(score),
                 modulesCompleted: increment(1),
@@ -581,11 +573,6 @@ async function endGame() {
         if (currentModule < TOTAL_MODULES) startModule(currentModule + 1);
         else window.location.href = "../index.html";
     };
-
-    if (isMock) {
-        window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
-        return;
-    }
 }
 
 if (elBackToModulesBtn) {

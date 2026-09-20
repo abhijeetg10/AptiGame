@@ -26,7 +26,7 @@ let totalTimeSpent = 0;
 let timeRemaining = MODULE_TIME_LIMIT;
 let timerInterval;
 let moduleScores = [];
-const isMock = new URLSearchParams(window.location.search).get('mode') === 'mock';
+
 
 // --- Sound Effects ---
 const sounds = {
@@ -98,11 +98,7 @@ async function loadUserProgress() {
         initDuelMode();
     }
     
-    if (isMock) {
-        startModule(1);
-        if (elModuleSelection) elModuleSelection.style.display = 'none';
-        if (elGameContainer) elGameContainer.classList.remove('hidden');
-    } else {
+     else {
         // Update UI locks
         moduleBtns.forEach(btn => {
             const modNum = parseInt(btn.getAttribute("data-module"));
@@ -187,7 +183,7 @@ function startModule(modNum) {
     elGameHeader.classList.remove("hidden");
     elGameContainer.classList.remove("hidden");
 
-    if (!isMock) startTimer();
+    startTimer();
     else if (elTimer) elTimer.style.display = 'none';
     loadLevel();
     totalTimeSpent = 0; // Reset for new module session
@@ -532,10 +528,6 @@ async function saveScoreToAgy(btnElement, redirectCallback) {
 // --- Module Progression ---
 async function endModule(customTitle) {
     clearInterval(timerInterval);
-    if (isMock) {
-        window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
-        return;
-    }
     sounds.complete.play().catch(e => console.log("Audio play blocked"));
     ActivityLogger.log('solve', 'sudoku');
     

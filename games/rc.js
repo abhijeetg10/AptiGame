@@ -17,7 +17,7 @@ let score = 0;
 let correctAnswers = 0;
 let timeLeft = MODULE_TIME_LIMIT;
 let timerInterval = null;
-const isMock = new URLSearchParams(window.location.search).get('mode') === 'mock';
+
 let currentData = null; 
 let currentSolution = null; 
 let activeDoc = 0;
@@ -72,13 +72,7 @@ async function loadUserProgress() {
         }
     }
     
-    if (isMock) {
-        startModule(1);
-        const elModuleSelection = document.getElementById('module-selection');
-        const elGameContainer = document.getElementById('game-container');
-        if (elModuleSelection) elModuleSelection.style.display = 'none';
-        if (elGameContainer) elGameContainer.classList.remove('hidden');
-    } else {
+     else {
         initModuleGrid();
     }
 }
@@ -338,7 +332,7 @@ window.startModule = (mod) => {
     renderResourceTabs();
     renderActiveDoc();
     nextLevel();
-    if (!isMock) startTimer();
+    startTimer();
     else if (elTimer) elTimer.style.display = 'none';
 };
 
@@ -429,10 +423,6 @@ function updateTimerDisplay() {
 async function endGame() {
     clearInterval(timerInterval);
     ActivityLogger.log('solve', 'rc');
-    if (isMock) {
-        window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
-        return;
-    }
     const ratingContainer = document.getElementById('rating-section');
     if (ratingContainer) initRatingSystem(ratingContainer);
     
@@ -511,7 +501,7 @@ async function endGame() {
             console.log("RC leaderboard updated.");
             // DENORMALIZATION
             const userDocRef = doc(db, "users", user.uid);
-            const updateField = `gameScores.${isMock ? 'mock_' : ''}rc`;
+            const updateField = `gameScores.rc`;
             await setDoc(userDocRef, {
                 totalScore: increment(score),
                 modulesCompleted: increment(1),

@@ -34,7 +34,7 @@ let timeRemaining = INITIAL_TIME;
 let totalTimeSpent = 0;
 let timerInterval;
 let moduleScores = [];
-const isMock = new URLSearchParams(window.location.search).get('mode') === 'mock';
+
 
 let gridDimensions = 3; // Starts at 3x3
 let targetAnswer = "";
@@ -97,11 +97,7 @@ async function loadUserProgress() {
         }
     }
     
-    if (isMock) {
-        startModule(1);
-        if (elModuleSelection) elModuleSelection.style.display = 'none';
-        if (elGameContainer) elGameContainer.classList.remove('hidden');
-    } else {
+     else {
         // Update UI locks
         moduleBtns.forEach(btn => {
             const modNum = parseInt(btn.getAttribute("data-module"));
@@ -119,9 +115,7 @@ async function loadUserProgress() {
 }
 
 // Ensure game does not auto-start! Wait for module selection.
-if (!isMock) {
-    setTimeout(loadUserProgress, 1000);
-} else {
+setTimeout(loadUserProgress, 1000); else {
     setTimeout(() => startModule(1), 500);
 }
 
@@ -139,7 +133,7 @@ function startModule(modNum) {
     elGameHeader.classList.remove("hidden");
     elGameContainer.classList.remove("hidden");
 
-    if (!isMock) startTimer();
+    startTimer();
     else if (elTimer) elTimer.style.display = 'none';
     loadLevel();
     totalTimeSpent = 0; // Reset for new module session
@@ -607,7 +601,7 @@ async function saveScoreToAgy(btnElement, redirectCallback) {
                 }, { merge: true });
                 // DENORMALIZATION
                 const userDocRef = doc(db, "users", user.uid);
-                const updateField = `gameScores.${isMock ? 'mock_' : ''}inductive`;
+                const updateField = `gameScores.inductive`;
                 await setDoc(userDocRef, {
                     totalScore: increment(correctAnswers),
                     modulesCompleted: increment(1),
@@ -690,10 +684,6 @@ async function saveScoreToAgy(btnElement, redirectCallback) {
 // --- Module Progression ---
 async function endModule(customTitle) {
     clearInterval(timerInterval);
-    if (isMock) {
-        window.parent.postMessage({ type: 'MODULE_COMPLETE', score: score }, '*');
-        return;
-    }
     sounds.complete.play().catch(e => console.log("Audio play blocked"));
     ActivityLogger.log('solve', 'inductive');
 
