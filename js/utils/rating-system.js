@@ -81,10 +81,7 @@ export async function initRatingSystem(container) {
     gamesPlayed++;
     localStorage.setItem(`gamesPlayed_${user.uid}`, gamesPlayed.toString());
 
-    // Show on the 1st game, and every 3 games after that (1, 4, 7, 10...)
-    if ((gamesPlayed - 1) % 3 !== 0) {
-        return;
-    }
+    // Removed the modulus check: Show after EVERY module until the user fills it out.
 
     container.innerHTML = RATING_HTML;
     container.classList.remove('hidden');

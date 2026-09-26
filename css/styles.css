@@ -2811,3 +2811,52 @@ body {
     outline: 2px solid var(--primary);
     outline-offset: 4px;
 }
+
+/* --- Mobile Responsive Fixes (Appended by Agent) --- */
+@media (max-width: 900px) {
+    .nav-links {
+        display: none;
+    }
+    
+    .hero-container {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 3rem 1.5rem;
+    }
+    
+    .hero-content {
+        margin: 0 auto;
+        max-width: 100%;
+    }
+    
+    .hero-visuals {
+        display: none;
+    }
+    
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+    
+    .stats {
+        justify-content: center;
+    }
+    
+    .challenges, .benefits, .how-it-works, .testimonials {
+        padding-top: 4rem !important;
+        padding-bottom: 4rem !important;
+    }
+    
+    .benefits-grid, .steps, .testimonials-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .footer-content {
+        flex-direction: column;
+        gap: 2rem;
+    }
+    
+    .cta-flex-mobile {
+        grid-template-columns: 1fr !important;
+    }
+}
+

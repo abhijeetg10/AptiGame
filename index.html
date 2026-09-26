@@ -36,6 +36,11 @@
 </head>
 
 <body>
+    <!-- Announcement Banner -->
+    <div style="background: #eff6ff; color: #1e3a8a; padding: 0.75rem 1rem; text-align: center; font-size: 0.95rem; font-weight: 500; border-bottom: 1px solid #bfdbfe; display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">
+        <i class="fas fa-laptop"></i>
+        <span>For the best experience and authentic examination practice, we highly recommend using a <b>Laptop or Desktop</b> instead of a mobile phone.</span>
+    </div>
     <!-- Navbar -->
     <nav class="navbar">
         <div class="nav-container">
@@ -50,10 +55,10 @@
             <a href="#" class="btn btn-primary" id="nav-login-btn">LOG IN</a>
             <div id="nav-user-profile" style="display: none; align-items: center; gap: 0.75rem;">
                 <!-- Profile Link Wrap -->
-                <a href="profile.html" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: inherit;">
+                <div style="display: flex; align-items: center; gap: 0.75rem; color: inherit;">
                     <div id="nav-user-avatar" style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem; box-shadow: 0 4px 10px rgba(201, 0, 118, 0.2);"></div>
                     <span id="nav-user-name" style="font-weight: 600; font-size: 0.95rem; color: var(--text-main);"></span>
-                </a>
+                </div>
                 <button id="nav-logout-btn" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.85rem; margin-left: 0.5rem; text-decoration: underline;">Logout</button>
             </div>
         </div>
@@ -71,11 +76,7 @@
                 <p>Master the interactive logic challenges used by top MNCs. Stop reading boring prep books and start
                     playing your way to an offer letter.</p>
     
-                <div id="hero-profile-btn-container" style="margin-top: 2rem; margin-bottom: 2rem;">
-                    <a href="profile.html" class="btn btn-primary" style="padding: 1rem 2rem; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.75rem; box-shadow: 0 8px 20px rgba(201, 0, 118, 0.2);">
-                        View My Analysis Profile <i class="fas fa-chart-line"></i>
-                    </a>
-                </div>
+
 
                 <div class="stats">
                     <div class="avatars">
@@ -339,58 +340,9 @@
 
 
     <!-- Support & Feedback Section -->
-    <section id="support" class="feedback" style="background: var(--bg-main); padding-top: 0;">
-        <div class="nav-container" style="max-width: 800px;">
-            <div style="background: white; border-radius: 32px; padding: 4rem; box-shadow: var(--shadow-xl); border: 1px solid var(--border-color); text-align: left;">
-                <div style="margin-bottom: 3rem; text-align: center;">
-                    <span style="font-size: 0.85rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; display: block;">Support Hub</span>
-                    <h2 style="font-size: 2.5rem; font-weight: 800; color: var(--text-dark); margin-bottom: 1rem;">Found a Bug or Have a Suggestion?</h2>
-                    <p style="color: var(--text-muted); font-size: 1.1rem;">We're constantly improving AptiVerse. Drop your thoughts below!</p>
-                </div>
-
-                <form id="feedback-form" class="feedback-form" onsubmit="return false;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;" class="cta-flex-mobile">
-                        <div class="form-group">
-                            <label for="name">Your Name</label>
-                            <input type="text" id="name" placeholder="John Doe" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email Address</label>
-                            <input type="email" id="email" placeholder="john@example.com" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group" style="margin-bottom: 1.5rem;">
-                        <label for="type">Feedback Type</label>
-                        <select id="type" required>
-                            <option value="suggestion">Suggestion</option>
-                            <option value="bug">Report a Bug</option>
-                            <option value="other">General Inquiry</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 1.5rem;">
-                        <label for="message">Rate your experience</label>
-                        <div class="star-rating">
-                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5"><i class="fas fa-star"></i></label>
-                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4"><i class="fas fa-star"></i></label>
-                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3"><i class="fas fa-star"></i></label>
-                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2"><i class="fas fa-star"></i></label>
-                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1"><i class="fas fa-star"></i></label>
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 2rem;">
-                        <label for="message">Your Message</label>
-                        <textarea id="message" placeholder="Describe your experience or the issue you found..." required></textarea>
-                    </div>
-
-                    <button type="submit" id="feedback-submit-btn" class="btn btn-primary" style="width: 100%; padding: 1.25rem; font-size: 1.1rem; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 0.75rem;">
-                        <span>Submit Feedback</span> <i class="fas fa-paper-plane"></i>
-                    </button>
-                </form>
-            </div>
-        </div>
+    <section id="support" style="background: var(--bg-main); padding: 3rem 1rem; text-align: center; border-top: 1px solid var(--border-color);">
+        <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 1rem;">Have a Bug or Suggestion?</p>
+        <a href="mailto:argaikwad24@gmail.com" class="btn btn-outline" style="border-radius: 20px; padding: 0.75rem 2rem;">Email Support <i class="fas fa-envelope"></i></a>
     </section>
 
     <!-- Footer -->
@@ -413,7 +365,7 @@
                 <h4 style="color: var(--text-main); font-weight: 700; margin-bottom: 1.5rem;">Platform</h4>
                 <ul style="list-style: none; padding: 0;">
                     <li style="margin-bottom: 0.75rem;"><a href="#challenges" style="color: var(--text-muted); transition: 0.3s;">Challenges</a></li>
-                    <li style="margin-bottom: 0.75rem;"><a href="#" style="color: var(--text-muted); transition: 0.3s;">Leaderboards</a></li>
+
                     <li style="margin-bottom: 0.75rem;"><a href="#" style="color: var(--text-muted); transition: 0.3s;">Enterprise Solutions</a></li>
                 </ul>
             </div>
@@ -462,51 +414,7 @@
             }
         });
 
-        // 6. Support & Feedback Storage Logic
-        const feedbackBtn = document.getElementById("feedback-submit-btn");
-        const feedbackForm = document.getElementById("feedback-form");
-        
-        if (feedbackBtn && feedbackForm) {
-            feedbackBtn.addEventListener("click", async (e) => {
-                e.preventDefault();
-                
-                const nameNode = document.getElementById("name");
-                const emailNode = document.getElementById("email");
-                const typeNode = document.getElementById("type");
-                const msgNode = document.getElementById("message");
-                
-                const ratingNode = document.querySelector('input[name="rating"]:checked');
-                
-                if (!nameNode.value || !emailNode.value || !typeNode.value || !msgNode.value || !ratingNode) {
-                    Toast.show("Please fill out all fields and provide a rating.", "warning");
-                    return;
-                }
 
-                const originalText = feedbackBtn.innerHTML;
-                feedbackBtn.innerHTML = '<span>Sending...</span> <i class="fas fa-circle-notch fa-spin"></i>';
-                feedbackBtn.disabled = true;
-
-                try {
-                    await addDoc(collection(db, "feedback"), {
-                        name: nameNode.value,
-                        email: emailNode.value,
-                        type: typeNode.value,
-                        message: msgNode.value,
-                        rating: parseInt(ratingNode.value),
-                        timestamp: serverTimestamp()
-                    });
-                    
-                    Toast.show("Success! Your feedback has been received. Thank you for helping us improve!", "success");
-                    feedbackForm.reset();
-                } catch (error) {
-                    console.error("Feedback error:", error);
-                    Toast.show("Sorry, we couldn't send your feedback. Please try again later.", "error");
-                } finally {
-                    feedbackBtn.innerHTML = originalText;
-                    feedbackBtn.disabled = false;
-                }
-            });
-        }
     </script>
 </body>
 

@@ -95,10 +95,8 @@ async function loadUserProgress() {
         } catch (e) {
             console.error("Error loading user progress:", e);
         }
-    }
-    
-     else {
-        // Update UI locks
+    } // Removed else 
+ { // Update UI locks
         moduleBtns.forEach(btn => {
             const modNum = parseInt(btn.getAttribute("data-module"));
             if (modNum <= highestUnlockedModule) {
@@ -115,9 +113,7 @@ async function loadUserProgress() {
 }
 
 // Ensure game does not auto-start! Wait for module selection.
-setTimeout(loadUserProgress, 1000); else {
-    setTimeout(() => startModule(1), 500);
-}
+setTimeout(loadUserProgress, 1000);
 
 function startModule(modNum) {
     currentModule = modNum;
@@ -134,7 +130,6 @@ function startModule(modNum) {
     elGameContainer.classList.remove("hidden");
 
     startTimer();
-    else if (elTimer) elTimer.style.display = 'none';
     loadLevel();
     totalTimeSpent = 0; // Reset for new module session
 }

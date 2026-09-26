@@ -96,10 +96,8 @@ async function loadUserProgress() {
     // Check for Duel Mode
     if (window.roomId) {
         initDuelMode();
-    }
-    
-     else {
-        // Update UI locks
+    } // Removed else 
+ { // Update UI locks
         moduleBtns.forEach(btn => {
             const modNum = parseInt(btn.getAttribute("data-module"));
             if (modNum <= highestUnlockedModule) {
@@ -184,7 +182,6 @@ function startModule(modNum) {
     elGameContainer.classList.remove("hidden");
 
     startTimer();
-    else if (elTimer) elTimer.style.display = 'none';
     loadLevel();
     totalTimeSpent = 0; // Reset for new module session
 }

@@ -119,19 +119,37 @@ export const getDocs = async (q) => {
 
 export const setDoc = async (docRef, data, options = {}) => {
     const path = getPath(docRef);
-    storage.setDoc(path, data);
-    try {
-        const res = await fbsSetDoc(docRef, data, options);
-        console.log(`[DB] Successfully wrote to server: ${path}`);
-        return res;
-    } catch (e) {
-        console.error(`[DB] Write failed for ${path}:`, e.message);
-        throw e;
+    if (!path.startsWith('users_')) {
+        console.log(`[DB] Blocked write to ${path} to keep DB minimal.`);
+        return Promise.resolve();
     }
+    
+    // Minimal Data Interceptor
+    let minimalData = {};
+    if (data.name) minimalData.name = data.name;
+    if (data.email) minimalData.email = data.email;
+    if (data.gamesPlayed !== undefined) minimalData.gamesPlayed = data.gamesPlayed;
+    if (data.hasRated !== undefined) minimalData.hasRated = data.hasRated;
+    
+    // If it's a game completion save (checking for module logic fields)
+    if (data.totalScore !== undefined || data.moduleScores !== undefined || data.highestModule_di !== undefined) {
+        minimalData.gamesPlayed = fbsIncrement(1);
+    }
+    
+    if (Object.keys(minimalData).length > 0) {
+        storage.setDoc(path, minimalData);
+        try {
+            return await fbsSetDoc(docRef, minimalData, { merge: true });
+        } catch (e) {
+            console.error(`[DB] Write failed for ${path}:`, e.message);
+            return Promise.resolve();
+        }
+    }
+    return Promise.resolve();
 };
 
 export const updateDoc = async (docRef, data) => {
-    return await fbsUpdateDoc(docRef, data);
+    return Promise.resolve(); // Ignore bulky updates
 };
 
 export const deleteDoc = async (docRef) => {
@@ -139,7 +157,7 @@ export const deleteDoc = async (docRef) => {
 };
 
 export const addDoc = async (colRef, data) => {
-    return await fbsAddDoc(colRef, data);
+    return Promise.resolve(); // Ignore analytics and logs
 };
 
 export const getCountFromServer = async (colRef) => {

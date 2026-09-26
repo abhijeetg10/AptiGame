@@ -40,50 +40,16 @@ async function syncUserToFirestore(user) {
     try {
         const userDocRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userDocRef);
-        const today = new Date().toLocaleDateString();
-        
-        let loginsToday = 1;
-        let hasRated = false;
 
-        let firestoreData = null;
-        if (userSnap.exists()) {
-            firestoreData = userSnap.data();
-            hasRated = firestoreData.hasRated || false;
-            loginsToday = firestoreData.loginsToday || 1;
-        }
-
-        const updateData = {
-            lastLogin: new Date(),
-            photoURL: user.photoURL || "",
-            loginsToday: loginsToday,
-            totalLogins: increment(0),
-            hasRated: hasRated
-        };
-
+        const updateData = {};
         if (user.displayName) updateData.name = user.displayName;
-        if (user.email) updateData.email = user.email;
-
-        // Initialize score fields for new users if they don't exist
-        const defaultScores = {
-            totalScore: 0,
-            modulesCompleted: 0,
-            avgAccuracy: 0,
-            gameScores: {}
-        };
 
         if (!userSnap.exists()) {
-            Object.assign(updateData, defaultScores);
-            // Increment Global Total Users
-            await setDoc(doc(db, "system_stats", "global"), { totalUsers: increment(1) }, { merge: true });
+            updateData.gamesPlayed = 0;
         }
 
-        // Increment Global Active Sessions
-        await setDoc(doc(db, "system_stats", "global"), { activeSessions24h: increment(1) }, { merge: true });
-
-        if (updateData.name || updateData.email) {
-            console.log(`[AUTH] Syncing user data for: ${user.email} (UID: ${user.uid})`);
-            await setDoc(userDocRef, updateData, { merge: true }); 
-            console.log(`[AUTH] User sync successful.`);
+        if (updateData.name || !userSnap.exists()) {
+            await setDoc(userDocRef, updateData, { merge: true });
         }
     } catch (e) {
         console.error("[AUTH] Auto-sync failed:", e);
@@ -97,16 +63,11 @@ export const loginWithGoogle = async () => {
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
 
-        // AgyDB Local Auth Check Logging
+        // Minimal Database Sync on Login
         try {
             const userDocRef = doc(db, "users", user.uid);
             await setDoc(userDocRef, {
-                name: user.displayName || "",
-                email: user.email || "",
-                lastLogin: new Date(),
-                loginsToday: increment(1),
-                totalLogins: increment(1),
-                loginHistory: arrayUnion(new Date().toISOString())
+                name: user.displayName || ""
             }, { merge: true }); 
         } catch (dbError) {
             console.error("Failed to sync user to Database:", dbError);
