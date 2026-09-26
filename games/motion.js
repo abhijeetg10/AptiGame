@@ -241,8 +241,8 @@ function generateSolvableBoard() {
         addEntity("player-ball", ballX, ballY, 1, 1, "ball", false, "all");
 
         // 3. Place hurdles based on level
-        // Reduce hurdles slightly if falling back repeatedly
-        let hurdleReduction = Math.floor(fallbackCounter / 15);
+        // Reduce hurdles very quickly if generating takes too long (prevents lag)
+        let hurdleReduction = Math.floor(fallbackCounter / 4);
         
         // Heavy difficulty scaling (more blocks)
         let baseHurdles = 4;
@@ -279,8 +279,8 @@ function generateSolvableBoard() {
         
         // Enforce minimum moves for "back and forth" logic
         let minMovesTarget = 4 + currentLevel + (currentModule * 2);
-        // Reduce requirement if we are struggling to generate
-        let currentMinMoves = Math.max(2, minMovesTarget - Math.floor(fallbackCounter / 5));
+        // Reduce requirement very quickly to prevent infinite looping and freezing
+        let currentMinMoves = Math.max(2, minMovesTarget - Math.floor(fallbackCounter / 2));
 
         if (solution !== false && solution.length >= currentMinMoves) {
             isSolvable = true;
@@ -291,10 +291,10 @@ function generateSolvableBoard() {
             fallbackCounter++;
         }
 
-    } while (!isSolvable && fallbackCounter < 2000);
+    } while (!isSolvable && fallbackCounter < 200); // Max 200 attempts to prevent tab freezing
 
     if (!isSolvable) {
-        console.error("Failed to generate a solvable board after 2000 attempts. Generating an empty board.");
+        console.error("Failed to generate a solvable board after 200 attempts. Generating an empty board.");
         clearBoard();
         addEntity("target-hole", gridWidth - 1, Math.floor(gridHeight / 2), 1, 1, "hole", false, "none");
         addEntity("player-ball", 0, Math.floor(gridHeight / 2), 1, 1, "ball", false, "all");
@@ -535,8 +535,8 @@ function solveBoard() {
     let visited = new Set();
     visited.add(serializeState(initialState));
 
-    // Allow maximum 8000 states to prevent infinite loops on impossible random boards
-    let maxIterations = 8000;
+    // Allow maximum 1000 states to prevent heavy lag during board generation
+    let maxIterations = 1000;
     let iterations = 0;
 
     while (queue.length > 0 && iterations < maxIterations) {
