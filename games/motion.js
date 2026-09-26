@@ -178,15 +178,13 @@ function clearBoard() {
 
 // --- Level Generation ---
 function calculateGridSize() {
-    // Aggressive scaling: Start at 6x6, increase by 1 every 3 levels
-    let size = 6 + Math.floor((currentLevel - 1) / 3);
+    // Keep max size strictly to 6 or 7
+    let size = 6 + Math.floor((currentLevel - 1) / 10);
+    size += Math.floor((currentModule - 1) / 2);
     
-    // Add additional size per module
-    size += (currentModule - 1) * 2;
-    
-    // Cap at 12x12 for maximum difficulty without completely breaking small screens
-    gridWidth = Math.min(size, 12);
-    gridHeight = Math.min(size, 12);
+    // Cap at 7x7 to ensure a cramped, logic-heavy Rush Hour experience
+    gridWidth = Math.min(size, 7);
+    gridHeight = Math.min(size, 7);
 }
 
 let movesLimit = 0;
@@ -244,13 +242,13 @@ function generateSolvableBoard() {
 
         // 3. Place hurdles based on level
         // Reduce hurdles slightly if falling back repeatedly
-        let hurdleReduction = Math.floor(fallbackCounter / 10);
+        let hurdleReduction = Math.floor(fallbackCounter / 15);
         
-        // Massive increase in difficulty scaling
-        let baseHurdles = 3;
-        let levelScaling = currentLevel; // +1 hurdle per level
-        let moduleScaling = (currentModule - 1) * 6; // +6 hurdles per module
-        let numHurdles = Math.max(2, baseHurdles + levelScaling + moduleScaling - hurdleReduction);
+        // Heavy difficulty scaling (more blocks)
+        let baseHurdles = 4;
+        let levelScaling = Math.floor(currentLevel / 2); // +1 hurdle every 2 levels
+        let moduleScaling = (currentModule - 1) * 3; // +3 hurdles per module
+        let numHurdles = Math.min(16, Math.max(2, baseHurdles + levelScaling + moduleScaling - hurdleReduction));
 
         let attempts = 0;
 
@@ -261,9 +259,8 @@ function generateSolvableBoard() {
             let w = isVertical ? 1 : (2 + Math.floor(Math.random() * 2));
             let h = isVertical ? (2 + Math.floor(Math.random() * 2)) : 1;
 
-            // Stickiness (black blocks that cannot move) scales aggressively
-            // Starts at 30% on level 1, goes up to 80% very quickly
-            let stickyChance = Math.min(0.85, 0.25 + (currentLevel * 0.05) + (currentModule * 0.1));
+            // Keep stickiness low so blocks can be moved back and forth for complex clearing
+            let stickyChance = Math.min(0.2, 0.05 + (currentModule * 0.02));
             let isSticky = Math.random() < stickyChance;
             let axis = isVertical ? "v" : "h";
             if (isSticky) axis = "none";
@@ -279,7 +276,13 @@ function generateSolvableBoard() {
 
         // Run BFS
         let solution = solveBoard();
-        if (solution !== false) {
+        
+        // Enforce minimum moves for "back and forth" logic
+        let minMovesTarget = 4 + currentLevel + (currentModule * 2);
+        // Reduce requirement if we are struggling to generate
+        let currentMinMoves = Math.max(2, minMovesTarget - Math.floor(fallbackCounter / 5));
+
+        if (solution !== false && solution.length >= currentMinMoves) {
             isSolvable = true;
             window.currentSolutionPath = solution; // Save globally for replay
             window.initialBoardState = backupState();
