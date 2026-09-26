@@ -178,13 +178,15 @@ function clearBoard() {
 
 // --- Level Generation ---
 function calculateGridSize() {
-    // Scales loosely from 6x6 to 8x8 based on progress
-    let size = Math.min(8, 6 + Math.floor((currentLevel - 1) / 6));
-    if (currentModule >= 3) {
-        size += currentModule; // Drastically expand grid
-    }
-    gridWidth = Math.min(size, 10); // cap at 10 to fit on screen
-    gridHeight = Math.min(size, 10);
+    // Aggressive scaling: Start at 6x6, increase by 1 every 3 levels
+    let size = 6 + Math.floor((currentLevel - 1) / 3);
+    
+    // Add additional size per module
+    size += (currentModule - 1) * 2;
+    
+    // Cap at 12x12 for maximum difficulty without completely breaking small screens
+    gridWidth = Math.min(size, 12);
+    gridHeight = Math.min(size, 12);
 }
 
 let movesLimit = 0;
@@ -243,11 +245,12 @@ function generateSolvableBoard() {
         // 3. Place hurdles based on level
         // Reduce hurdles slightly if falling back repeatedly
         let hurdleReduction = Math.floor(fallbackCounter / 10);
-        let numHurdles = Math.max(0, 2 + Math.floor((currentLevel + (currentModule * 2)) / 2) - hurdleReduction);
         
-        if (currentModule >= 3) {
-            numHurdles += (currentModule * 3); // Extreme jump in hurdles
-        }
+        // Massive increase in difficulty scaling
+        let baseHurdles = 3;
+        let levelScaling = currentLevel; // +1 hurdle per level
+        let moduleScaling = (currentModule - 1) * 6; // +6 hurdles per module
+        let numHurdles = Math.max(2, baseHurdles + levelScaling + moduleScaling - hurdleReduction);
 
         let attempts = 0;
 
@@ -258,7 +261,9 @@ function generateSolvableBoard() {
             let w = isVertical ? 1 : (2 + Math.floor(Math.random() * 2));
             let h = isVertical ? (2 + Math.floor(Math.random() * 2)) : 1;
 
-            let stickyChance = Math.min(0.6, 0.2 + (currentLevel + currentModule) * 0.02);
+            // Stickiness (black blocks that cannot move) scales aggressively
+            // Starts at 30% on level 1, goes up to 80% very quickly
+            let stickyChance = Math.min(0.85, 0.25 + (currentLevel * 0.05) + (currentModule * 0.1));
             let isSticky = Math.random() < stickyChance;
             let axis = isVertical ? "v" : "h";
             if (isSticky) axis = "none";
