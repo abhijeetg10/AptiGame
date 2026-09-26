@@ -291,10 +291,10 @@ function generateSolvableBoard() {
             fallbackCounter++;
         }
 
-    } while (!isSolvable && fallbackCounter < 50);
+    } while (!isSolvable && fallbackCounter < 2000);
 
     if (!isSolvable) {
-        console.error("Failed to generate a solvable board after 50 attempts. Generating an empty board.");
+        console.error("Failed to generate a solvable board after 2000 attempts. Generating an empty board.");
         clearBoard();
         addEntity("target-hole", gridWidth - 1, Math.floor(gridHeight / 2), 1, 1, "hole", false, "none");
         addEntity("player-ball", 0, Math.floor(gridHeight / 2), 1, 1, "ball", false, "all");
